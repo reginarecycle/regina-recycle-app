@@ -1,7 +1,7 @@
 import { Navigate, createBrowserRouter } from "react-router-dom";
 import RouteProtection from "./route-protection";
 import { Routes } from "@/routes/routes";
-import { isAuthenticated, isUnAuthenticated } from "@/lib/helper";
+import { isUnAuthenticated } from "@/lib/helper";
 import LandingLayout from "@/components/layout/landing-layout";
 import { landingRoutes } from "./routers/landing-routes";
 import AuthLayout from "@/components/layout/auth-layout";
