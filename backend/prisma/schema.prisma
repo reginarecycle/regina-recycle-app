@@ -14,12 +14,317 @@ datasource db {
   url = env("DATABASE_URL")
 }
 
-// Example data model
+/// ENUMS
+enum Role {
+  CUSTOMER
+  COLLECTOR
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum NotificationChannel {
+  EMAIL
+  IN_APP
+}
+
+enum NotificationType {
+  EMAIL_PICKUP_REMINDER
+  IN_APP_PICKUP_REMINDER
+  ACCOUNT_ACTIVITY
+  MARKETING
+  ALERT
+}
+
+enum PickupStatus {
+  PENDING
+  IN_PROGRESS
+  ACCEPTED
+  COMPLETED
+  CANCELLED
+}
+
+enum TxType {
+  CREDIT
+  DEBIT
+}
+
+enum TxStatus {
+  PENDING
+  FAILED
+  COMPLETED
+}
+
+enum PricingStatus {
+  ACTIVE
+  INACTIVE
+}
+
+/// MODELS
+
 model User {
+  userId            String    @id @default(uuid())
+  role              Role      @default(CUSTOMER)
+  name              String
+  email             String    @unique
+  phoneNumber       String?
+  passwordHash      String
+  emailVerified     Boolean   @default(false)
+  status            UserStatus @default(ACTIVE)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // relations
+  customerDOB       CustomerDOB?        // one-to-one optional relation
+  collectorProfile  CollectorProfile?
+  addresses         Address[]
+  paymentMethods    PaymentMethod[]
+  pickupsRequested  Pickup[] @relation("requester")
+  pickupsCollected  Pickup[] @relation("collector")
+  notificationPrefs NotificationPreference[]
+  userNotifications UserNotification[]
+  wallet            Wallet?
+  walletTransactions WalletTransaction[]
+  collectorPricings CollectorPricing[]
+  topUpRequests     TopUpRequest[]
+  withdrawRequests  WithdrawRequest[]
+
+  @@map("users")
+}
+
+model CustomerDOB {
   id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String
-  phone     String?
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [userId])
+  dob       DateTime
   createdAt DateTime @default(now())
+
+  @@map("customer_dobs")
+}
+
+model CollectorProfile {
+  collectorProfileId String   @id @default(uuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [userId])
+  licenseId          String   @unique
+  serviceFee         Decimal  @db.Decimal(10,2)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("collector_profiles")
+}
+
+model Address {
+  addressId  String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [userId])
+  line1      String
+  line2      String?
+  city       String
+  province   String
+  postalCode String
+  latitude   Float?
+  longitude  Float?
+  isPrimary  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  pickups Pickup[]
+
+  @@map("addresses")
+}
+
+model Material {
+  materialId String   @id @default(uuid())
+  name       String
+  type       String
+  photoUrl   String?
+  co2Saved   Float?
+  waterSaved Float?
+  createdAt  DateTime @default(now())
+
+  collectorPricings CollectorPricing[]
+  pickupItems       PickupItem[]
+
+  @@map("materials")
+}
+
+model CollectorPricing {
+  collectorPricingId String       @id @default(uuid())
+  collectorUserId    String
+  collector          User         @relation(fields: [collectorUserId], references: [userId])
+  materialId         String
+  material           Material     @relation(fields: [materialId], references: [materialId])
+  price              Decimal      @db.Decimal(14,2)
+  status             PricingStatus @default(ACTIVE)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@unique([collectorUserId, materialId])
+  @@map("collector_pricing")
+}
+
+model Pickup {
+  pickupId        String     @id @default(uuid())
+  requesterUserId String
+  requester       User       @relation("requester", fields: [requesterUserId], references: [userId])
+  collectorUserId String?
+  collector       User?      @relation("collector", fields: [collectorUserId], references: [userId])
+  scheduledAt     DateTime
+  addressId       String?
+  address         Address?   @relation(fields: [addressId], references: [addressId])
+  status          PickupStatus @default(PENDING)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  actualEarning   Decimal?   @db.Decimal(14,2)
+
+  items     PickupItem[]
+  snapshots PickupSnapshot[]
+
+  @@map("pickups")
+}
+
+model PickupItem {
+  pickupId   String
+  pickup     Pickup   @relation(fields: [pickupId], references: [pickupId])
+  materialId String
+  material   Material @relation(fields: [materialId], references: [materialId])
+  quantity   Int
+
+  @@id([pickupId, materialId])
+  @@map("pickup_items")
+}
+
+model PickupSnapshot {
+  snapshotId       String   @id @default(uuid())
+  pickupId         String
+  pickup           Pickup   @relation(fields: [pickupId], references: [pickupId])
+  capturedAt       DateTime @default(now())
+  estimatedEarning Decimal? @db.Decimal(14,2)
+  totalItems       Int?
+
+  @@map("pickup_snapshots")
+}
+
+model Wallet {
+  walletId  String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [userId])
+  balance   Decimal  @db.Decimal(14,2) @default("0.00")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions WalletTransaction[]
+
+  @@map("wallets")
+}
+
+model WalletTransaction {
+  transactionId String   @id @default(uuid())
+  walletId      String
+  wallet        Wallet   @relation(fields: [walletId], references: [walletId])
+  userId        String
+  user          User     @relation(fields: [userId], references: [userId])
+  createdAt     DateTime @default(now())
+  type          TxType
+  status        TxStatus @default(PENDING)
+  description   String?
+  amount        Decimal  @db.Decimal(14,2)
+  referenceType String?
+  referenceId   String?
+
+  @@map("wallet_transactions")
+}
+
+model TopUpRequest {
+  topUpId         String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [userId])
+  paymentMethodId String?
+  paymentMethod   PaymentMethod? @relation(fields: [paymentMethodId], references: [paymentMethodId])
+  amount          Decimal  @db.Decimal(14,2)
+  status          TxStatus @default(PENDING)
+  requestedAt     DateTime @default(now())
+  processedAt     DateTime?
+
+  @@map("topup_requests")
+}
+
+model PaymentMethod {
+  paymentMethodId String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [userId])
+  cardLast4       String?
+  cardBrand       String?
+  expMonth        Int?
+  expYear         Int?
+  isDefault       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  topUpRequests TopUpRequest[]
+
+  @@map("payment_methods")
+}
+
+model WithdrawRequest {
+  withdrawId         String   @id @default(uuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [userId])
+  interacEmail       String
+  securityQuestion   String?
+  securityAnswerHash String?
+  amount             Decimal  @db.Decimal(14,2)
+  status             TxStatus @default(PENDING)
+  requestedAt        DateTime @default(now())
+  processedAt        DateTime?
+
+  @@map("withdraw_requests")
+}
+
+model Notification {
+  notificationId String   @id @default(uuid())
+  description    String
+  createdAt      DateTime @default(now())
+
+  userNotifications UserNotification[]
+
+  @@map("notifications")
+}
+
+model UserNotification {
+  userNotificationId String              @id @default(uuid())
+  userId             String
+  user               User                @relation(fields: [userId], references: [userId])
+  notificationId     String
+  notification       Notification        @relation(fields: [notificationId], references: [notificationId])
+  channel            NotificationChannel
+  type               NotificationType
+  isRead             Boolean             @default(false)
+  readAt             DateTime?
+
+  @@map("user_notifications")
+}
+
+model NotificationPreference {
+  prefId   String              @id @default(uuid())
+  userId   String
+  user     User                @relation(fields: [userId], references: [userId])
+  channel  NotificationChannel
+  type     NotificationType
+  enabled  Boolean             @default(true)
+
+  @@unique([userId, channel, type])
+  @@map("notification_preferences")
+}
+
+model TipOfTheDay {
+  tipId       String   @id @default(uuid())
+  description String
+  startDate   DateTime?
+  endDate     DateTime?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@map("tips_of_the_day")
 }
