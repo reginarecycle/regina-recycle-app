@@ -38,7 +38,7 @@ Full-stack recycling app built with NestJS, React (Vite), Prisma, and PostgreSQL
 ### 1. Clone Repository
 
 ```bash
-git clone hhttps://github.com/reginarecycle/regina-recycle-app.git
+git clone https://github.com/reginarecycle/regina-recycle-app.git
 cd regina-recycle-app
 ```
 
