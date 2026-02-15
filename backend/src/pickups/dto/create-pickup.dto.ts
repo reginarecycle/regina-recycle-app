@@ -1,1 +1,6 @@
-export class CreatePickupDto {}
+export class CreatePickupDto {
+
+date: string;
+status: string;
+userId: string;
+}
