@@ -11,15 +11,34 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
-// Example data model
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
   password  String
   name      String
   phone     String?
+  createdAt DateTime @default(now())
+
+  wallet Wallet?
+  pickups Pickup[]
+}
+
+model Pickup {
+  id        Int      @id @default(autoincrement())
+  date      DateTime
+  status    String
+  userId    String  
+  user      User    @relation (fields: [userId], references:[id])
+  createdAt DateTime @default(now())
+}
+
+model Wallet{
+  id        Int     @id @default(autoincrement())
+  balance   Float   @default(0)
+  userId    String  @unique
+  user      User    @relation (fields: [userId], references:[id])
   createdAt DateTime @default(now())
 }
