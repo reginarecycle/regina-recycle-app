@@ -285,13 +285,13 @@ model WalletTransaction {
 model TopUpRequest {
   topUpId         String   @id @default(uuid())
   userId          String?
-  paymentCardId   String?
+  paymentMethodId   String?
   amount          Decimal  @db.Decimal(14, 2)
   status          TxStatus @default(PENDING)
   requestedAt     DateTime @default(now())
   processedAt     DateTime?
   user            User?    @relation(fields: [userId], references: [userId], onDelete: SetNull)
-  paymentCard     PaymentCard?  @relation(fields: [paymentCardId], references: [paymentCardId], onDelete: SetNull)  amount          Decimal  @db.Decimal(14,2)
+  paymentMethod   PaymentMethod?  @relation(fields: [paymentMethodId], references: [paymentMethodId], onDelete: SetNull) 
 
   @@map("topup_requests")
   @@index([userId])
