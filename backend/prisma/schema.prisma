@@ -167,6 +167,7 @@ model Material {
 
   collectorPricings CollectorPricing[]
   pickupItems       PickupItem[]
+  pickupSnapshots   PickupSnapshot[] 
 
   @@map("materials")
   @@index([type])
