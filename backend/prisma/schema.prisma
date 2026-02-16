@@ -14,12 +14,353 @@ datasource db {
   url = env("DATABASE_URL")
 }
 
-// Example data model
+/// ENUMS
+enum Role {
+  CUSTOMER
+  COLLECTOR
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+
+enum NotificationType {
+  EMAIL_PICKUP_REMINDER
+  IN_APP_PICKUP_REMINDER
+  ACCOUNT_ACTIVITY
+  MARKETING
+  ALERT
+}
+
+enum PickupStatus {
+  PENDING
+  IN_PROGRESS
+  ACCEPTED
+  COMPLETED
+  CANCELLED
+}
+
+enum TxType {
+  CREDIT
+  DEBIT
+}
+
+enum TxStatus {
+  PENDING
+  FAILED
+  COMPLETED
+}
+
+enum PaymentMethodType {
+  CARD
+  MOBILE_PAYMENT
+}
+
+enum PricingStatus {
+  ACTIVE
+  INACTIVE
+}
+
+/// MODELS
+
 model User {
+  userId            String    @id @default(uuid())
+  role              Role      @default(CUSTOMER)
+  name              String
+  email             String    @unique
+  phoneNumber       String?
+  password          String
+  emailVerified     Boolean   @default(false)
+  status            UserStatus @default(ACTIVE)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+  customerDOB       CustomerDOB?
+  collectorProfile  CollectorProfile?
+  notificationPrefs NotificationPreference?
+  wallet            Wallet?
+  addresses         Address[]
+  paymentMethod       PaymentMethod[]
+  notifications     Notification[]
+  walletTransactions WalletTransaction[]
+  collectorPricings CollectorPricing[]
+  topUpRequests     TopUpRequest[]
+  withdrawRequests  WithdrawRequest[]
+  pickupsRequested  Pickup[] @relation("requester")
+  pickupsCollected  Pickup[] @relation("collector")
+
+  @@map("users")
+  @@index([role])
+  @@index([status])
+}
+
+model CustomerDOB {
   id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String
-  phone     String?
+  userId    String   @unique
+  dob       DateTime
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@map("customer_dobs")
+}
+
+model CollectorProfile {
+  collectorProfileId String   @id @default(uuid())
+  userId             String   @unique
+  licenseId          String   @unique
+  serviceFee         Decimal  @db.Decimal(10,2)
+  bulkIncentiveEnabled Boolean  @default(false)
+  bulkThreshold        Int      @default(100)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@map("collector_profiles")
+  @@index([licenseId])
+}
+
+model NotificationPreference {
+  id                    String   @id @default(uuid())
+  userId                String   @unique
+  emailPickupReminder   Boolean  @default(true)
+  emailAccountActivity  Boolean  @default(true)
+  emailMarketing        Boolean  @default(false)
+  inAppPickupReminder   Boolean  @default(true)
+  inAppAlerts           Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  user                  User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+model Address {
+  addressId  String   @id @default(uuid())
+  userId     String
+  line1      String
+  line2      String?
+  city       String
+  province   String
+  postalCode String
+  latitude   Float?
+  longitude  Float?
+  isPrimary  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  pickups Pickup[]
+  user       User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+
+  @@map("addresses")
+  @@index([userId])
+}
+
+model Material {
+  materialId String   @id @default(uuid())
+  name       String   @unique
+  type       String
+  photoUrl   String?
+  co2Saved   Float?
+  waterSaved Float?
+  createdAt  DateTime @default(now())
+
+  collectorPricings CollectorPricing[]
+  pickupItems       PickupItem[]
+  pickupSnapshots   PickupSnapshot[] 
+
+  @@map("materials")
+  @@index([type])
+}
+
+model CollectorPricing {
+  collectorPricingId String       @id @default(uuid())
+  collectorUserId    String
+  materialId         String
+  basePrice          Decimal      @db.Decimal(14,2)
+  bulkPrice          Decimal?      @db.Decimal(14, 2)
+  status             PricingStatus @default(ACTIVE)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  collector          User         @relation(fields: [collectorUserId], references: [userId], onDelete: Cascade)
+  material           Material     @relation(fields: [materialId], references: [materialId], onDelete: Cascade)
+
+
+  @@unique([collectorUserId, materialId])
+  @@map("collector_pricing")
+  @@index([collectorUserId])
+  @@index([materialId])
+  @@index([status])
+}
+
+model Pickup {
+  pickupId        String     @id @default(uuid())
+  requesterUserId String?
+  collectorUserId String?
+  scheduledAt     DateTime
+  addressId       String?
+  address         Address?   @relation(fields: [addressId], references: [addressId], onDelete: SetNull)
+  status          PickupStatus @default(PENDING)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  estimatedEarning Decimal?    @db.Decimal(14, 2)
+  actualEarning   Decimal?   @db.Decimal(14,2)
+  items     PickupItem[]
+  snapshots PickupSnapshot[]
+  requester       User?      @relation("requester", fields: [requesterUserId], references: [userId], onDelete: SetNull)
+  collector       User?      @relation("collector", fields: [collectorUserId], references: [userId], onDelete: SetNull)
+
+
+  @@map("pickups")
+  @@index([requesterUserId])
+  @@index([collectorUserId])
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+model PickupItem {
+  pickupId   String
+  materialId String
+  quantity   Int
+  pickup     Pickup   @relation(fields: [pickupId], references: [pickupId], onDelete: Cascade)
+  material   Material @relation(fields: [materialId], references: [materialId], onDelete: Cascade)
+
+  @@id([pickupId, materialId])
+  @@map("pickup_items")
+  @@index([pickupId])
+  @@index([materialId])
+}
+
+model PickupSnapshot {
+  snapshotId  String   @id @default(uuid())
+  pickupId    String
+  materialId  String
+  quantity      Int           
+  basePrice     Decimal         @db.Decimal(14, 2)  
+  bulkPrice     Decimal?        @db.Decimal(14, 2)  
+  bulkThreshold Int?         
+  priceUsed     Decimal         @db.Decimal(14, 2)  
+  capturedAt  DateTime @default(now())
+  pickup      Pickup   @relation(fields: [pickupId], references: [pickupId], onDelete: Cascade)
+  material    Material @relation(fields: [materialId], references: [materialId], onDelete: Restrict)
+
+  @@map("pickup_snapshots")
+  @@index([pickupId])
+  @@index([materialId])
+}
+
+model Wallet {
+  walletId  String   @id @default(uuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [userId]) // NO cascade: preserve wallets for audit
+  balance   Decimal  @db.Decimal(14,2) @default("0.00")
+
+  transactions WalletTransaction[]
+
+  @@map("wallets")
+}
+
+model WalletTransaction {
+  transactionId String   @id @default(uuid())
+  walletId      String
+  userId        String?
+  type          TxType
+  amount        Decimal  @db.Decimal(14,2)
+  status        TxStatus @default(PENDING)
+  description   String?
+  referenceType String?
+  referenceId   String?
+  createdAt     DateTime @default(now())
+  wallet        Wallet   @relation(fields: [walletId], references: [walletId], onDelete: Cascade) // cascade if wallet removed
+  user          User?    @relation(fields: [userId], references: [userId], onDelete: SetNull) // keep transaction but null user
+
+  @@map("wallet_transactions")
+  @@index([userId])
+  @@index([walletId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model TopUpRequest {
+  topUpId         String   @id @default(uuid())
+  userId          String?
+  paymentMethodId   String?
+  amount          Decimal  @db.Decimal(14, 2)
+  status          TxStatus @default(PENDING)
+  requestedAt     DateTime @default(now())
+  processedAt     DateTime?
+  user            User?    @relation(fields: [userId], references: [userId], onDelete: SetNull)
+  paymentMethod   PaymentMethod?  @relation(fields: [paymentMethodId], references: [paymentMethodId], onDelete: SetNull) 
+
+  @@map("topup_requests")
+  @@index([userId])
+}
+
+
+model PaymentMethod {
+  paymentMethodId String            @id @default(uuid())
+  userId          String
+  type            PaymentMethodType
+  cardLast4       String?
+  cardBrand       String?
+  expMonth        Int?
+  expYear         Int?
+  mobileProvider  String?  
+  phoneNumber     String?
+  isDefault       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  user          User         @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  topUpRequests TopUpRequest[]
+
+  @@map("payment_methods")
+  @@index([userId])
+  @@index([type])
+}
+
+
+model WithdrawRequest {
+  withdrawId         String   @id @default(uuid())
+  userId             String?
+  interacEmail       String
+  securityQuestion   String?
+  securityAnswer     String?
+  amount             Decimal  @db.Decimal(14,2)
+  status             TxStatus @default(PENDING)
+  requestedAt        DateTime @default(now())
+  processedAt        DateTime?
+  user               User?    @relation(fields: [userId], references: [userId], onDelete: SetNull)
+
+  @@map("withdraw_requests")
+  @@index([userId])
+  @@index([status])
+}
+
+model Notification {
+  notificationId String   @id @default(uuid())
+  userId         String
+  type           NotificationType
+  title          String
+  message        String
+  isRead         Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  user           User     @relation(fields: [userId], references: [userId], onDelete: Cascade) // remove personal notifications
+
+  @@map("notifications")
+  @@index([userId, isRead])
+  @@index([userId, type])
+  @@index([createdAt])
+}
+
+model Tip {
+  tipId       String   @id @default(uuid())
+  content     String
+  startDate   DateTime?
+  endDate     DateTime?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@map("tips")
+  @@index([active])
 }
