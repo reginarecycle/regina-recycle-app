@@ -63,17 +63,21 @@ enum PricingStatus {
 }
 
 /// MODELS
+
 model User {
   userId            String    @id @default(uuid())
   role              Role      @default(CUSTOMER)
   name              String
   email             String    @unique
   phoneNumber       String?
-  passwordHash      String
+  password          String
   emailVerified     Boolean   @default(false)
   status            UserStatus @default(ACTIVE)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+
+  // Soft-delete flag — set this instead of deleting the row to preserve history
+  deletedAt         DateTime?
 
   // Notification preferences
   emailPickupReminder    Boolean @default(true)
@@ -82,9 +86,9 @@ model User {
   inAppPickupReminder    Boolean @default(true)
   inAppAlerts            Boolean @default(true)
 
-  // Role-specific optional relations (no columns created on users table)
-  customerDOB       CustomerDOB?       // one-to-one (only for CUSTOMER)
-  collectorProfile  CollectorProfile?  // one-to-one (only for COLLECTOR)
+  // role-specific optional relations
+  customerDOB       CustomerDOB?
+  collectorProfile  CollectorProfile?
 
   // common relations
   addresses         Address[]
@@ -137,7 +141,7 @@ model Address {
   isPrimary  Boolean  @default(false)
   createdAt  DateTime @default(now())
 
-  pickups Pickup[]  // pickups that reference this address
+  pickups Pickup[]  // pickups that reference this address (pickup.addressId is SetNull)
 
   @@map("addresses")
   @@index([userId])
@@ -177,10 +181,15 @@ model CollectorPricing {
 
 model Pickup {
   pickupId        String     @id @default(uuid())
-  requesterUserId String
-  requester       User       @relation("requester", fields: [requesterUserId], references: [userId], onDelete: Cascade)
+
+  // requester becomes optional so we can SetNull if user row is ever deleted;
+  // in practice prefer soft-delete user so this stays populated.
+  requesterUserId String?
+  requester       User?      @relation("requester", fields: [requesterUserId], references: [userId], onDelete: SetNull)
+
   collectorUserId String?
   collector       User?      @relation("collector", fields: [collectorUserId], references: [userId], onDelete: SetNull)
+
   scheduledAt     DateTime
   addressId       String?
   address         Address?   @relation(fields: [addressId], references: [addressId], onDelete: SetNull)
@@ -227,7 +236,7 @@ model PickupSnapshot {
 model Wallet {
   walletId  String   @id @default(uuid())
   userId    String   @unique
-  user      User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [userId]) // NO cascade: preserve wallets for audit
   balance   Decimal  @db.Decimal(14,2) @default("0.00")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -240,9 +249,9 @@ model Wallet {
 model WalletTransaction {
   transactionId String   @id @default(uuid())
   walletId      String
-  wallet        Wallet   @relation(fields: [walletId], references: [walletId], onDelete: Cascade)
-  userId        String
-  user          User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  wallet        Wallet   @relation(fields: [walletId], references: [walletId], onDelete: Cascade) // cascade if wallet removed
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [userId], onDelete: SetNull) // keep transaction but null user
   createdAt     DateTime @default(now())
   type          TxType
   status        TxStatus @default(PENDING)
@@ -258,8 +267,8 @@ model WalletTransaction {
 
 model TopUpRequest {
   topUpId         String   @id @default(uuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  userId          String?
+  user            User?    @relation(fields: [userId], references: [userId], onDelete: SetNull)
   paymentMethodId String?
   paymentMethod   PaymentMethod? @relation(fields: [paymentMethodId], references: [paymentMethodId], onDelete: SetNull)
   amount          Decimal  @db.Decimal(14,2)
@@ -274,7 +283,7 @@ model TopUpRequest {
 model PaymentMethod {
   paymentMethodId String   @id @default(uuid())
   userId          String
-  user            User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [userId], onDelete: Cascade) // delete saved cards when account deleted
   cardLast4       String?
   cardBrand       String?
   expMonth        Int?
@@ -290,11 +299,11 @@ model PaymentMethod {
 
 model WithdrawRequest {
   withdrawId         String   @id @default(uuid())
-  userId             String
-  user               User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  userId             String?
+  user               User?    @relation(fields: [userId], references: [userId], onDelete: SetNull)
   interacEmail       String
   securityQuestion   String?
-  securityAnswerHash String?
+  securityAnswer     String?
   amount             Decimal  @db.Decimal(14,2)
   status             TxStatus @default(PENDING)
   requestedAt        DateTime @default(now())
@@ -307,7 +316,7 @@ model WithdrawRequest {
 model Notification {
   notificationId String   @id @default(uuid())
   userId         String
-  user           User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  user           User     @relation(fields: [userId], references: [userId], onDelete: Cascade) // remove personal notifications
   channel        NotificationChannel
   type           NotificationType
   title          String?
