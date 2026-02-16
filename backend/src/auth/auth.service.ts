@@ -43,4 +43,10 @@ export class AuthService {
     // TODO: Implement login with JWT
     return { user: {} };
   }
+
+  async changePassword(userId: string, dto: any) {
+    //TODO: Implement change password
+
+      return { message: 'Password changed successfully' };
+  }
 }

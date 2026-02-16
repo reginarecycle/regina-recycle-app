@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Get, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, Get, UseGuards, Request, Patch } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
@@ -79,4 +79,15 @@ export class AuthController {
     async getCurrentUser(@Request() req) {
       return this.authService.getCurrentUser(req.user.id);
     }
+
+     /**
+   * Patch /api/auth/change-password
+   * Change password for authenticated user (requires JWT)
+   */
+    @Patch('change-password')
+    @UseGuards()//TODO: Add JWTAuthGuard
+    async changePassword(@Request() req, @Body() dto: any) {
+      return this.authService.changePassword(req.user.id, dto);
+    }
+
 }

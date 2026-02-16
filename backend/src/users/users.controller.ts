@@ -1,34 +1,39 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  @Get('profile')
+  @UseGuards() // Add your authentication guard here
+  getProfile() {
+    const userId = 'temp-user-id'; // Replace with actual user ID from the request context
+    return this.usersService.getProfile(userId);
   }
 
-  @Get()
-  findAll() {
-    return this.usersService.findAll();
+  @Patch('profile')
+  @UseGuards() // Add your authentication guard here
+  updateProfile(@Body() updateUserDto: UpdateUserDto) {
+    const userId = 'temp-user-id'; // Replace with actual user ID from the request context
+    return this.usersService.updateProfile(userId, updateUserDto);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  @Patch('deactivate')
+  @UseGuards() // Add your authentication guard here
+  deactivateAccount() {
+    const userId = 'temp-user-id'; // Replace with actual user ID from the request context
+    // Implement logic to deactivate the user's account
+    return this.usersService.deactivateAccount(userId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  @Delete('delete')
+  @UseGuards() // Add your authentication guard here
+  deleteAccount() {
+    const userId = 'temp-user-id'; // Replace with actual user ID from the request context
+    // Implement logic to delete the user's account
+    return this.usersService.deleteAccount(userId); 
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
-  }
 }
