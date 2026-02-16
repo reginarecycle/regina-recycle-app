@@ -75,8 +75,6 @@ model User {
   status            UserStatus @default(ACTIVE)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
-
-  // Soft-delete flag — set this instead of deleting the row to preserve history
   deletedAt         DateTime?
 
   // Notification preferences
@@ -86,11 +84,11 @@ model User {
   inAppPickupReminder    Boolean @default(true)
   inAppAlerts            Boolean @default(true)
 
-  // role-specific optional relations
+  // Role-specific optional relations
   customerDOB       CustomerDOB?
   collectorProfile  CollectorProfile?
 
-  // common relations
+  // Common relations
   addresses         Address[]
   paymentMethods    PaymentMethod[]
   pickupsRequested  Pickup[] @relation("requester")
