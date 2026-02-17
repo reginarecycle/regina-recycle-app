@@ -4,9 +4,7 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { Routes } from "@/routes/routes";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Toolbar } from "@/components/layout/toolbar";
-import { Drawer, DrawerContent } from "@/components/ui/drawer";
-import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { getPageTitle } from "@/constants/data";
 
 export default function DashboardLayout() {
   const location = useLocation();
@@ -29,17 +27,12 @@ export default function DashboardLayout() {
   // Mock user data - replace with actual auth context
   const userName = "John Doe";
   const userRole = "Verified User";
-  const userAvatar = "/src/assets/avatar.png";
-
-  //const { user } = useAuth();
-  //userName={user.name}
-  //userRole={user.role}
-  //userAvatar={user.avatar}
+  const userAvatar = undefined; // Add user avatar URL from auth
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen overflow-hidden">
       {/* Desktop Sidebar */}
-      <div className="hidden lg:block">
+      <div className="hidden lg:flex">
         <Sidebar
           isCollectorMode={isCollectorRoute}
           userName={userName}
@@ -48,41 +41,38 @@ export default function DashboardLayout() {
         />
       </div>
 
-      {/* Mobile Drawer */}
-      <Drawer open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-        <DrawerContent className="lg:hidden">
-          <Sidebar
-            isCollectorMode={isCollectorRoute}
-            userName={userName}
-            userRole={userRole}
-            userAvatar={userAvatar}
+      {/* Mobile Sidebar Overlay */}
+      {mobileMenuOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setMobileMenuOpen(false)}
           />
-        </DrawerContent>
-      </Drawer>
+          <div className="fixed left-0 top-0 bottom-0 z-50 lg:hidden">
+            <Sidebar
+              isCollectorMode={isCollectorRoute}
+              userName={userName}
+              userRole={userRole}
+              userAvatar={userAvatar}
+            />
+          </div>
+        </>
+      )}
 
       {/* Main Content Area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Mobile Menu Button */}
-        <div className="flex items-center gap-4 border-b bg-background px-4 py-3 lg:hidden">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setMobileMenuOpen(true)}
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-          <span className="font-semibold">ReginaRecycle</span>
-        </div>
+      <div className="flex flex-1 flex-col min-w-0">
 
         {/* Toolbar */}
         <Toolbar
           currentLocation={currentLocation}
           onLocationChange={setCurrentLocation}
           notificationCount={3}
+          pageTitle={getPageTitle()}
+          onMenuClick={() => setMobileMenuOpen(true)}
         />
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900/50 p-6">
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
           <Outlet />
         </main>
       </div>

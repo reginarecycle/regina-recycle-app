@@ -6,44 +6,60 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MapPin, Bell, Settings } from "lucide-react";
+import { locations } from "@/constants/data";
+import { MapPin, Bell, Settings, Menu } from "lucide-react";
 
 interface ToolbarProps {
   currentLocation?: string;
   onLocationChange?: (location: string) => void;
   notificationCount?: number;
+  pageTitle?: string;
+  onMenuClick?: () => void;
 }
-
-const locations = [
-  { value: "123-lane", label: "123 Lane, Str." },
-  { value: "456-avenue", label: "456 Avenue, Blvd." },
-  { value: "789-road", label: "789 Road, Cres." },
-];
 
 export function Toolbar({
   currentLocation = "123-lane",
   onLocationChange,
   notificationCount = 0,
+  pageTitle = "Dashboard",
+  onMenuClick,
 }: ToolbarProps) {
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center justify-end gap-4 border-b bg-background px-6">
-      {/* Location Selector */}
-      <Select value={currentLocation} onValueChange={onLocationChange}>
-        <SelectTrigger className="w-[200px]">
-          <MapPin className="h-4 w-4" />
-          <SelectValue placeholder="Select location" />
-        </SelectTrigger>
-        <SelectContent>
-          {locations.map((location) => (
-            <SelectItem key={location.value} value={location.value}>
-              {location.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b bg-white dark:bg-gray-950 px-6">
+      <div className="flex items-center gap-3">
+      {/* Mobile Menu Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onMenuClick}
+          className="lg:hidden items-center justify-center rounded-full bg-card px-2 py-2"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+
+        {/* Page Title */}
+        <h1 className="text-2xl font-semibold">{pageTitle}</h1>
+        </div>
+      {/* Right Side Actions */}
+      <div className="flex items-center gap-3">
+        
+        {/* Location Selector */}
+        <Select value={currentLocation} onValueChange={onLocationChange}>
+          <SelectTrigger className="w-45 bg-card dark:bg-gray-900 rounded-full border-border">
+            <MapPin className="h-4 w-4" />
+            <SelectValue placeholder="Select location" />
+          </SelectTrigger>
+          <SelectContent>
+            {locations.map((location) => (
+              <SelectItem key={location.value} value={location.value}>
+                {location.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
       {/* Notification Button */}
-      <Button variant="ghost" size="icon" className="relative">
+      <Button variant="ghost" size="icon" className="relative text-black-800 bg-card rounded-full px-2 py-2">
         <Bell className="h-5 w-5" />
         {notificationCount > 0 && (
           <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
@@ -53,9 +69,10 @@ export function Toolbar({
       </Button>
 
       {/* Settings Button */}
-      <Button variant="ghost" size="icon">
+      <Button variant="ghost" size="icon" className="text-black-800 bg-card rounded-full px-2 py-2">
         <Settings className="h-5 w-5" />
       </Button>
+      </div>
     </header>
   );
 }
