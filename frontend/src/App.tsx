@@ -6,14 +6,7 @@ import AppProvider from "./provider";
 function App() {
   return (
     <AppProvider>
-      <RouterProvider
-        router={routes}
-        // fallbackElement={
-        //   <div className='max-sm:h-dvh h-screen flex items-center justify-center'>
-        //     <div className='text-foreground animate-bounce ' />ReginaRecycle
-        //   </div>
-        // }
-      />
+      <RouterProvider router={routes} />
     </AppProvider>
   );
 }
