@@ -1,6 +1,23 @@
 import Warning from "../assets/icons/grey-warning-icon.svg"
+// import type { Url } from "url"
 
-export function LearnCards(props) {
+type props = {
+    photo: string;
+    category: string
+    title: string
+    description: string
+    subtext: string
+    icon: string
+}
+
+function LearnCards({
+    photo,
+    category = "something",
+    title = "title",
+    description = "This is the description",
+    subtext = "This is a warning label",
+    icon,
+}: props) {
     return (
         <article className="relative w-[275px] h-[303px]">
             <div className="absolute w-[275px] h-[303px] top-0 left-42.5">
@@ -9,7 +26,7 @@ export function LearnCards(props) {
                 <img
                     className="absolute top-0.5 left-[37px] w-[209px] h-[173px]"
                     alt="card-img"
-                    src={props.img}
+                    src={photo}
                 />
 
                 <div className="absolute w-full h-[57.83%] top-0 left-0">
@@ -17,7 +34,7 @@ export function LearnCards(props) {
 
                     <div className="flex w-[102px] h-[23px] items-center justify-center gap-2.5 px-[17px] py-px absolute top-[152px] left-[173px] bg-[#618171] rounded-[4px_0px_0px_0px]">
                         <span className="relative flex items-center justify-center w-fit font-text-xs-medium font-[number:var(--text-xs-medium-font-weight)] text-white text-[length:var(--text-xs-medium-font-size)] text-center tracking-[var(--text-xs-medium-letter-spacing)] leading-[var(--text-xs-medium-line-height)] whitespace-nowrap [font-style:var(--text-xs-medium-font-style)]">
-                            {props.category}
+                            {category}
                         </span>
                     </div>
                 </div>
@@ -25,11 +42,11 @@ export function LearnCards(props) {
                 <div className="flex flex-col w-[247px] items-start gap-2.5 absolute top-[191px] left-3.5">
                     <div className="flex flex-col w-[53px] items-start gap-[7px] relative flex-[0_0_auto]">
                         <h2 className="relative flex items-center justify-left self-stretch mt-[-1.00px] font-text-xs-medium font-[number:var(--text-xs-medium-font-weight)] text-black text-[length:var(--text-xs-medium-font-size)] tracking-[var(--text-xs-medium-letter-spacing)] leading-[var(--text-xs-medium-line-height)] [font-style:var(--text-xs-medium-font-style)]">
-                            {props.title}
+                            {title}
                         </h2>
 
                         <p className="relative flex items-center justify-left self-stretch font-text-xs-medium font-[number:var(--text-xs-medium-font-weight)] text-black text-[length:var(--text-xs-medium-font-size)] text-center tracking-[var(--text-xs-medium-letter-spacing)] leading-[var(--text-xs-medium-line-height)] [font-style:var(--text-xs-medium-font-style)]">
-                            {props.description}
+                            {description}
                         </p>
                     </div>
 
@@ -38,7 +55,7 @@ export function LearnCards(props) {
                             <div className="warning-label">
                                 <img src={Warning}></img>
                                 <p className="relative flex items-center justify-center w-fit [font-family:'Satoshi-Medium',Helvetica] font-medium text-black text-xs text-center tracking-[0] leading-4 whitespace-nowrap">
-                                    {props.subtext}
+                                    {subtext}
                                 </p>
                             </div>
                         </div>
@@ -52,7 +69,7 @@ export function LearnCards(props) {
                             <img
                                 className="absolute inset-0 w-full h-full object-cover"
                                 alt="card icon"
-                                src={props.icon}
+                                src={icon}
                             />
                         </div>
                     </div>

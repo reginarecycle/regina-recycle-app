@@ -24,7 +24,7 @@ export function Main() {
             "
                         >
                             <LearnCards
-                                img={Cans}
+                                photo={Cans}
                                 title="Cans"
                                 category="Recyclables"
                                 description="krljrjntprp"
@@ -33,7 +33,7 @@ export function Main() {
                             />
 
                             <LearnCards
-                                img={Boxes}
+                                photo={Boxes}
                                 title="somethingjejfhdskjfhsdkjfh"
                                 category="Recyclables"
                                 description="idk"
@@ -42,7 +42,7 @@ export function Main() {
                             />
 
                             <LearnCards
-                                img={Cans}
+                                photo={Cans}
                                 title="Cans"
                                 category="Garbage"
                                 description="krljrjntprp"
@@ -51,7 +51,7 @@ export function Main() {
                             />
 
                             <LearnCards
-                                img={Cans}
+                                photo={Cans}
                                 title="Cans"
                                 category="Recyclables"
                                 description="krljrjntprp"
@@ -60,7 +60,7 @@ export function Main() {
                             />
 
                             <LearnCards
-                                img={Cans}
+                                photo={Cans}
                                 title="Cans"
                                 category="Recyclables"
                                 description="krljrjntprp"
@@ -69,7 +69,7 @@ export function Main() {
                             />
 
                             <LearnCards
-                                img={Cans}
+                                photo={Cans}
                                 title="Cans"
                                 category="Recyclables"
                                 description="krljrjntprp"
@@ -78,7 +78,7 @@ export function Main() {
                             />
 
                             <LearnCards
-                                img={Cans}
+                                photo={Cans}
                                 title="Cans"
                                 category="Recyclables"
                                 description="krljrjntprp"
