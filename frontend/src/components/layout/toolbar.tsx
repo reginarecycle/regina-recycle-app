@@ -25,9 +25,9 @@ export function Toolbar({
   onMenuClick,
 }: ToolbarProps) {
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b bg-white dark:bg-gray-950 px-6">
+    <header className="sticky top-0 z-30 lg:z-50 flex h-16 items-center justify-between border-b bg-white dark:bg-gray-950 px-6">
       <div className="flex items-center gap-3">
-      {/* Mobile Menu Button */}
+        {/* Mobile Menu Button */}
         <Button
           variant="ghost"
           size="icon"
@@ -38,14 +38,14 @@ export function Toolbar({
         </Button>
 
         {/* Page Title */}
-        <h1 className="text-2xl font-semibold">{pageTitle}</h1>
-        </div>
+        <h1 className="text-xl md:text-2xl font-semibold">{pageTitle}</h1>
+      </div>
+
       {/* Right Side Actions */}
       <div className="flex items-center gap-3">
-        
-        {/* Location Selector */}
+        {/* Location Selector - Hidden on mobile */}
         <Select value={currentLocation} onValueChange={onLocationChange}>
-          <SelectTrigger className="w-45 bg-card dark:bg-gray-900 rounded-full border-border">
+          <SelectTrigger className="hidden md:flex w-45 bg-card dark:bg-gray-900 rounded-full border-border">
             <MapPin className="h-4 w-4" />
             <SelectValue placeholder="Select location" />
           </SelectTrigger>
@@ -58,20 +58,20 @@ export function Toolbar({
           </SelectContent>
         </Select>
 
-      {/* Notification Button */}
-      <Button variant="ghost" size="icon" className="relative text-black-800 bg-card rounded-full px-2 py-2">
-        <Bell className="h-5 w-5" />
-        {notificationCount > 0 && (
-          <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
-            {notificationCount > 9 ? "9+" : notificationCount}
-          </span>
-        )}
-      </Button>
+        {/* Notification Button */}
+        <Button variant="ghost" size="icon" className="relative text-black-800 bg-card rounded-full px-2 py-2">
+          <Bell className="h-5 w-5" />
+          {notificationCount > 0 && (
+            <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
+              {notificationCount > 9 ? "9+" : notificationCount}
+            </span>
+          )}
+        </Button>
 
-      {/* Settings Button */}
-      <Button variant="ghost" size="icon" className="text-black-800 bg-card rounded-full px-2 py-2">
-        <Settings className="h-5 w-5" />
-      </Button>
+        {/* Settings Button */}
+        <Button variant="ghost" size="icon" className="text-black-800 bg-card rounded-full px-2 py-2">
+          <Settings className="h-5 w-5" />
+        </Button>
       </div>
     </header>
   );

@@ -2,9 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
 import { LogOut, } from "lucide-react";
-
 import { collectorNavItems, userNavItems } from "@/constants/data";
 
 interface SidebarProps {
@@ -35,7 +33,7 @@ export function Sidebar({
     <aside className="flex h-screen w-64 flex-col border-r bg-white dark:bg-gray-950">
       {/* Logo Section */}
       <div className="flex items-center gap-3 border-b px-6 h-16">
-        <img src="/src/assets/logo.svg" alt="ReginaRecycle Logo" className="h-8 w-8" />
+        <img src="/logo.svg" alt="ReginaRecycle" className="h-10 w-10" />
         <div className="flex flex-col justify-start">
           <span className="text-lg font-semibold leading-tight text-primary">ReginaRecycle</span>
           <span className="text-xs text-muted-foreground leading-tight">
@@ -55,12 +53,12 @@ export function Sidebar({
             const Icon = item.icon;
 
             return (
-              <Link key={item.href} to={item.href} >
+              <Link key={item.href} to={item.href}>
                 <Button
                   variant="ghost"
                   className={cn(
-                    "w-full justify-start py-5 gap-3 hover:bg-primary/10",
-                    isActive && "bg-primary/10 font-medium"
+                    "w-full justify-start py-5 gap-3 text-foreground hover:bg-primary/10 hover:text-primary [&_svg]:hover:text-primary",
+                    isActive && "bg-primary/10 font-semibold text-primary [&_svg]:text-primary"
                   )}
                 >
                   <Icon className="h-5 w-5" />
@@ -72,9 +70,16 @@ export function Sidebar({
         </div>
       </nav>
 
-      {/* User Profile Section */}
-      <div className="border-t p-4">
-        <div className="flex w-56 h-14.5 items-center justify-between rounded-lg border border-primary bg-[rgba(53,79,66,0.18)] backdrop-blur-[2px] px-3 py-2 hover:bg-[rgba(53,79,66,0.25)] transition-colors cursor-pointer">
+      {/* User Profile Section with Decorative Overlay */}
+      <div className="relative p-4 pb-10">
+        <img
+          src="/design.png"
+          alt="Overlay design"
+          className="absolute bottom-1"
+        />
+
+        {/* User Profile Card */}
+        <div className="relative z-10 flex w-56 h-14.5 items-center justify-between rounded-lg border border-primary bg-[rgba(53,79,66,0.18)] backdrop-blur-[2px] px-3 py-2 hover:bg-[rgba(53,79,66,0.25)] transition-colors cursor-pointer">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
               <AvatarImage src={userAvatar} alt={userName} />
@@ -88,7 +93,7 @@ export function Sidebar({
             </div>
           </div>
           <Button variant="ghost" size="icon-sm" className="dark:hover:bg-card">
-            <LogOut />
+            <LogOut className="h-4 w-4" />
           </Button>
         </div>
       </div>

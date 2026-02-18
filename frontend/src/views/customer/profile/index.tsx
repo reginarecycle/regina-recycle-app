@@ -1,5 +1,5 @@
 const CustomerProfile = () => {
-  return <div>Customer Profile</div>;
+  // ...component code...
 };
 
 export default CustomerProfile;
