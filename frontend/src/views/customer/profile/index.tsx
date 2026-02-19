@@ -1,3 +1,4 @@
+// src/pages/ProfilePage.tsx
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -5,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import NotificationSection from "@/components/ui/notificationSection";
 import {
   Calendar,
   Clock,
@@ -22,14 +23,84 @@ import {
 } from "lucide-react";
 
 export default function ProfilePage() {
+  // Password & UI toggles
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // form changed states
   const [detailsChanged, setDetailsChanged] = useState(false);
   const [passwordChanged, setPasswordChanged] = useState(false);
+
+  // notifications state (controlled switches)
+  const [notificationPrefs, setNotificationPrefs] = useState<Record<string, boolean>>({
+    // email
+    "email:pickup": true,
+    "email:activity": true,
+    "email:marketing": false,
+    // in-app
+    "inapp:pickup": false,
+    "inapp:alerts": true,
+  });
   const [notificationsChanged, setNotificationsChanged] = useState(false);
+
+  // delete dialog
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteText, setDeleteText] = useState("");
+
+  // Helpers for notifications
+  const handleToggle = (id: string, checked: boolean) => {
+    setNotificationPrefs((prev) => ({ ...prev, [id]: checked }));
+    setNotificationsChanged(true);
+  };
+
+  const handleSaveEmail = () => {
+    // TODO: call API to persist email notification prefs
+    // on success:
+    setNotificationsChanged(false);
+  };
+
+  // row data derived from state (keeps UI controlled)
+  const emailRows = [
+    {
+      id: "email:pickup",
+      icon: <Clock className="h-6 w-6 text-gray-600" />,
+      title: "Pickup Reminders",
+      description: "Get notified 24 hours before your scheduled collection.",
+      checked: !!notificationPrefs["email:pickup"],
+    },
+    {
+      id: "email:activity",
+      icon: <Users className="h-6 w-6 text-gray-600" />,
+      title: "Account Activity",
+      description: "Security alert, password changes and login notifications.",
+      checked: !!notificationPrefs["email:activity"],
+    },
+    {
+      id: "email:marketing",
+      icon: <Volume2 className="h-6 w-6 text-gray-600" />,
+      title: "Marketing",
+      description: "Newsletter, impact reports, promotional offers",
+      checked: !!notificationPrefs["email:marketing"],
+    },
+  ];
+
+  const inAppRows = [
+    {
+      id: "inapp:pickup",
+      icon: <Truck className="h-6 w-6 text-gray-600" />,
+      title: "Pickup Reminders",
+      description: "Receive a text message 1 hour before pickup.",
+      checked: !!notificationPrefs["inapp:pickup"],
+    },
+    {
+      id: "inapp:alerts",
+      icon: <AlertTriangle className="h-6 w-6 text-gray-600" />,
+      title: "Important Alerts",
+      description: "Service disruption, weather delays, and urgent updates.",
+      checked: !!notificationPrefs["inapp:alerts"],
+    },
+  ];
 
   return (
     <div className="p-6 md:p-8">
@@ -70,7 +141,7 @@ export default function ProfilePage() {
             </TabsList>
           </div>
 
-          {/* My Details Tab */}
+          {/* My Details */}
           <TabsContent value="details" className="mt-0 p-8">
             <div className="mb-8">
               <h2 className="text-xl font-semibold mb-1">Personal Information</h2>
@@ -82,7 +153,9 @@ export default function ProfilePage() {
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="fullname" className="text-sm font-medium">Full name</Label>
+                  <Label htmlFor="fullname" className="text-sm font-medium">
+                    Full name
+                  </Label>
                   <Input
                     id="fullname"
                     placeholder="John Doe"
@@ -92,7 +165,9 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                  <Label htmlFor="email" className="text-sm font-medium">
+                    Email
+                  </Label>
                   <Input
                     id="email"
                     type="email"
@@ -106,7 +181,9 @@ export default function ProfilePage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-sm font-medium">Phone Number</Label>
+                  <Label htmlFor="phone" className="text-sm font-medium">
+                    Phone Number
+                  </Label>
                   <Input
                     id="phone"
                     placeholder="1-(306)-0000"
@@ -116,7 +193,9 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="dob" className="text-sm font-medium">Date of Birth</Label>
+                  <Label htmlFor="dob" className="text-sm font-medium">
+                    Date of Birth
+                  </Label>
                   <div className="relative">
                     <Input
                       id="dob"
@@ -132,7 +211,9 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="address" className="text-sm font-medium">Address</Label>
+                <Label htmlFor="address" className="text-sm font-medium">
+                  Address
+                </Label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
@@ -164,7 +245,7 @@ export default function ProfilePage() {
             </div>
           </TabsContent>
 
-          {/* Security Tab */}
+          {/* Security */}
           <TabsContent value="security" className="mt-0 p-8">
             <div className="mb-8">
               <h2 className="text-xl font-semibold mb-1">Password Management</h2>
@@ -175,7 +256,9 @@ export default function ProfilePage() {
 
             <div className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="current-password" className="text-sm font-medium">Current Password</Label>
+                <Label htmlFor="current-password" className="text-sm font-medium">
+                  Current Password
+                </Label>
                 <div className="relative">
                   <Input
                     id="current-password"
@@ -189,14 +272,20 @@ export default function ProfilePage() {
                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
-                    {showCurrentPassword ? <EyeClosed className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showCurrentPassword ? (
+                      <EyeClosed className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="new-password" className="text-sm font-medium">New Password</Label>
+                  <Label htmlFor="new-password" className="text-sm font-medium">
+                    New Password
+                  </Label>
                   <div className="relative">
                     <Input
                       id="new-password"
@@ -210,12 +299,18 @@ export default function ProfilePage() {
                       onClick={() => setShowNewPassword(!showNewPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
-                      {showNewPassword ? <EyeClosed className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      {showNewPassword ? (
+                        <EyeClosed className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
                     </button>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="confirm-password" className="text-sm font-medium">Confirm Password</Label>
+                  <Label htmlFor="confirm-password" className="text-sm font-medium">
+                    Confirm Password
+                  </Label>
                   <div className="relative">
                     <Input
                       id="confirm-password"
@@ -229,7 +324,11 @@ export default function ProfilePage() {
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
-                      {showConfirmPassword ? <EyeClosed className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      {showConfirmPassword ? (
+                        <EyeClosed className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -255,12 +354,21 @@ export default function ProfilePage() {
 
             <Separator className="my-8" />
 
-            <div className="flex justify-center items-center w-full max-w-[1078px] p-9 rounded-[14px] border border-red-600 bg-[rgba(221,30,30,0.06)] backdrop-blur-[20px] shrink-0">
+            {/* Delete Account card */}
+            <div className="relative flex justify-center items-center w-full max-w-[1078px] p-9 rounded-[14px] border border-red-600 bg-[rgba(221,30,30,0.06)] backdrop-blur-[20px] shrink-0">
+              {/* decorative image: change src if needed */}
+              <img
+                src="/delete-account.png"
+                alt="Delete Account Decor"
+                aria-hidden="true"
+                className="absolute -top-18 -right-30 w-74 sm:w-50 opacity-40 pointer-events-none select-none"
+              />
+
               <div className="flex items-start justify-between gap-4 w-full">
                 <div>
                   <h3 className="text-lg font-semibold text-red-600 mb-2">Delete Account</h3>
                   <p className="text-sm text-red-600/80">
-                    Once you delete your account, there is no going back. Please be certain .
+                    Once you delete your account, there is no going back. Please be certain.
                   </p>
                 </div>
                 <Button
@@ -274,124 +382,29 @@ export default function ProfilePage() {
             </div>
           </TabsContent>
 
-          {/* Notifications Tab */}
+          {/* Notifications */}
           <TabsContent value="notifications" className="mt-0 p-8">
             <div className="space-y-6">
-              <div>
-                <div className="flex items-start justify-between mb-8 gap-4">
-                  <div>
-                    <h2 className="text-xl font-semibold mb-1">Email Notification</h2>
-                    <p className="text-sm text-muted-foreground">
-                      Receive updates and alerts via your registered email address.
-                    </p>
-                  </div>
-                  <Button
-                    className="w-[174px] h-11 bg-primary hover:bg-primary/90 text-white disabled:opacity-60"
-                    disabled={!notificationsChanged}
-                    onClick={() => setNotificationsChanged(false)}
-                  >
-                    Update Preferences
-                  </Button>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between h-[73px] px-6 py-3.5 rounded-xl bg-[#F7F7F7] gap-4">
-                    <div className="flex items-start gap-3 flex-1">
-                      <Clock className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
-                      <div>
-                        <h3 className="font-medium mb-1">Pickup Reminders</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Get notified 24 hours before your scheduled collection.
-                        </p>
-                      </div>
-                    </div>
-                    <Switch
-                      defaultChecked
-                      className="shrink-0"
-                      onCheckedChange={() => setNotificationsChanged(true)}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between h-[73px] px-6 py-3.5 rounded-xl bg-[#F7F7F7] gap-4">
-                    <div className="flex items-start gap-3 flex-1">
-                      <Users className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
-                      <div>
-                        <h3 className="font-medium mb-1">Account Activity</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Security alert, password changes and login notifications.
-                        </p>
-                      </div>
-                    </div>
-                    <Switch
-                      defaultChecked
-                      className="shrink-0"
-                      onCheckedChange={() => setNotificationsChanged(true)}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between h-[73px] px-6 py-3.5 rounded-xl bg-[#F7F7F7] gap-4">
-                    <div className="flex items-start gap-3 flex-1">
-                      <Volume2 className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
-                      <div>
-                        <h3 className="font-medium mb-1">Marketing</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Newsletter, impact reports, promotional offers
-                        </p>
-                      </div>
-                    </div>
-                    <Switch
-                      className="shrink-0"
-                      onCheckedChange={() => setNotificationsChanged(true)}
-                    />
-                  </div>
-                </div>
-              </div>
+              {/* Email Notifications section (has save button) */}
+              <NotificationSection
+                title="Email Notification"
+                subtitle="Receive updates and alerts via your registered email address."
+                rows={emailRows}
+                onToggle={handleToggle}
+                onSave={handleSaveEmail}
+                saveLabel="Update Preferences"
+                saveDisabled={!notificationsChanged}
+              />
 
               <Separator className="my-8" />
 
-              <div>
-                <div className="mb-8">
-                  <h2 className="text-xl font-semibold mb-1">In-App Notification</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Get instant update within the platform
-                  </p>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between h-[73px] px-6 py-3.5 rounded-xl bg-[#F7F7F7] gap-4">
-                    <div className="flex items-start gap-3 flex-1">
-                      <Truck className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
-                      <div>
-                        <h3 className="font-medium mb-1">Pickup Reminders</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Receive a text message 1 hour before pickup.
-                        </p>
-                      </div>
-                    </div>
-                    <Switch
-                      className="shrink-0"
-                      onCheckedChange={() => setNotificationsChanged(true)}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between h-[73px] px-6 py-3.5 rounded-xl bg-[#F7F7F7] gap-4">
-                    <div className="flex items-start gap-3 flex-1">
-                      <AlertTriangle className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
-                      <div>
-                        <h3 className="font-medium mb-1">Important Alerts</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Service disruption, weather delays, and urgent updates.
-                        </p>
-                      </div>
-                    </div>
-                    <Switch
-                      defaultChecked
-                      className="shrink-0"
-                      onCheckedChange={() => setNotificationsChanged(true)}
-                    />
-                  </div>
-                </div>
-              </div>
+              {/* In-App Notifications section (no save button) */}
+              <NotificationSection
+                title="In-App Notification"
+                subtitle="Get instant update within the platform"
+                rows={inAppRows}
+                onToggle={handleToggle}
+              />
             </div>
           </TabsContent>
         </Tabs>
