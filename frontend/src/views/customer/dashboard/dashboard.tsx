@@ -1,5 +1,9 @@
+import { Sidebar } from "@/components/layout/sidebar"
 export function dashboard() {
     return (
-        <h1>This is the customer dashboard</h1>
+        <div>
+            <Sidebar />
+            <h1>This is the customer dashboard</h1>
+        </div>
     )
 }
