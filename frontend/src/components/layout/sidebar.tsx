@@ -30,7 +30,7 @@ export function Sidebar({
   };
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r bg-white dark:bg-gray-950">
+    <aside className="flex h-screen w-64 flex-col border-r bg-white dark:bg-gray-950 absolute">
       {/* Logo Section */}
       <div className="flex items-center gap-3 border-b px-6 h-16">
         <img src="/logo.svg" alt="ReginaRecycle" className="h-10 w-10" />
