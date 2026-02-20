@@ -1,5 +1,5 @@
-import "./Learn.css"
-import Navbar from "@/components/Navbar"
+import "../../Learn.css"
+import Navbar from "@/components/layout/Navbar"
 import LeftBar from "@/components/LeftBar"
 import SearchBar from "@/components/SearchBar"
 import Main from "@/components/Main"
