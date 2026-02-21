@@ -17,5 +17,34 @@ return this.prisma.wallet.update({
 });
 }
 
+async getBalance(userId: string){
+    return this.prisma.wallet.findUnique({
+        where: {userId},
+        select: {balance: true},
+    });
+}
+
+async getTransactions(userId: string){
+    return this.prisma.walletTransaction.findMany({
+        where: {userId},
+        orderBy: {createdAt: 'desc'},
+    });
+}
+
+async getEarnings(userId: string, period: string){
+    return {period, data: [] };
+}
+
+async withdraw(userId: string, amount: number)
+{
+    return this.prisma.withdrawRequest.create({
+        data: {
+            userId,
+            amount,
+            interacEmail: 'placeholder@email.com',
+        },
+    });
+
+}
 
 }

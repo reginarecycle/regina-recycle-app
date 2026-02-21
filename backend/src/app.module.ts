@@ -11,8 +11,9 @@ import { MaterialsModule } from './materials/materials.module';
 import { WalletModule } from './wallet/wallet.module';
 import { AddressesModule } from './addresses/addresses.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { TipsModule } from './tips/tips.module';
 @Module({
-  //imports: [PrismaModule, AuthModule, UsersModule, CustomersModule, CollectorsModule, AddressesModule, PickupsModule, MaterialsModule, WalletModule, NotificationsModule],
+  imports: [PrismaModule, AuthModule, UsersModule, CustomersModule, CollectorsModule, AddressesModule, PickupsModule, MaterialsModule, WalletModule, NotificationsModule, TipsModule],
   controllers: [AppController],
   providers: [AppService],
 })
