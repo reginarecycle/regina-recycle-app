@@ -11,13 +11,13 @@ function Hero() {
   useEffect(() => {
     const full = words[wordIndex % words.length];
 
-    // pause when fully typed
+    
     if (!deleting && text === full) {
       const t = setTimeout(() => setDeleting(true), 900);
       return () => clearTimeout(t);
     }
 
-    // move to next word after deleting
+  
     if (deleting && text === "") {
       setDeleting(false);
       setWordIndex((i) => (i + 1) % words.length);
@@ -33,8 +33,10 @@ function Hero() {
   }, [text, deleting, wordIndex]);
 
   return (
-    <section className="w-full bg-gradient-to-r from-green-100 to-white py-20">
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+    <section className="w-full bg-gradient-to-r from-green-100 to-white py-16">
+      
+      <div className="w-full px-6 md:px-16 flex items-center justify-between">
+      
         <div className="max-w-xl">
           <span className="bg-[#618171] text-white text-sm font-bold leading-6 px-4 py-1 rounded-full">
             #1 Recycling App
@@ -45,6 +47,7 @@ function Hero() {
             Count{" "}
             <span className="text-[#618171]">
               {text}
+             
               <span className="ml-1 inline-block w-[1ch] animate-pulse">|</span>.
             </span>
           </h1>
@@ -88,11 +91,12 @@ function Hero() {
           </div>
         </div>
 
+       
         <div>
           <img
             src={heroImage}
             alt="Recycling illustration"
-            className="w-[500px]"
+            className="w-full max-w-[520px]"
           />
         </div>
       </div>

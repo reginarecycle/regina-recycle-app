@@ -3,9 +3,9 @@ import { Button } from "@/components/ui/button";
 function CTASection() {
   return (
     <section className="w-full py-20">
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="w-full px-6 md:px-16">
         <div className="relative rounded-[32px] bg-[#344E41] px-8 py-16 text-center overflow-hidden">
-          {/* decorative circles */}
+          
           <div className="absolute -left-10 -top-10 w-40 h-40 rounded-full bg-white/10" />
           <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-white/10" />
 

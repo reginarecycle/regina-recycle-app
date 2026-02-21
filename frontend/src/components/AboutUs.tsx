@@ -5,7 +5,7 @@ import RecyclePhoneImage from "../assets/RecyclePhones.png"
 function AboutUs() {
     return (
         <section className="w-full py-20">
-  <div className="max-w-7xl mx-auto px-6">
+  <div className="w-full px-6 md:px-16">
     <div className="rounded-2xl bg-[#FBFBFB] px-10 py-12">
 
 

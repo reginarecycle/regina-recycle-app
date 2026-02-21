@@ -15,8 +15,7 @@ function Navbar() {
         border-b border-white/20
       "
     >
-      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-       
+      <div className="w-full px-6 md:px-16 h-20 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <img src={logo} alt="ReginaRecycle logo" className="w-6 h-6" />
           <h1 className="text-2xl font-bold leading-8">
@@ -72,7 +71,7 @@ function Navbar() {
      
       {open && (
         <div className="sm:hidden border-t border-black/10 bg-white/80 backdrop-blur-[20px]">
-          <div className="px-6 py-4 flex flex-col gap-4">
+         <div className="px-6 md:px-16 py-4 flex flex-col gap-4">
             <a className="text-[#0C111D] text-base font-medium hover:text-[#618171]" href="#" onClick={() => setOpen(false)}>
               About
             </a>

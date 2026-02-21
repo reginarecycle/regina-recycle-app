@@ -6,7 +6,7 @@ import EwasteIcon from "../assets/icons/ewaste.svg"
 function KnowledgeHub() {
   return (
     <section className="w-full bg-[#FBFBFB] py-20">
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="w-full px-6 md:px-16">
 
         
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
