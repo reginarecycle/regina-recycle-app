@@ -1,8 +1,8 @@
 export  enum Routes {
     base = "/",
     learn = "/learn",
- 
-
+    about = "/about",
+    
     //auth
     onboarding = "/auth",
     login = "/auth/login",
@@ -13,10 +13,12 @@ export  enum Routes {
     success = "/auth/success",
     collectorRegister= "/auth/collector",
 
-    // dashboard
+    //dashboard
     app = "/app",
     dashboard = "/app/dashboard",
     collectorapp = "/app/collector",
     collectordashboard = "/app/collector/dashboard",
 
+    //profile
+    profile = "/app/profile",
 }
