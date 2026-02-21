@@ -11,7 +11,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-
 html, body, #root {
   height: 100%;
 }
@@ -29,7 +28,7 @@ html, body, #root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: #0C111D;
-  --card: oklch(1 0 0);
+  --card: #F7F7F7;
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
@@ -43,6 +42,7 @@ html, body, #root {
   --accent-foreground: oklch(0.205 0 0);
   --destructive: #DD1E1E;
   --border: #CFCFCF;
+  --border-primary: #618171;
   --input: #F7F7F7;
   --ring: #CFCFCF;
   --chart-1: oklch(0.646 0.222 41.116);
