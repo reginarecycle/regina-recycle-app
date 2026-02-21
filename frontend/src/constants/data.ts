@@ -79,18 +79,18 @@ export const collectorNavItems: NavItem[] = [
   },
 ];
 
-  // Get page title from current route
+// Get page title from current route
 export const getPageTitle = () => {
-    const path = location.pathname.split("/").pop() || "";
-    const titleMap: Record<string, string> = {
-      dashboard: "Dashboard",
-      schedule: "Schedule",
-      wallet: "Wallet",
-      history: "History",
-      profile: "Profile",
-      requests: "Requests",
-      users: "Users",
-      settings: "Settings",
-    };
-    return titleMap[path] || "Dashboard";
+  const path = location.pathname.split("/").pop() || "";
+  const titleMap: Record<string, string> = {
+    dashboard: "Dashboard",
+    schedule: "Schedule",
+    wallet: "Wallet",
+    history: "History",
+    profile: "Profile",
+    requests: "Requests",
+    users: "Users",
+    settings: "Settings",
   };
+  return titleMap[path] || "Dashboard";
+};

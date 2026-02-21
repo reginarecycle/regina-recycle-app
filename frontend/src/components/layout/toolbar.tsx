@@ -59,7 +59,11 @@ export function Toolbar({
         </Select>
 
         {/* Notification Button */}
-        <Button variant="ghost" size="icon" className="relative text-black-800 bg-card rounded-full px-2 py-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative text-black-800 bg-card rounded-full px-2 py-2"
+        >
           <Bell className="h-5 w-5" />
           {notificationCount > 0 && (
             <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
@@ -69,7 +73,11 @@ export function Toolbar({
         </Button>
 
         {/* Settings Button */}
-        <Button variant="ghost" size="icon" className="text-black-800 bg-card rounded-full px-2 py-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-black-800 bg-card rounded-full px-2 py-2"
+        >
           <Settings className="h-5 w-5" />
         </Button>
       </div>

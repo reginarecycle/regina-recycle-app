@@ -23,4 +23,3 @@ export class UsersService {
     return 'This action deletes the account of user with ID: ' + userId;
   }
 }
- 

@@ -1,11 +1,21 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Get, UseGuards, Request, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  Get,
+  UseGuards,
+  Request,
+  Patch,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-    /**
+  /**
    * POST /api/auth/register
    * Register new user or collector
    */
@@ -33,8 +43,8 @@ export class AuthController {
   @Post('resend-otp')
   @HttpCode(HttpStatus.OK)
   async resendOTP(@Body() dto: any) {
-       // TODO: Add ResendOTPDto
-       return this.authService.resendOTP(dto);
+    // TODO: Add ResendOTPDto
+    return this.authService.resendOTP(dto);
   }
 
   /**
@@ -48,7 +58,7 @@ export class AuthController {
     return this.authService.forgotPassword(dto);
   }
 
-   /**
+  /**
    * POST /api/auth/reset-password
    * Reset password using token from reset email
    */
@@ -59,24 +69,24 @@ export class AuthController {
     return this.authService.resetPassword(dto);
   }
 
-   /**
+  /**
    * POST /api/auth/login
    * login user or collector and return JWT token
    */
-    @Post('login')
-    @HttpCode(HttpStatus.OK)
-    async login(@Body() dto: any) {
-      // TODO: Add LoginDto
-      return this.authService.login(dto);
-    }
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  async login(@Body() dto: any) {
+    // TODO: Add LoginDto
+    return this.authService.login(dto);
+  }
 
-   /**
+  /**
    * GET /api/auth/me
    * Get current user (requires JWT)
    */
-    @Get('me')
-    @UseGuards()//TODO: Add JWTAuthGuard
-    async getCurrentUser(@Request() req) {
-      return this.authService.getCurrentUser(req.user.id);
-    }
+  @Get('me')
+  @UseGuards() //TODO: Add JWTAuthGuard
+  async getCurrentUser(@Request() req) {
+    return this.authService.getCurrentUser(req.user.id);
+  }
 }

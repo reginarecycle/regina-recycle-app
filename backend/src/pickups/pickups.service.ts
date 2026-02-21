@@ -1,64 +1,51 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { WalletService } from '../wallet/wallet.service';
 import { Injectable } from '@nestjs/common';
-import { CreatePickupDto } from './dto/create-pickup.dto';
-import { UpdatePickupDto } from './dto/update-pickup.dto';
+import { PickupStatus } from '@prisma/client';
 
 @Injectable()
 export class PickupsService {
-
-  constructor (
+  constructor(
     private prisma: PrismaService,
     private walletService: WalletService,
+  ) {}
 
-  ){}
-
-  create(createPickupDto: CreatePickupDto) {
+  //create pickup
+  async create(userId: string, body: any) {
     return this.prisma.pickup.create({
       data: {
-        date: new Date(createPickupDto.date),
-        status: createPickupDto.status,
-        user: {
-          connect: {id: createPickupDto.userId},
+        requesterUserId: userId,
+        scheduledAt: new Date(body.scheduledAt),
+        addressId: body.addressId,
+        status: PickupStatus.PENDING,
+        items: {
+          create: body.items?.map((item: any) => ({
+            materialId: item.materialId,
+            quantity: item.quantity,
+          })),
         },
       },
     });
   }
 
-  findAll() {
-    return this.prisma.pickup.findMany();
+  async findAll(userId: string) {
+    return this.prisma.pickup.findMany({
+      where: { requesterUserId: userId },
+      include: {
+        items: true,
+        address: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
-  findOne(id: number) {
+  async findOne(pickupId: string) {
     return this.prisma.pickup.findUnique({
-      where:{id},
+      where: { pickupId },
+      include: {
+        items: true,
+        address: true,
+      },
     });
-  }
-
-  update(id: number, updatePickupDto: UpdatePickupDto) {
-    return this.prisma.pickup.update({
-      where:{id},
-      data: updatePickupDto,
-    });
-  }
-
-  remove(id: number) {
-      return this.prisma.pickup.delete({
-      where: {id},
-      });
-  }
-
-  async completePickup(pickupId: number){
-    const pickup = await this.prisma.pickup.update({
-      where: {id: pickupId},
-      data: {status: 'COMPLETED'},
-
-    });
-
-    const calcAmnt = 30;
-    await this.walletService.creditUser(pickup.userId, calcAmnt);
-     
-    return pickup;
-
   }
 }

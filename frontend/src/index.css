@@ -1,6 +1,6 @@
 @font-face {
-  font-family: 'Satoshi';
-  src: url('./assets/fonts/Satoshi-Variable.woff2') format('woff2-variations');
+  font-family: "Satoshi";
+  src: url("./assets/fonts/Satoshi-Variable.woff2") format("woff2-variations");
   font-weight: 100 900;
   font-display: swap;
 }
@@ -11,7 +11,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  font-family: 'Satoshi', system-ui, sans-serif;
+  font-family: "Satoshi", system-ui, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -25,12 +25,12 @@
   -moz-osx-font-smoothing: grayscale;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
-  --foreground: #0C111D;
-  --card: #F7F7F7;
+  --foreground: #0c111d;
+  --card: #f7f7f7;
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: #344E41;
+  --primary: #344e41;
   --primary-foreground: #ffff;
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -38,11 +38,11 @@
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
-  --destructive: #DD1E1E;
-  --border: #CFCFCF;
+  --destructive: #dd1e1e;
+  --border: #cfcfcf;
   --border-primary: #618171;
-  --input: #F7F7F7;
-  --ring: #CFCFCF;
+  --input: #f7f7f7;
+  --ring: #cfcfcf;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);

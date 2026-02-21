@@ -16,11 +16,11 @@ export class AuthService {
   }
 
   async resendOTP(dto: any) {
-  // TODO: 
-  // 1. Find user by email
-  // 2. Check if already verified
-  // 3. Generate new verification code/token
-  // 4. Send email
+    // TODO:
+    // 1. Find user by email
+    // 2. Check if already verified
+    // 3. Generate new verification code/token
+    // 4. Send email
     return { message: 'Email verified' };
   }
 

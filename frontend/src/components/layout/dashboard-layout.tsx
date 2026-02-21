@@ -61,7 +61,6 @@ export default function DashboardLayout() {
 
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col min-w-0">
-
         {/* Toolbar */}
         <Toolbar
           currentLocation={currentLocation}

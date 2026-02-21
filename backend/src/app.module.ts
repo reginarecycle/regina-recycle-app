@@ -13,7 +13,19 @@ import { AddressesModule } from './addresses/addresses.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { TipsModule } from './tips/tips.module';
 @Module({
-  imports: [PrismaModule, AuthModule, UsersModule, CustomersModule, CollectorsModule, AddressesModule, PickupsModule, MaterialsModule, WalletModule, NotificationsModule, TipsModule],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    UsersModule,
+    CustomersModule,
+    CollectorsModule,
+    AddressesModule,
+    PickupsModule,
+    MaterialsModule,
+    WalletModule,
+    NotificationsModule,
+    TipsModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

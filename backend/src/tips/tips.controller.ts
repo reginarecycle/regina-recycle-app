@@ -8,6 +8,4 @@ export class TipsController {
   getTips() {
     return this.tipsService.getTips();
   }
-
 }
-

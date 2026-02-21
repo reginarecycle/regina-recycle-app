@@ -1,4 +1,11 @@
-import { Controller, Get, Body, Patch, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Body,
+  Patch,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -33,7 +40,6 @@ export class UsersController {
   deleteAccount() {
     const userId = 'temp-user-id'; // Replace with actual user ID from the request context
     // Implement logic to delete the user's account
-    return this.usersService.deleteAccount(userId); 
+    return this.usersService.deleteAccount(userId);
   }
-
 }

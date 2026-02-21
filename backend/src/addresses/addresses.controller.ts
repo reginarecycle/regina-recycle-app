@@ -24,14 +24,14 @@ export class AddressesController {
   }
 
   @Get()
-  @UseGuards()  // TODO: Uncomment when JWT ready
+  @UseGuards() // TODO: Uncomment when JWT ready
   async findAll(/* @CurrentUser() user: User */) {
-    const userId = 'temp-user-id';  // TODO: Remove placeholder
+    const userId = 'temp-user-id'; // TODO: Remove placeholder
     return this.addressesService.findAll(userId);
   }
 
   @Get(':id')
-  @UseGuards()  // TODO: Protected
+  @UseGuards() // TODO: Protected
   findOne(@Param('id') id: string) {
     return this.addressesService.findOne(id);
   }
