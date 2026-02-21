@@ -4,9 +4,14 @@ export  enum Routes {
  
 
     //auth
+    onboarding = "/auth",
     login = "/auth/login",
     forgot = "/auth/forgot",
-    signup = "/auth/signup",
+    reset = "/auth/reset",
+    register= "auth/register",
+    verification = "/auth/verification",
+    success = "/auth/success",
+    collectorRegister= "/auth/collector",
 
     // dashboard
     app = "/app",
