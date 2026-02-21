@@ -2,7 +2,7 @@ import { type FC, type InputHTMLAttributes, useState } from "react";
 import { Field, FieldError, FieldLabel } from "../ui/field";
 import { Input } from "../ui/input";
 import { type UseFormRegisterReturn } from "react-hook-form";
-import { Eye, EyeClosed, EyeOff } from "lucide-react";
+import { Eye, EyeClosed } from "lucide-react";
 
 interface InputFieldProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, "id"> {
