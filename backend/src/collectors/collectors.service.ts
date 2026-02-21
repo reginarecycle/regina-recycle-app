@@ -4,26 +4,6 @@ import { UpdateCollectorDto } from './dto/update-collector.dto';
 
 @Injectable()
 export class CollectorsService {
-<<<<<<< HEAD
-  create(createCollectorDto: CreateCollectorDto) {
-    return 'This action adds a new collector';
-  }
-
-  findAll() {
-    return `This action returns all collectors`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} collector`;
-  }
-
-  update(id: number, updateCollectorDto: UpdateCollectorDto) {
-    return `This action updates a #${id} collector`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} collector`;
-=======
 
   getStats( collectorId: string) {
     return `This action returns stats for collector with ID: ${collectorId}`;
@@ -75,6 +55,5 @@ export class CollectorsService {
 
   updateMaterialSettings(collectorId: string, dto: any) {
     return `This action updates settings for collector with ID: ${collectorId}, with data: ${JSON.stringify(dto)}`;
->>>>>>> 21fa0dc5f64bf68a1dbfedd03a2e61ef54e8702b
   }
 }
