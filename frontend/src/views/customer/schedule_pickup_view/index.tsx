@@ -2,6 +2,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 const SchedulePickup = () => {
+
+  const Items = ["Gable-top/Cartons","Glass bottles","Drink boxes","Tins/Cans","Refillable beer bottles",];
+
   return (
    
     <div className="space-y-6 px-6 py-4"> 
@@ -41,27 +44,20 @@ const SchedulePickup = () => {
          AVAILABLE CATEGORIES
      </p>
 
-    <div className="mt-4 space-y-3">
-      {/* Example Category Item */}
-     <div className="flex items-center justify-between rounded-lg border border-[#E5E7EB] px-4 py-3 text-sm">
-        <span>Glass bottles</span>
-         <button className="h-6 w-6 rounded-full border text-[#6B7280]">
-             +
-        </button>
-     </div>
+    <div className="mt-4 space-y-4">
+      {Items.map((item) => (
+          <div
+            key={item}
+            className="flex items-center justify-between rounded-lg border border-[#E5E7EB] bg-white px-4 py-4"
+          >
+            <span className="text-sm text-[#111827]">{item}</span>
 
-    <div className="flex items-center justify-between rounded-lg border border-[#E5E7EB] px-4 py-3 text-sm">
-        <span>Tins/Cans</span>
-        <button className="h-6 w-6 rounded-full border text-[#6B7280]">
-         +
-        </button>
-    </div>
-    <div className = "flex items-center justify-between rounded-lg border border-[#E5E7EB] px-4 py-3 text-sm">
-         <span>drink boxes</span>
-    <button className = "h-6 w-6 rounded-full border text-[#6B7280]">
-        +
-    </button>
-    </div>
+            <button className="flex h-7 w-7 items-center justify-center rounded-full border border-[#D1D5DB] text-[#6B7280] hover:bg-[#F9FAFB]">
+              +
+            </button>
+          </div>
+        ))}
+
     </div>
     </div>
 
@@ -101,8 +97,46 @@ const SchedulePickup = () => {
      </Button>
     </div>
     </div>
+
+    <div className="rounded-xl border border-[#E5E7EB] bg-white px-6 py-5 shadow-sm">
+      <div className="flex items-center justify-between">
+         <div className="flex items-start gap-4">
+             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F3F4F6] text-sm font-semibold text-[#111827]">
+             2
+            </div>
+         <div>
+        <p className="text-[15px] font-semibold text-[#111827]">
+          Select Pickup Time
+        </p>
+        <p className="text-[13px] text-[#6B7280]">
+          Select a suitable time for pickup
+        </p>
+       </div>
+       </div>
+    <span className="text-[#6B7280] text-xl">⌄</span>
+   </div>
+ </div>
+  <div className="rounded-xl border border-[#E5E7EB] bg-white px-6 py-5 shadow-sm">
+  <div className="flex items-center justify-between">
+    <div className="flex items-start gap-4">
+        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F3F4F6] text-sm font-semibold text-[#111827]">
+        3
+      </div>
+      <div>
+        <p className="text-[15px] font-semibold text-[#111827]">
+          Location Details
+        </p>
+        <p className="text-[13px] text-[#6B7280]">
+          Select a pickup address
+        </p>
+      </div>
     </div>
-  );
-};
+       <span className="text-[#6B7280] text-xl">⌄</span>
+    </div>
+</div>
+
+</div>
+    
+)};
 
 export default SchedulePickup;
