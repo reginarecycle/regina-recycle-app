@@ -1,0 +1,107 @@
+.main-content {
+    margin-left: 18%;
+    margin-top: 30px;
+}
+
+.welcome-wrapper {
+    width: 1208px;
+    height: 4px;
+    top: 92px;
+    left: 280px;
+    justify-content: space-between;
+    opacity: 1;
+    display: flex;
+    flex-direction: row;
+    padding: 8px;
+    margin-bottom: 1%;
+}
+
+.welcome-message {
+    width: 301;
+    height: 32;
+    opacity: 1;
+    font-family: Satoshi;
+    font-weight: 700;
+    font-style: Bold;
+    font-size: 24px;
+    line-height: 32px;
+    letter-spacing: 0%;
+    vertical-align: middle;
+}
+
+.request-pickup-btn {
+    color: #344E41;
+    width: 187;
+    height: 44;
+    gap: 8px;
+    opacity: 1;
+    padding-top: 8px;
+    padding-right: 16px;
+    padding-bottom: 8px;
+    padding-left: 16px;
+    border-radius: 8px;
+    border-width: 1px;
+    font-family: Satoshi;
+    font-weight: 700;
+    font-style: Bold;
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: 0%;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.stats-wrapper {
+    width: 1208px;
+    height: 166px;
+    top: 168px;
+    left: 280px;
+    /* justify-content: space-between; */
+    opacity: 1;
+    margin-top: 5%;
+    display: flex;
+    flex-direction: row;
+    gap: 50px;
+
+}
+
+.stats-card {
+    border: 1px solid var(--Card-Border, #CFCFCF);
+    width: 272px;
+    height: 166px;
+    opacity: 1;
+    padding-top: 16px;
+    padding-right: 24px;
+    padding-bottom: 16px;
+    padding-left: 24px;
+    border-radius: 8px;
+    border-width: 1px;
+
+}
+
+.stats-card>h1 {
+    font-family: Satoshi;
+    font-weight: 700;
+    font-style: Bold;
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: 0%;
+    text-align: left;
+    vertical-align: middle;
+    color: #111827BF;
+
+}
+
+.stats-card>h2 {
+    font-family: Satoshi;
+    font-weight: 900;
+    font-style: Black;
+    font-size: 48px;
+    line-height: 60px;
+    letter-spacing: 0%;
+    text-align: center;
+    vertical-align: middle;
+    text-align: left;
+    margin-top: 10%;
+
+}
