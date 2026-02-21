@@ -1,26 +1,69 @@
-import { Card } from "../ui/card";
-import { CardHeader } from "../ui/card";
-import { CardFooter } from "../ui/card";
+import { Card, CardHeader, CardFooter } from "../ui/card";
 
-type props = {
+type StatsCardsProps = {
     title: string;
     data: number;
     unit: string;
-}
+    color?: 'red' | 'green' | 'blue' | 'gold' | string;  // theme name or custom hex
+    currency?: string;
+};
 
 export function StatsCards({
     title = "default",
     data = 0,
     unit = "units",
-}:
-    props) {
+    color = "blue",
+    currency = "",
+}: StatsCardsProps) {
+
+    // Fixed neutral title color (same for all cards)
+    const titleColorClass = "text-gray-700";
+
+    // Color themes — accent for number + unit
+    const colorThemes = {
+        red: {
+            accent: 'text-[#CA4F4F]',
+        },
+        green: {
+            accent: 'text-[#7A9085]',
+        },
+        blue: {
+            accent: 'text-[#0171B6]',
+        },
+        gold: {
+            accent: 'text-[#854D0E]',
+        },
+    };
+
+    // Get theme or fallback to blue
+    const theme = colorThemes[color as keyof typeof colorThemes] || colorThemes.blue;
+
+    const isCustomHex = typeof color === 'string' && (color.startsWith('#') || color.startsWith('rgb'));
+    const accentClass = isCustomHex
+        ? `text-[${color}]`
+        : (theme.accent || 'text-[#0171B6]');
+
     return (
-        <>
-            <Card className="stats-card">
-                <h1>{title}</h1>
-                <h2>{data}
-                    <p>{unit}</p></h2>
-            </Card>
-        </>
-    )
+        <Card
+            className={`
+        stats-card
+        rounded-lg
+        shadow-sm
+        ${color === 'gold' ? 'bg-[#FFFBEB]' : ''}
+      `}
+        >
+            <CardHeader className={`font-medium ${titleColorClass}`}>
+                {title}
+            </CardHeader>
+
+            <CardFooter className="card-footer flex items-baseline gap-2">
+                <span className={`number text-3xl font-bold ${accentClass}`}>
+                    {currency}{data}
+                </span>
+                <span className={`unit text-lg font-medium ${accentClass}`}>
+                    {unit}
+                </span>
+            </CardFooter>
+        </Card>
+    );
 }
