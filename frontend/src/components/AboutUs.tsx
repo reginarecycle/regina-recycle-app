@@ -3,8 +3,7 @@ import ReginaMapImage from "../assets/map.png"
 import RecyclePhoneImage from "../assets/RecyclePhones.png"
 
 function AboutUs() {
-    return (
-        <section className="w-full py-20">
+    return ( <section id="about" className="w-full py-20 scroll-mt-24">
   <div className="w-full px-6 md:px-16">
     <div className="rounded-2xl bg-[#FBFBFB] px-10 py-12">
 

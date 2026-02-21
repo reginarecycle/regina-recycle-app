@@ -36,7 +36,7 @@ function FAQ() {
   };
 
   return (
-    <section className="w-full bg-white py-20">
+    <section id="faqs" className="w-full bg-white py-20 scroll-mt-24">
       <div className="max-w-4xl mx-auto px-6">
         <div className="text-center">
           <h2 className="text-[30px] font-black leading-[38px] text-black">
@@ -62,7 +62,7 @@ function FAQ() {
                   overflow-hidden
                 "
               >
-                {/* clickable header (now a div, not a button) */}
+                
                 <div
                   onClick={() => toggle(idx)}
                   role="button"

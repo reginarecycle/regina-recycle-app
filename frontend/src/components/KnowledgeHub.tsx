@@ -5,7 +5,7 @@ import EwasteIcon from "../assets/icons/ewaste.svg"
 
 function KnowledgeHub() {
   return (
-    <section className="w-full bg-[#FBFBFB] py-20">
+    <section id="learn" className="w-full bg-[#FBFBFB] py-20 scroll-mt-24">
       <div className="w-full px-6 md:px-16">
 
         

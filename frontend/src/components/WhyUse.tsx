@@ -7,7 +7,7 @@ import LeafIcon from "../assets/icons/leaf.svg"
 
 function WhyUse() {
   return (
-    <section className="w-full py-16">
+    <section id="benefit" className="w-full py-16 scroll-mt-24">
       <div className="w-full px-6 md:px-16">
         <h2 className="text-[30px] font-black leading-[38px] text-black">
           Why Use ReginaRecycle
