@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardFooter } from "../ui/card";
+import { Card, CardHeader, CardFooter } from "@/components/ui/card";
 
 type StatsCardsProps = {
     title: string;
