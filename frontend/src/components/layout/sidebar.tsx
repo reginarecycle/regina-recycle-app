@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { collectorNavItems, userNavItems } from "@/constants/data";
 
 interface SidebarProps {
@@ -35,7 +35,9 @@ export function Sidebar({
       <div className="flex items-center gap-3 border-b px-6 h-16">
         <img src="/logo.svg" alt="ReginaRecycle" className="h-10 w-10" />
         <div className="flex flex-col justify-start">
-          <span className="text-lg font-semibold leading-tight text-primary">ReginaRecycle</span>
+          <span className="text-lg font-semibold leading-tight text-primary">
+            ReginaRecycle
+          </span>
           <span className="text-xs text-muted-foreground leading-tight">
             {isCollectorMode ? "Collector Portal" : "User Portal"}
           </span>
@@ -44,9 +46,7 @@ export function Sidebar({
 
       {/* Navigation Menu */}
       <nav className="flex-1 overflow-y-auto p-4 space-y-3">
-        <div className=" pt-8 text-xs font-medium text-primary">
-          MENU
-        </div>
+        <div className=" pt-8 text-xs font-medium text-primary">MENU</div>
         <div className="flex flex-col gap-2">
           {navItems.map((item) => {
             const isActive = location.pathname === item.href;
@@ -58,7 +58,8 @@ export function Sidebar({
                   variant="ghost"
                   className={cn(
                     "w-full justify-start py-5 gap-3 text-foreground hover:bg-primary/10 hover:text-primary [&_svg]:hover:text-primary",
-                    isActive && "bg-primary/10 font-medium text-primary [&_svg]:text-primary"
+                    isActive &&
+                      "bg-primary/10 font-medium text-primary [&_svg]:text-primary"
                   )}
                 >
                   <Icon className="h-5 w-5" />
@@ -87,11 +88,15 @@ export function Sidebar({
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold leading-tight">{userName}</span>
-              <span className="text-xs text-muted-foreground leading-tight">{userRole}</span>
+              <span className="text-sm font-semibold leading-tight">
+                {userName}
+              </span>
+              <span className="text-xs text-muted-foreground leading-tight">
+                {userRole}
+              </span>
             </div>
           </div>
-          <Button variant="ghost" size="icon-sm" className="dark:hover:bg-card">
+          <Button variant="ghost" size="icon" className="dark:hover:bg-card">
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
