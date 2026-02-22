@@ -3,7 +3,7 @@ import { Card, CardHeader, CardFooter, CardTitle, CardContent } from "@/componen
 export function WalletBalance() {
     return (
         <Card className="wallet-balance-card bg-[#FFFFFF]">
-            <CardTitle>Wallet Balance</CardTitle>
+            <CardTitle className="wallet-title">Wallet Balance</CardTitle>
         </Card>
     )
 }

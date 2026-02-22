@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardFooter, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardTitle, CardContent } from "@/components/ui/card";
 import GreenLightBulb from "@/assets/green-lighbulb.svg"
 // import { Lightbulb } from "lucide-react";
 

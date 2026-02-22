@@ -409,6 +409,18 @@
     padding-bottom: 16px;
 }
 
+.wallet-title {
+    font-family: Satoshi;
+    font-weight: 700;
+    font-style: Bold;
+    font-size: 18px;
+    line-height: 28px;
+    letter-spacing: 0%;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--Card-Border, #CFCFCF);
+    padding-bottom: 12px;
+}
+
 .dashboard-tip-card {
     height: 111px;
     top: 661px;
