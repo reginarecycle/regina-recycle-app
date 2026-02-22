@@ -33,7 +33,7 @@ const Onboarding: FC = () => {
       </div>
       {onboardingOptions.map((option) => (
         <Link to={option.link} key={option.title}>
-          <div className="bg-white border rounded-3xl px-6 py-8 flex items-center gap-5 mt-6 hover:border-primary ease-in-out">
+          <div className="bg-white border rounded-3xl px-6 py-4 2xl:py-8 flex items-center gap-5 mt-6 hover:border-primary ease-in-out">
             <div className="bg-light-green rounded-xl p-2.5">
               <option.icon />
             </div>
@@ -48,7 +48,7 @@ const Onboarding: FC = () => {
         </Link>
       ))}
       <p className="mt-10">
-        Already have an have account?
+        Already have an have account? {""}
         <Link to={Routes.login}>
           <span className="font-black text-accent-foreground">Login</span>
         </Link>

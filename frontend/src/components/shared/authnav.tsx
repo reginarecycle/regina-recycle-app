@@ -20,7 +20,7 @@ export default function AuthNav({ link, text }: IAuthNavProps) {
         className={cn(
           "xl:max-w-350 2xl:max-w-462.5 mx-auto h-full",
           "flex justify-between items-center",
-          "px-4 sm:px-6 md:px-8 xl:px-0"
+          "px-4 sm:px-6 md:px-8 2xl:px-0"
         )}
       >
         <Link to={link}>
