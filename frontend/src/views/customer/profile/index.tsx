@@ -1,15 +1,22 @@
-// src/pages/ProfilePage.tsx
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import NotificationSection from "@/components/ui/notificationSection";
+import InputField from "@/components/forms/input-field";
+import {
+  profileDetailsSchema,
+  changePasswordSchema,
+  type ProfileDetailsFormValues,
+  type ChangePasswordFormValues,
+} from "@/lib/validation";
 import {
   Calendar,
   Clock,
@@ -17,28 +24,44 @@ import {
   Volume2,
   Truck,
   AlertTriangle,
-  Eye,
-  EyeClosed,
   MapPin,
 } from "lucide-react";
 
 export default function ProfilePage() {
-  // Password & UI toggles
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  // My Details form
+  const {
+    register: registerDetails,
+    handleSubmit: handleSubmitDetails,
+    formState: { errors: detailsErrors, isDirty: detailsIsDirty },
+    reset: resetDetails,
+  } = useForm<ProfileDetailsFormValues>({
+    resolver: zodResolver(profileDetailsSchema),
+    mode: "onChange",
+    defaultValues: {
+      fullName: "John Doe",
+      email: "doe@gmail.com",
+      phone: "1-(306)-0000",
+      dateOfBirth: "DD-MM-YYYY",
+      address: "123 Lane Str.",
+    },
+  });
 
-  // form changed states
-  const [detailsChanged, setDetailsChanged] = useState(false);
-  const [passwordChanged, setPasswordChanged] = useState(false);
+  // Password form
+  const {
+    register: registerPassword,
+    handleSubmit: handleSubmitPassword,
+    formState: { errors: passwordErrors, isDirty: passwordIsDirty },
+    reset: resetPassword,
+  } = useForm<ChangePasswordFormValues>({
+    resolver: zodResolver(changePasswordSchema),
+    mode: "onChange",
+  });
 
-  // notifications state (controlled switches)
+  // notifications state
   const [notificationPrefs, setNotificationPrefs] = useState<Record<string, boolean>>({
-    // email
     "email:pickup": true,
     "email:activity": true,
     "email:marketing": false,
-    // in-app
     "inapp:pickup": false,
     "inapp:alerts": true,
   });
@@ -48,7 +71,18 @@ export default function ProfilePage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteText, setDeleteText] = useState("");
 
-  // Helpers for notifications
+  // Form submit handlers
+  const onSubmitDetails = (data: ProfileDetailsFormValues) => {
+    console.log("Profile details:", data);
+    // TODO: Call API to update profile
+  };
+
+  const onSubmitPassword = (data: ChangePasswordFormValues) => {
+    console.log("Password change:", data);
+    // TODO: Call API to change password
+    resetPassword();
+  };
+
   const handleToggle = (id: string, checked: boolean) => {
     setNotificationPrefs((prev) => ({ ...prev, [id]: checked }));
     setNotificationsChanged(true);
@@ -56,11 +90,9 @@ export default function ProfilePage() {
 
   const handleSaveEmail = () => {
     // TODO: call API to persist email notification prefs
-    // on success:
     setNotificationsChanged(false);
   };
 
-  // row data derived from state (keeps UI controlled)
   const emailRows = [
     {
       id: "email:pickup",
@@ -104,7 +136,7 @@ export default function ProfilePage() {
 
   return (
     <div className="p-6 md:p-8">
-      <Card className="p-0 bg-white">
+      <Card className="p-0 bg-white border-0">
         {/* Profile Header */}
         <div className="p-6">
           <div className="flex items-center gap-6">
@@ -150,99 +182,75 @@ export default function ProfilePage() {
               </p>
             </div>
 
-            <div className="space-y-6">
+            <form onSubmit={handleSubmitDetails(onSubmitDetails)} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="fullname" className="text-sm font-medium">
-                    Full name
-                  </Label>
-                  <Input
-                    id="fullname"
-                    placeholder="John Doe"
-                    defaultValue="John Doe"
-                    className="h-11"
-                    onChange={() => setDetailsChanged(true)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium">
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="doe@gmail.com"
-                    defaultValue="doe@gmail.com"
-                    className="h-11"
-                    onChange={() => setDetailsChanged(true)}
-                  />
-                </div>
+                <InputField
+                  label="Full name"
+                  register={registerDetails("fullName")}
+                  error={detailsErrors.fullName?.message}
+                  placeholder="John Doe"
+                  required
+                />
+                <InputField
+                  label="Email"
+                  register={registerDetails("email")}
+                  error={detailsErrors.email?.message}
+                  type="email"
+                  placeholder="doe@gmail.com"
+                  required
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-sm font-medium">
-                    Phone Number
-                  </Label>
-                  <Input
-                    id="phone"
-                    placeholder="1-(306)-0000"
-                    defaultValue="1-(306)-0000"
-                    className="h-11"
-                    onChange={() => setDetailsChanged(true)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="dob" className="text-sm font-medium">
-                    Date of Birth
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="dob"
-                      type="text"
-                      placeholder="DD-MM-YYYY"
-                      defaultValue="DD-MM-YYYY"
-                      className="h-11"
-                      onChange={() => setDetailsChanged(true)}
-                    />
-                    <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="address" className="text-sm font-medium">
-                  Address
-                </Label>
+                <InputField
+                  label="Phone Number"
+                  register={registerDetails("phone")}
+                  error={detailsErrors.phone?.message}
+                  placeholder="1-(306)-0000"
+                  required
+                />
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="address"
-                    placeholder="123 Lane Str."
-                    defaultValue="123 Lane Str."
-                    className="pl-10 h-11"
-                    onChange={() => setDetailsChanged(true)}
+                  <InputField
+                    label="Date of Birth"
+                    register={registerDetails("dateOfBirth")}
+                    error={detailsErrors.dateOfBirth?.message}
+                    placeholder="DD-MM-YYYY"
+                    required
                   />
+                  <Calendar className="absolute right-3 top-[32px] h-5 w-5 text-muted-foreground pointer-events-none" />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-6">
+              <div className="relative">
+                <MapPin className="absolute left-3 top-[32px] h-5 w-5 text-muted-foreground pointer-events-none" />
+                <InputField
+                  label="Address"
+                  register={registerDetails("address")}
+                  error={detailsErrors.address?.message}
+                  placeholder="123 Lane Str."
+                  required
+                />
+              </div>
+
+              <div className="flex justify-center sm:justify-end gap-3 pt-6">
                 <Button
+                  type="button"
                   variant="outline"
-                  className="w-[174px] h-11 border-[rgba(221,30,30,0.60)] text-red-500 hover:bg-red-50 disabled:opacity-60"
-                  disabled={!detailsChanged}
-                  onClick={() => setDetailsChanged(false)}
+                  className="w-[174px] h-11 min-w-0 border-[rgba(221,30,30,0.60)] text-red-500 hover:bg-red-50 disabled:opacity-60"
+                  disabled={!detailsIsDirty}
+                  onClick={() => resetDetails()}
                 >
                   Cancel
                 </Button>
                 <Button
-                  className="w-[174px] h-11 bg-primary hover:bg-primary/90 disabled:opacity-60"
-                  disabled={!detailsChanged}
+                  type="submit"
+                  className="w-[174px] h-11 min-w-0 bg-primary hover:bg-primary/90 disabled:opacity-60"
+                  disabled={!detailsIsDirty}
                 >
                   Save Changes
                 </Button>
               </div>
-            </div>
+            </form>
           </TabsContent>
 
           {/* Security */}
@@ -254,118 +262,71 @@ export default function ProfilePage() {
               </p>
             </div>
 
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="current-password" className="text-sm font-medium">
-                  Current Password
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="current-password"
-                    type={showCurrentPassword ? "text" : "password"}
-                    placeholder="Enter current password"
-                    className="h-11 pr-10"
-                    onChange={() => setPasswordChanged(true)}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showCurrentPassword ? (
-                      <EyeClosed className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-              </div>
+            <form onSubmit={handleSubmitPassword(onSubmitPassword)} className="space-y-6">
+              <InputField
+                label="Current Password"
+                register={registerPassword("currentPassword")}
+                error={passwordErrors.currentPassword?.message}
+                type="password"
+                placeholder="Enter current password"
+                showPasswordToggle
+                required
+              />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="new-password" className="text-sm font-medium">
-                    New Password
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="new-password"
-                      type={showNewPassword ? "text" : "password"}
-                      placeholder="Enter new password"
-                      className="h-11 pr-10"
-                      onChange={() => setPasswordChanged(true)}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showNewPassword ? (
-                        <EyeClosed className="h-5 w-5" />
-                      ) : (
-                        <Eye className="h-5 w-5" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password" className="text-sm font-medium">
-                    Confirm Password
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="confirm-password"
-                      type={showConfirmPassword ? "text" : "password"}
-                      placeholder="Confirm new password"
-                      className="h-11 pr-10"
-                      onChange={() => setPasswordChanged(true)}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showConfirmPassword ? (
-                        <EyeClosed className="h-5 w-5" />
-                      ) : (
-                        <Eye className="h-5 w-5" />
-                      )}
-                    </button>
-                  </div>
-                </div>
+                <InputField
+                  label="New Password"
+                  register={registerPassword("newPassword")}
+                  error={passwordErrors.newPassword?.message}
+                  type="password"
+                  placeholder="Enter new password"
+                  showPasswordToggle
+                  required
+                />
+                <InputField
+                  label="Confirm Password"
+                  register={registerPassword("confirmPassword")}
+                  error={passwordErrors.confirmPassword?.message}
+                  type="password"
+                  placeholder="Confirm new password"
+                  showPasswordToggle
+                  required
+                />
               </div>
 
-              <div className="flex justify-end gap-3 pt-6">
+              <div className="flex justify-center sm:justify-end gap-3 pt-6">
                 <Button
+                  type="button"
                   variant="outline"
-                  className="w-[174px] h-11 border-[rgba(221,30,30,0.60)] text-red-500 hover:bg-red-50 disabled:opacity-60"
-                  disabled={!passwordChanged}
-                  onClick={() => setPasswordChanged(false)}
+                  className="w-[174px] h-11 min-w-0 border-[rgba(221,30,30,0.60)] text-red-500 hover:bg-red-50 disabled:opacity-60"
+                  disabled={!passwordIsDirty}
+                  onClick={() => resetPassword()}
                 >
                   Cancel
                 </Button>
                 <Button
-                  className="w-[174px] h-11 bg-primary hover:bg-primary/90 disabled:opacity-60"
-                  disabled={!passwordChanged}
+                  type="submit"
+                  className="w-[174px] h-11 min-w-0 bg-primary hover:bg-primary/90 disabled:opacity-60"
+                  disabled={!passwordIsDirty}
                 >
                   Update Password
                 </Button>
               </div>
-            </div>
+            </form>
 
             <Separator className="my-8" />
 
-            {/* Delete Account card */}
-            <div className="relative flex justify-center items-center w-full max-w-[1078px] p-9 rounded-[14px] border border-red-600 bg-[rgba(221,30,30,0.06)] backdrop-blur-[20px] shrink-0">
-              {/* decorative image: change src if needed */}
+            {/* Delete Account */}
+            <div className="relative flex flex-col sm:flex-row justify-center items-center w-full max-w-[1078px] p-6 sm:p-9 rounded-[14px] border border-red-600 bg-[rgba(221,30,30,0.06)] backdrop-blur-[20px] shrink-0">
               <img
                 src="/delete-account.png"
                 alt="Delete Account Decor"
                 aria-hidden="true"
-                className="absolute -top-18 -right-30 w-74 sm:w-50 opacity-40 pointer-events-none select-none"
+                className="absolute -top-18 -right-30 w-74 sm:w-50 opacity-40 pointer-events-none select-none hidden sm:block"
               />
 
-              <div className="flex items-start justify-between gap-4 w-full">
-                <div>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
+                <div className="text-center sm:text-left">
                   <h3 className="text-lg font-semibold text-red-600 mb-2">Delete Account</h3>
                   <p className="text-sm text-red-600/80">
                     Once you delete your account, there is no going back. Please be certain.
@@ -373,7 +334,7 @@ export default function ProfilePage() {
                 </div>
                 <Button
                   variant="outline"
-                  className="w-[171px] h-[52px] bg-white text-red-600 border-red-600 hover:bg-red-50 hover:text-red-700 shrink-0"
+                  className="w-full sm:w-[171px] h-[52px] min-w-0 bg-white text-red-600 border-red-600 hover:bg-red-50 hover:text-red-700 shrink-0"
                   onClick={() => setDeleteDialogOpen(true)}
                 >
                   Delete Account
@@ -385,7 +346,6 @@ export default function ProfilePage() {
           {/* Notifications */}
           <TabsContent value="notifications" className="mt-0 p-8">
             <div className="space-y-6">
-              {/* Email Notifications section (has save button) */}
               <NotificationSection
                 title="Email Notification"
                 subtitle="Receive updates and alerts via your registered email address."
@@ -398,7 +358,6 @@ export default function ProfilePage() {
 
               <Separator className="my-8" />
 
-              {/* In-App Notifications section (no save button) */}
               <NotificationSection
                 title="In-App Notification"
                 subtitle="Get instant update within the platform"
@@ -431,20 +390,20 @@ export default function ProfilePage() {
               className="h-11 sm:h-12 text-center mb-4 sm:mb-6 w-full"
             />
 
-            <div className="flex flex-col sm:flex-row gap-3 w-full">
+            <div className="flex flex-col sm:flex-row gap-3 w-full justify-center">
               <Button
                 variant="outline"
                 onClick={() => {
                   setDeleteText("");
                   setDeleteDialogOpen(false);
                 }}
-                className="w-full sm:w-[240px] h-[52px] border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
+                className="w-full sm:w-[240px] h-[52px] min-w-0 border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
               >
                 Cancel
               </Button>
               <Button
                 disabled={deleteText !== "DELETE"}
-                className="w-full sm:w-[240px] h-[52px] bg-red-600 hover:bg-red-700 text-white disabled:bg-[rgba(221,30,30,0.60)]"
+                className="w-full sm:w-[240px] h-[52px] min-w-0 bg-red-600 hover:bg-red-700 text-white disabled:bg-[rgba(221,30,30,0.60)]"
               >
                 Delete Account
               </Button>

@@ -54,17 +54,16 @@ export function Sidebar({
 
             return (
               <Link key={item.href} to={item.href}>
-                <Button
-                  variant="ghost"
+                <div
                   className={cn(
-                    "w-full justify-start py-5 gap-3 text-foreground hover:bg-primary/10 hover:text-primary [&_svg]:hover:text-primary",
+                    "flex items-center w-full justify-start px-2 py-3 rounded gap-3 text-foreground hover:bg-primary/10 hover:text-primary [&_svg]:hover:text-primary",
                     isActive &&
                       "bg-primary/10 font-medium text-primary [&_svg]:text-primary"
                   )}
                 >
                   <Icon className="h-5 w-5" />
                   {item.title}
-                </Button>
+                </div>
               </Link>
             );
           })}
