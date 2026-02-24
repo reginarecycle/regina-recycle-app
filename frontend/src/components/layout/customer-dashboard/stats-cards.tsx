@@ -43,14 +43,19 @@ export function StatsCards({
         ? `text-[${color}]`
         : (theme.accent || 'text-[#0171B6]');
 
+    // Format data: show 2 decimal places only for gold
+    const displayValue = color === 'gold'
+        ? data.toFixed(2)
+        : data.toString();
+
     return (
         <Card
             className={`
-        stats-card
-        rounded-lg
-        shadow-sm
-        ${color === 'gold' ? 'bg-[#FFFBEB]' : ''}
-      `}
+                stats-card
+                rounded-lg
+                shadow-sm
+                ${color === 'gold' ? 'bg-[#FFFBEB]' : ''}
+            `}
         >
             <CardHeader className={`font-medium ${titleColorClass}`}>
                 {title}
@@ -58,7 +63,7 @@ export function StatsCards({
 
             <CardFooter className="card-footer flex items-baseline gap-2">
                 <span className={`number text-3xl font-bold ${accentClass}`}>
-                    {currency}{data}
+                    {currency}{displayValue}
                 </span>
                 <span className={`unit text-lg font-medium ${accentClass}`}>
                     {unit}
