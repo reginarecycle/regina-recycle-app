@@ -38,7 +38,11 @@ export function dashboard() {
           />
         </div>
         <div className="right-bar">
-          <WalletBalance />
+          <WalletBalance
+            balance={45.50}
+            currency="CAD"
+            stats={0}
+            change="+" />
           <DashboardTip />
         </div>
         <div className="large-components">

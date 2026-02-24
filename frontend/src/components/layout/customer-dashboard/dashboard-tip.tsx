@@ -4,7 +4,7 @@ import GreenLightBulb from "@/assets/green-lighbulb.svg"
 
 export function DashboardTip() {
     return (
-        <Card className="dashboard-tip-card pb-100 bg-[#344E41]/25 ">
+        <Card className="dashboard-tip-card pb-100 bg-[#344E41]/25 w-[288px] ">
             {/* <Lightbulb className="tip-img" /> */}
             <img className="tip-img" src={GreenLightBulb} />
             <div className="content">
