@@ -11,7 +11,7 @@ export function WelcomeMessage({
     props) {
     return (
         <div className="welcome-wrapper">
-            <h1 className="welcome-message">Welcome {name}</h1>
+            <h1 className="welcome-message">Welcome, {name}</h1>
             <Button
                 className="request-pickup-btn"
                 variant="outline"
