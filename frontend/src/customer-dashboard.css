@@ -282,7 +282,7 @@
 .schedule-headings {
     display: flex;
     flex-direction: row;
-    border-bottom: 1px solid var(--Card-Border, #CFCFCF);
+    /* border-bottom: 1px solid var(--Card-Border, #CFCFCF); */
     color: #999CA0;
     font-family: Satoshi;
     font-weight: 700;
@@ -379,6 +379,72 @@
     order: 0;
     align-self: stretch;
     flex-grow: 0;
+}
+
+.schedule-row {
+    border-top: 1px solid var(--Card-Border, #CFCFCF);
+    display: flex;
+    flex-direction: row;
+    letter-spacing: -1%;
+    gap: 12px;
+}
+
+.material {
+    width: 35%;
+    height: 56;
+    opacity: 1;
+    padding-top: 16px;
+    padding-right: 24px;
+    padding-bottom: 16px;
+    padding-left: 24px;
+}
+
+.date {
+    width: 25%;
+    height: 56;
+    opacity: 1;
+    padding-top: 16px;
+    padding-right: 24px;
+    padding-bottom: 16px;
+    padding-left: 24px;
+
+    font-family: Satoshi;
+    font-weight: 700;
+    font-style: Bold;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: -1%;
+    color: #0C111D;
+
+}
+
+.status {
+    width: 20%;
+    height: 56;
+    opacity: 1;
+    padding-top: 16px;
+    padding-right: 24px;
+    padding-bottom: 16px;
+    padding-left: 24px;
+}
+
+.action {
+    width: fill;
+    height: 56;
+    gap: 12px;
+    opacity: 1;
+    padding-top: 16px;
+    padding-right: 24px;
+    padding-bottom: 16px;
+    padding-left: 24px;
+
+    font-family: Satoshi;
+    font-weight: 700;
+    font-style: Bold;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: -1%;
+    color: #344E41;
 }
 
 
