@@ -397,6 +397,14 @@
     padding-right: 24px;
     padding-bottom: 16px;
     padding-left: 24px;
+
+    font-family: Satoshi;
+    font-weight: 700;
+    font-style: Bold;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: -1%;
+
 }
 
 .date {
@@ -447,6 +455,35 @@
     color: #344E41;
 }
 
+.material-badge {
+    font-family: Satoshi;
+    font-weight: 700;
+    font-style: Bold;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: -1%;
+
+    /* Badge */
+
+    /* Auto layout */
+    justify-content: center;
+    align-items: center;
+    padding: 12px;
+    gap: 10px;
+    width: 85px;
+    height: 30px;
+
+    /* Primary/Hover */
+    background: #618171;
+    border-radius: 32px;
+
+    /* Inside auto layout */
+    flex: none;
+    order: 0;
+    flex-grow: 0;
+
+
+}
 
 .right-bar {
     display: flex;
