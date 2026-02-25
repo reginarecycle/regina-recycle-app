@@ -36,7 +36,18 @@ export function ScheduleEntry({
                 ))}
             </td>
             <td className="date">{formattedDate}</td>
-            <td className="status">{status}</td>
+            <td className="status">
+                <Badge
+                    className={`status-badge font-medium ${status === 'Approved'
+                        ? 'bg-[#4AD15F] hover:bg-green-600'
+                        : status === 'Pending'
+                            ? 'bg-[#FFB319] hover:bg-yellow-500'
+                            : 'bg-red-600 hover:bg-red-600 text-white'
+                        }`}
+                >
+                    {status}
+                </Badge>
+            </td>
             <td className="action">View</td>
         </div>
     );

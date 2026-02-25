@@ -1,8 +1,16 @@
+@font-face {
+    font-family: 'DM Sans';
+    src: url('./assets/fonts/DMSans-VariableFont_opsz\,wght.ttf') format('truetype');
+    font-weight: 100 900;
+    font-display: swap;
+}
+
 .main-content {
     margin-left: 18%;
     margin-top: 30px;
 }
 
+/* welcome row at the top of the page */
 .welcome-wrapper {
     width: 1208px;
     height: 4px;
@@ -50,6 +58,8 @@
     text-align: center;
     vertical-align: middle;
 }
+
+/* cards displaying statistics */
 
 .stats-wrapper {
     width: 1208px;
@@ -115,6 +125,8 @@
     margin-left: -3%;
 }
 
+/* wrapper for the large compoents recent schedule, and coming up next */
+
 .large-components {
     display: flex;
     margin-top: 3%;
@@ -123,9 +135,11 @@
     padding-bottom: 8px;
     display: flex;
     flex-direction: column;
-    gap: 70px;
+    gap: 55px;
     width: 896px;
 }
+
+/* coming up next card  */
 
 .upcoming-content {
     width: 896px;
@@ -151,56 +165,19 @@
     border-bottom: 1px solid var(--Card-Border, #CFCFCF);
 }
 
-.schedule-content {
-    width: 896px;
-    height: 372px;
-    top: 561px;
-    left: 280px;
-    opacity: 1;
-    padding-top: 16px;
-    padding-right: 1%;
-    padding-bottom: 16px;
-}
-
-.schedule-title {
-    font-family: Satoshi;
-    font-weight: 700;
-    font-style: Bold;
-    font-size: 16px;
-    line-height: 24px;
-    letter-spacing: 0%;
-    margin-top: -1.5%;
-    padding-bottom: 1.5%;
-    padding-top: 1.5%;
-    border-bottom: 1px solid var(--Card-Border, #CFCFCF);
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-}
-
-.view-more-link {
-    font-family: Satoshi;
-    font-weight: 700;
-    font-style: Bold;
-    font-size: 14px;
-    line-height: 20px;
-    letter-spacing: 0%;
-    float: right;
-    color: #344E41;
-}
-
-.upcoming-main {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-}
-
 .truck-img {
     opacity: 1;
     /* padding: 8px; */
     padding-left: 8px;
     padding-top: 5px;
     border-radius: 30px;
+}
+
+
+.upcoming-main {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
 }
 
 .pickup-info {
@@ -273,6 +250,47 @@
     margin-top: 30px;
 
 }
+
+/* recent schedule card */
+
+.schedule-content {
+    width: 896px;
+    height: 372px;
+    top: 561px;
+    left: 280px;
+    opacity: 1;
+    padding-top: 16px;
+    padding-right: 1%;
+    padding-bottom: 16px;
+}
+
+.schedule-title {
+    font-family: Satoshi;
+    font-weight: 700;
+    font-style: Bold;
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: 0%;
+    margin-top: -1.5%;
+    padding-bottom: 1.5%;
+    padding-top: 1.5%;
+    border-bottom: 1px solid var(--Card-Border, #CFCFCF);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.view-more-link {
+    font-family: Satoshi;
+    font-weight: 700;
+    font-style: Bold;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0%;
+    float: right;
+    color: #344E41;
+}
+
 
 .info-wrapper {
     display: flex;
@@ -404,7 +422,6 @@
     font-size: 14px;
     line-height: 20px;
     letter-spacing: -1%;
-
 }
 
 .date {
@@ -481,20 +498,41 @@
     flex: none;
     order: 0;
     flex-grow: 0;
-
-
 }
+
+.status-badge {
+    font-family: DM Sans;
+    font-weight: 700;
+    font-style: Bold;
+    font-size: 9px;
+    line-height: 16px;
+    letter-spacing: 1px;
+    text-align: center;
+    vertical-align: middle;
+    text-transform: uppercase;
+
+    width: 71;
+    height: 16;
+    opacity: 1;
+    border-radius: 34px;
+    padding-right: 8px;
+    padding-left: 8px;
+}
+
+/* wrapper for components on the right side */
 
 .right-bar {
     display: flex;
     flex-direction: column;
     float: right;
-    gap: 50px;
+    gap: 40px;
     align-self: flex-start;
     margin-top: 3%;
     padding-top: 8px;
     padding-right: 24px;
 }
+
+/* card displaying the wallet balance */
 
 .wallet-balance-card {
     height: 279px;
@@ -575,6 +613,8 @@
     text-align: center;
     vertical-align: middle;
 }
+
+/* card displaying a tip */
 
 .dashboard-tip-card {
     height: 111px;

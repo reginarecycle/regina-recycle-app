@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardContent, CardFooter, CardTitle } from "@/components/ui/card.tsx";
+import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card.tsx";
 import { ChevronRight, } from "lucide-react";
 import { ScheduleEntry } from "./schedule-entry";
 
@@ -45,8 +45,40 @@ export function Schedule() {
                         material1={'Cardboard'}
                         material2={'Glass'}
                         material3={'Plastic'}
-                        date={new Date()}
+                        date={new Date(2026 - 1 - 2)}
                         status={'Not Started'}
+                    />
+
+                    <ScheduleEntry
+                        material1={'Cardboard'}
+                        material2={'Glass'}
+                        material3={'Plastic'}
+                        date={new Date()}
+                        status={'Approved'}
+                    />
+
+                    <ScheduleEntry
+                        material1={'Cardboard'}
+                        material2={'Glass'}
+                        material3={'Plastic'}
+                        date={new Date()}
+                        status={'Pending'}
+                    />
+
+                    <ScheduleEntry
+                        material1={'Cardboard'}
+                        material2={'Glass'}
+                        material3={'Plastic'}
+                        date={new Date(2022 - 3 - 1)}
+                        status={'Pending'}
+                    />
+
+                    <ScheduleEntry
+                        material1={'Cardboard'}
+                        material2={'Glass'}
+                        material3={'Plastic'}
+                        date={new Date()}
+                        status={'Approved'}
                     />
                     {/* </table> */}
                     {/* <ScheduleEntry /> */}

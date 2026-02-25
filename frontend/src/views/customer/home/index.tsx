@@ -5,11 +5,12 @@ import ComingNext from "@/components/layout/customer-dashboard/coming-next";
 import Schedule from "@/components/layout/customer-dashboard/schedule";
 import WalletBalance from "@/components/layout/customer-dashboard/wallet-balance";
 import DashboardTip from "@/components/layout/customer-dashboard/dashboard-tip";
+import "@/assets/fonts/DMSans-VariableFont_opsz,wght.ttf"
 
 export function dashboard() {
   return (
     <>
-      <div className="main-content">
+      <div className="main-content mb-60">
         <WelcomeMessage name="John Doe" />
         <div className="stats-wrapper">
           <StatsCards
@@ -45,7 +46,7 @@ export function dashboard() {
             change="+" />
           <DashboardTip />
         </div>
-        <div className="large-components">
+        <div className="large-components mb-6">
           <ComingNext
             pickup="Doorstep Pickup"
             date="Jan. 25, 2026"

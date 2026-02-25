@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@fontsource/dm-sans": "^5.2.8",
     "@mdi/js": "^7.4.47",
     "@mdi/react": "^1.6.1",
     "date-fns": "^4.1.0"
