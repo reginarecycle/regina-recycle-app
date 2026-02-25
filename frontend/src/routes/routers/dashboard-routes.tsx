@@ -6,6 +6,7 @@ const UserDashboard = lazy(() => import("@/views/customer/home"));
 const CollectorDashboard = lazy(() => import("@/views/collector/home"));
 const CustomerProfile = lazy(() => import("@/views/customer/profile"));
 const SchedulePickupView = lazy(() => import ("@/views/customer/schedule_pickup_view"));
+const SchedulePickupTime = lazy(() => import ("@/views/customer/schedule_pickup_time"));
 
 export const dashboardRoutes = () => {
   return [
@@ -13,10 +14,15 @@ export const dashboardRoutes = () => {
       path: Routes.dashboard,
       element: <UserDashboard />,
     },
-    
+
     {
       path : Routes.schedulePickup,
       element: <SchedulePickupView/>,
+    },
+
+    {
+      path : Routes.schedulePickupTime,
+      element: <SchedulePickupTime/>,
     },
 
     {

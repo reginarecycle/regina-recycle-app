@@ -12,6 +12,7 @@ export  enum Routes {
     app = "/app",
     dashboard = "/app/dashboard",
     schedulePickup = "/app/schedule/pickup",
+    schedulePickupTime = "/app/schedule/pickupTime",
     collectorapp = "/app/collector",
     collectordashboard = "/app/collector/dashboard",
 

@@ -68,10 +68,6 @@ const SchedulePickup = () => {
   return (
    
    <div className="space-y-6 px-6 py-4 pb-8">
-    <h1 className="text-[24px] leading-[32px] font-black text-[#0C111D]">
-      Schedule
-    </h1>
-
     
     <div className="rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
       
@@ -101,13 +97,14 @@ const SchedulePickup = () => {
       {/* 2-column section */}
       <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-2 items-stretch">
         {/* LEFT: Available Categories */}
-        <div className="rounded-xl border border-[#E5E7EB] bg-white p-4 h-[360px] flex flex-col">
-          <p className="text-xs font-semibold text-[#6B7280]">
+        <div className="flex flex-col">
+          <p className="mb-2 text-xs font-semibold text-[#6B7280]">
             AVAILABLE CATEGORIES
           </p>
 
           {/* IMPORTANT: make the list scroll inside the fixed-height card */}
-          <div className="mt-3 space-y-3 flex-1 overflow-auto pr-1">
+          <div className = "rounded-xl border border-[#E5E7EB] bg-white p-4 h-[403px] flex flex-col">
+          <div className="space-y-3 flex-1 overflow-auto pr-1">
             {Items.map((item) => {
               const active = isSelected(item.id);
 
@@ -139,6 +136,7 @@ const SchedulePickup = () => {
                 </button>
               );
             })}
+            </div>
           </div>
         </div>
 
@@ -155,7 +153,7 @@ const SchedulePickup = () => {
           </div>
 
           {/* panel box */}
-          <div className="rounded-xl border border-[#E5E7EB] bg-white h-[360px] flex flex-col overflow-hidden">
+          <div className="rounded-xl border border-[#E5E7EB] bg-white h-[403px] flex flex-col overflow-hidden">
             {/* Header row needs padding + background */}
             <div className="flex items-center justify-between bg-[#F9FAFB] px-4 py-3">
               <p className="text-[11px] font-semibold tracking-wide text-[#6B7280]">
