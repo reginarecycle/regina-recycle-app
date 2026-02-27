@@ -4,6 +4,51 @@ import { useNavigate } from "react-router-dom";
 const SchedulePickupTime = () => {
 const navigate = useNavigate();
 
+const DAYS: string[] = ["M", "T", "W", "T", "F", "S", "S"];
+ function startDayMondayIndex(date: Date): number {
+ return (date.getDay() + 6) % 7; // Convert Sunday=0 to Monday=0
+}
+
+
+function daysInMonth(year: number, monthIndex: number): number {
+ return new Date(year, monthIndex + 1, 0).getDate();
+}
+
+
+ const year = 2026;
+ const monthIndex = 0; // January
+
+
+ const [selectedDay, setSelectedDay] = useState<number>(1);
+
+
+const { leadingBlanks, totalDays } = useMemo(() => {
+   const first = new Date(year, monthIndex, 1);
+   return {
+     leadingBlanks: startDayMondayIndex(first),
+     totalDays: daysInMonth(year, monthIndex),
+   };
+ }, [year, monthIndex]);
+
+
+ const cells = useMemo(() => {
+   const arr: Array<{ type: "blank" } | { type: "day"; day: number }> = [];
+
+
+   for (let i = 0; i < leadingBlanks; i++) {
+     arr.push({ type: "blank" });
+   }
+
+
+   for (let d = 1; d <= totalDays; d++) {
+     arr.push({ type: "day", day: d });
+   }
+
+
+   return arr;
+ }, [leadingBlanks, totalDays]);
+
+
     return(
 <div className="space-y-6 px-6 py-4"> 
 
@@ -51,6 +96,101 @@ const navigate = useNavigate();
       STEP 2 of 3
     </div>
     </div>
+
+    <div className="flex mt-6 gap-10 w-full grid-cols-[432px_1fr] items-start">
+   {/* Calendar */}
+   <div className="w-[432px] flex-shrink-0">
+     <div className="flex px-4 py-3 items-center w-full">
+       {/* <div className="flex direction-column items-start flex-1"> */}
+       <div className="flex p-1 items-center rounded-lg">
+         <button className="h-6 w-6">
+         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+         <path d="M15.375 18.75L8.625 12L15.375 5.25" stroke="#999CA0" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
+         </svg>
+         </button>
+       </div>
+       <div className="flex justify-center items-start flex-1 ">
+
+
+       <div className="flex h-8 p-[4px 4px 4px 8px] items-center gap-1 rounded-lg">
+         <span className="text-[14px] text-[#0C111D] font-semibold">January</span>
+         <button className="h-6 w-6">
+         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+         <path d="M16.5 9.75L12 14.25L7.5 9.75" stroke="#0C111D" stroke-linecap="round" stroke-linejoin="round"/>
+         </svg>
+         </button>
+       </div>
+
+
+        <div className="flex h-8 p-[4px 4px 4px 8px] items-center gap-1 rounded-lg">
+         <span className="text-[14px] text-[#0C111D] font-semibold">{year}</span>
+         <button className="h-6 w-6">
+         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+         <path d="M16.5 9.75L12 14.25L7.5 9.75" stroke="#0C111D" stroke-linecap="round" stroke-linejoin="round"/>
+         </svg>
+         </button>
+       </div>
+       </div>
+
+
+       <div className="flex p-1 items-center rounded-lg">
+         <button className="h-6 w-6">
+         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+         <path d="M8.625 5.25L15.375 12L8.625 18.75" stroke="#999CA0" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
+         </svg>
+         </button>
+       </div>
+       {/* </div> */}
+
+
+     </div>
+     {/* DAYS */}
+     <div className="pl-3 pr-4">
+     <div className=" mt-1 grid grid-cols-7 gap-x-6 px-4 text-center text-[12px] text-[#6B7280]">
+     {DAYS.map((d, i) => (
+             <div key={`${d}-${i}`} className="flex p-[12px] flex-column items-start gap-[10px] flex-1 font-[14px] text-[#999CA0)]">
+               {d}
+             </div>
+           ))}
+     </div>
+         {/* Dates */}
+
+
+       <div className="mt-2 grid grid-cols-7 gap-y-4 px-4 pb-4 text-center">
+          {cells.map((cell, idx) => {
+             if (cell.type === "blank") {
+               return <div key={`blank-${idx}`} className="h-9 w-12" />;
+             }
+
+
+             const isSelected = cell.day === selectedDay;
+
+
+             return (
+               <button
+                 key={`day-${cell.day}`}
+                 type="button"
+                 onClick={() => {setSelectedDay(cell.day);
+
+                 }}
+                 className={`mx-auto flex h-9 w-12 items-center justify-center rounded-lg text-[14px] font-medium ${
+                   isSelected
+                     ? "bg-[#344E41] text-white"
+                     : "text-[##0C111D] hover:bg-[#F3F4F6]"
+                 }`}
+               >
+                 {cell.day}
+               </button>
+             );
+           })}
+       </div>
+
+
+     </div>
+
+
+    </div>
+   </div>
 
     </div>
      {/* STEP 2 end */}
@@ -120,3 +260,4 @@ const navigate = useNavigate();
 
     )};
 export default SchedulePickupTime;
+
