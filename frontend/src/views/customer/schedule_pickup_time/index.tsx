@@ -1,6 +1,23 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
+type Slot = { id: string; label: string };
+
+const slotsByDay: Record<number, Slot[]> = {
+ 1: [
+   { id: "1a", label: "10:00 AM - 12:00 PM" },
+   { id: "1b", label: "12:00 PM - 2:00 PM" },
+   { id: "1c", label: "3:00 PM - 5:00 PM" },
+ ],
+ 2: [
+   { id: "2a", label: "9:00 AM - 11:00 AM" },
+   { id: "2b", label: "1:00 PM - 3:00 PM" },
+ ],
+ 3: [{ id: "3a", label: "2:00 PM - 4:00 PM" }],
+ 4: [],
+};
+
+
 const SchedulePickupTime = () => {
 const navigate = useNavigate();
 
@@ -47,6 +64,18 @@ const { leadingBlanks, totalDays } = useMemo(() => {
 
    return arr;
  }, [leadingBlanks, totalDays]);
+
+//slot shows only after user click date
+ const [hasClickedDate, setHasClickedDate] = useState<boolean>(false);
+
+
+ //selected slot
+ const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
+
+
+ const slotsForSelectedDay = useMemo<Slot[]>(()=>{
+   return slotsByDay[selectedDay] ?? [];
+ }, [selectedDay]);
 
 
     return(
@@ -171,6 +200,8 @@ const { leadingBlanks, totalDays } = useMemo(() => {
                  key={`day-${cell.day}`}
                  type="button"
                  onClick={() => {setSelectedDay(cell.day);
+                                 setHasClickedDate(true);
+                                 setSelectedSlotId(null);
 
                  }}
                  className={`mx-auto flex h-9 w-12 items-center justify-center rounded-lg text-[14px] font-medium ${
@@ -190,6 +221,121 @@ const { leadingBlanks, totalDays } = useMemo(() => {
 
 
     </div>
+    <div className="min-w-0 flex flex-col w-full">
+
+
+   {!hasClickedDate ? (
+             <div className="mt-10 text-[14px] text-[#6B7280]">
+               Select a date to see available slots.
+             </div>
+           ) : slotsForSelectedDay.length === 0 ? (
+             <div className="mt-10 text-[14px] text-[#6B7280]">
+               No slots available for this date.
+             </div>
+           ) : (
+             <>
+               <p className="mb-4 text-[12px] font-semibold tracking-wide text-[#000]">
+                 AVAILABLE SLOTS
+               </p>
+
+
+               <div className="flex flex-col gap-4 justify-center">
+                 {slotsForSelectedDay.map((slot) => {
+                   const selected = slot.id === selectedSlotId;
+
+
+                   return (
+                     <button
+                       key={slot.id}
+                       type="button"
+                       onClick={() => setSelectedSlotId(slot.id)}
+                       className={`w-full h-[56px] flex items-center justify-between gap-3 rounded-xl px-6 transition-all ${
+                         selected
+                           ? "bg-[#344E41] text-white"
+                           : "border border-[#E5E7EB] text-[#111827] hover:bg-[#F9FAFB]"
+                       }`}
+                     >
+                       {/* left */}
+                       <div className="flex items-center gap-3">
+                       <span className="text-[16px]">
+                         {selected ? (
+                         // WHITE CLOCK (for selected slot)
+                         <svg
+                           xmlns="http://www.w3.org/2000/svg"
+                           width="20"
+                           height="20"
+                           viewBox="0 0 24 24"
+                           fill="none"
+                         >
+                           <path
+                             d="M12 6V12L16 14"
+                             stroke="white"
+                             strokeWidth="2"
+                             strokeLinecap="round"
+                             strokeLinejoin="round"
+                           />
+                           <path
+                             d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                             stroke="white"
+                             strokeWidth="2"
+                             strokeLinecap="round"
+                             strokeLinejoin="round"
+                           />
+                         </svg>
+                       ) : (
+                         // BLACK CLOCK (for unselected slot)
+                         <svg
+                           xmlns="http://www.w3.org/2000/svg"
+                           width="20"
+                           height="20"
+                           viewBox="0 0 24 24"
+                           fill="none"
+                         >
+                           <path
+                             d="M12 6V12L16 14"
+                             stroke="#111827"
+                             strokeWidth="2"
+                             strokeLinecap="round"
+                             strokeLinejoin="round"
+                           />
+                           <path
+                             d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                             stroke="#111827"
+                             strokeWidth="2"
+                             strokeLinecap="round"
+                             strokeLinejoin="round"
+                           />
+                         </svg>
+                       )}
+                       </span>
+                       <span className="text-[14px] font-medium">
+                         {slot.label}
+                       </span>
+                       </div>
+                       <span className="flex h-6 w-6 py-[3px] px-[4px] items-center gap-[10px] border border-[#FFFFFF] rounded-full bg-[#FFFFFF]">
+                         {
+                           selected &&
+                           (
+                             <svg xmlns="http://www.w3.org/2000/svg"
+                                  width="16" height="16"
+                                  viewBox="0 0 16 16"
+                                  fill="none">
+                             <path d="M13.3327 4L5.99935 11.3333L2.66602 8"
+                                   stroke="#344E41"
+                                   stroke-width="2"
+                                   stroke-linecap="round"
+                                   stroke-linejoin="round"/>
+                             </svg>
+                 )}
+                       </span>
+                     </button>
+                   );
+                 })}
+               </div>
+             </>
+           )}
+         </div>
+
    </div>
 
     </div>
