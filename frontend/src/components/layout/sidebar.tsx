@@ -54,17 +54,16 @@ export function Sidebar({
 
             return (
               <Link key={item.href} to={item.href}>
-                <Button
-                  variant="ghost"
+                <div
                   className={cn(
-                    "w-full justify-start py-5 gap-3 text-foreground hover:bg-primary/10 hover:text-primary [&_svg]:hover:text-primary",
+                    "flex items-center w-full justify-start px-2 py-3 rounded gap-3 text-foreground hover:bg-primary/10 hover:text-primary [&_svg]:hover:text-primary",
                     isActive &&
                       "bg-primary/10 font-medium text-primary [&_svg]:text-primary"
                   )}
                 >
                   <Icon className="h-5 w-5" />
                   {item.title}
-                </Button>
+                </div>
               </Link>
             );
           })}
@@ -79,7 +78,7 @@ export function Sidebar({
         />
 
         {/* User Profile Card */}
-        <div className="relative z-10 flex w-56 h-14.5 items-center justify-between rounded-lg border border-primary bg-[rgba(53,79,66,0.18)] backdrop-blur-[2px] px-3 py-2 hover:bg-[rgba(53,79,66,0.25)] transition-colors cursor-pointer">
+        <div className="relative z-10 flex w-56 h-14.5 items-center justify-between rounded-lg border border-primary bg-background-green-100 backdrop-blur-[2px] px-3 py-2 hover:bg-background-green-100 transition-colors cursor-pointer">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
               <AvatarImage src={userAvatar} alt={userName} />
