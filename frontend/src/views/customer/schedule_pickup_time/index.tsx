@@ -221,6 +221,7 @@ const { leadingBlanks, totalDays } = useMemo(() => {
 
 
     </div>
+    {/* right side */}
     <div className="min-w-0 flex flex-col w-full">
 
 
@@ -337,6 +338,47 @@ const { leadingBlanks, totalDays } = useMemo(() => {
          </div>
 
    </div>
+   {/* brakline */}
+    <div className="mt-8 border-t border-[#CFCFCF]"></div>
+    
+    <div className="mt-6 flex items-center justify-end gap-4">
+           <button className="h-[44px] rounded-xl border border-[#344E41] bg-[#FFF] px-5 text-[14px] font-medium text-[#344E41] hover:bg-[#F9FAFB] flex items-center gap-2"
+                   onClick={()=>{
+                       navigate("/app/schedule/pickup");
+                   }}
+           >
+              <span>
+               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+               <path d="M12 19L5 12M5 12L12 5M5 12H19" stroke="#344E41" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+               </svg></span>
+             <span className="text-[16px]">
+             Previous Step
+             </span>
+           </button>
+
+
+           <button type = "button"
+                   disabled = {!selectedSlotId}
+                   onClick={()=>{
+                     if(selectedSlotId){
+                       navigate("");
+                     }
+                   }}
+                   className={`h-[44px] rounded-xl bg-[#344E41] px-6 text-[14px] font-medium text-[#FFF] flex items-center gap-2
+                   ${selectedSlotId
+                       ? "bg-[#344E41] text-[white] hover:opacity-90"
+                       : "bg-[#E5E7EB] text-[#9CA3Af] cursor-not-allowed"}`
+                   }>
+             <span className="text-[16px]">
+             Next Step
+             </span>
+             <span>
+               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+               <path d="M3.33398 7.99967H12.6673M12.6673 7.99967L8.00065 3.33301M12.6673 7.99967L8.00065 12.6663" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+               </svg>
+               </span>
+           </button>
+       </div>
 
     </div>
      {/* STEP 2 end */}
