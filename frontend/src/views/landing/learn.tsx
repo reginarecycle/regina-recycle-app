@@ -1,15 +1,15 @@
-import "../../Learn.css"
-import Navbar from "@/components/layout/Navbar"
-import LeftBar from "@/components/LeftBar"
-import SearchBar from "@/components/SearchBar"
-import Main from "@/components/Main"
-import LearnButton from "@/components/LearnButton"
-import LearnFooter from "@/components/LearnFooter"
+import "@/Learn.css"
+// import Navbar from "@/components/layout/Navbar"
+import LeftBar from "@/components/learn/LeftBar"
+import SearchBar from "@/components/learn/SearchBar"
+import Main from "@/components/learn/Main"
+import LearnButton from "@/components/learn/LearnButton"
+import LearnFooter from "@/components/learn/LearnFooter"
 
 function Learn() {
   return (
     <div>
-      <Navbar />
+      {/* <Navbar /> */}
       <LeftBar />
       <SearchBar />
       <Main />

@@ -102,13 +102,8 @@ footer {
     position: absolute;
     right: 0;
     border: 1px solid var(--Card-Background2, #EBE9E8);
-    padding: 30px;
-}
-
-.search-bar img {
-    position: absolute;
-    top: 2px;
-    left: 5px
+    padding: 20px 30px;
+    margin-left: -8px;
 }
 
 input {
@@ -129,11 +124,6 @@ input {
     color: #999CA0;
 }
 
-/* #MyInput {
-    background-image: url("/frontend/src/assets/magnifying-glass.svg");
-    background-repeat: no-repeat;
-} */
-
 .search-button {
     width: 132px;
     height: 48px;
@@ -153,76 +143,54 @@ input {
     vertical-align: middle;
     color: white;
     float: right;
-    margin-right: 8px;
 }
 
 
 .all-button {
-    width: 66px;
-    height: 34;
-    opacity: 1;
-    gap: 8px;
+    /* width: 66px; */
+    /* height: 34; */
+    /* gap: 8px; */
     border-radius: 999px;
-    padding: 10px;
+    /* padding: 10px; */
     background-color: #618171;
     color: white;
-    margin-right: 6px;
+    /* margin-right: 6px; */
     align-items: center;
-    gap: 0.5rem;
+    /* gap: 0.5rem; */
 }
 
 .recyclables-button {
-    width: 116;
+    /* width: 116;
     height: 34;
-    opacity: 1;
-    gap: 8px;
+    gap: 8px; */
     border-radius: 16px;
-    padding: 10px;
+    /* padding: 10px; */
     background-color: #618171;
     color: white;
-    margin-right: 6px;
-    margin-left: 6px;
+    /* margin-right: 6px;
+    margin-left: 6px; */
     border-radius: 999px;
 }
 
 .hazardous-button {
-    width: 110;
-    height: 34;
-    opacity: 1;
-    gap: 8px;
     border-radius: 16px;
     border-width: 1px;
-    padding: 10px;
     border: 1px solid var(--Card-Border, #CFCFCF);
-    color: var(--Paragraph2, #999CA0);
-    margin-right: 6px;
-    margin-left: 6px;
+    color: #999CA0;
     border-radius: 999px;
 }
 
-.composite-button {
-    width: 111;
-    height: 34;
-    opacity: 1;
-    gap: 10px;
+.compost-button {
     border-radius: 16px;
     border-width: 1px;
-    padding: 10px;
     border: 1px solid var(--Card-Border, #CFCFCF);
-    color: var(--Paragraph2, #999CA0);
-    margin-right: 6px;
-    margin-left: 6px;
+    color: #999CA0;
     border-radius: 999px;
-}
-
-.buttons-wrapper {
-    padding: 8px;
 }
 
 .warning-label {
     width: 247px;
     height: 43px;
-    /* gap: 10px; */
     padding-top: 5px;
     padding-right: 10px;
     padding-bottom: 5px;
@@ -256,8 +224,5 @@ input {
 
 .learn-wrapper {
     padding-bottom: 200px;
-    padding-top: -500px;
-    background-color: color-mix(in oklab, var(--color-gray-50)
-            /* oklch(98.5% 0.002 247.839) = #f9fafb */
-            50%, transparent);
+    background-color: color-mix(in oklab, var(--color-gray-50) 50%, transparent);
 }
