@@ -288,7 +288,14 @@ const SchedulePickup = () => {
       </div>
 
       {/* Step 3 */}
-      <div className="rounded-xl border border-[#E5E7EB] bg-white px-6 py-5 shadow-sm">
+      <div 
+      role = "button"
+      tabIndex = {0}
+      onClick = {() => 
+      navigate("/app/schedule/pickupLoc", { state: { itemPicked: ItemPicked } })
+      }
+
+      className="rounded-xl border border-[#E5E7EB] bg-white px-6 py-5 shadow-sm cursor-pointer">
         <div className="flex items-center justify-between">
           <div className="flex items-start gap-4">
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F3F4F6] text-sm font-semibold text-[#111827]">
