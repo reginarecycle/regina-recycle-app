@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useMemo, useState } from "react";
+import {useMemo,  useState} from "react";
+import { useNavigate } from "react-router-dom";
 
 type Item = {
   id: string;
@@ -25,8 +26,11 @@ const Items: Item[] = [
   { id: "refill", name: "Refillable beer bottles", payoutInfo: "…" },
 ];
 
+
 const SchedulePickup = () => {
 
+    const navigate = useNavigate(); 
+    
     const [ItemPicked, setItemPicked] = useState<Record<string, number>>({});
 
     const isSelected = (id: string) => ItemPicked[id] !== undefined;
@@ -235,19 +239,21 @@ const SchedulePickup = () => {
         </label>
       </div>
 
-      {/* Next step button like figma */}
+      {/* Next step button */}
       <div className="mt-6 border-t border-[#E5E7EB] pt-4 flex justify-end">
         <Button
           type="button"
           disabled={!Clickable}
-          onClick={() => console.log("Go to Step 2")}
-          className={`h-10 px-6 ${
-            Clickable
-              ? "bg-[#1F3D2B] hover:bg-[#163022]"
-              : "bg-[#A3B0A7] opacity-70"
-          }`}
-        >
-          Next Step →
+          onClick={() =>navigate("/app/schedule/pickupTime", {
+         state: { itemPicked: ItemPicked }
+         })
+        }
+         className={`h-10 px-6 ${
+         Clickable ? "bg-[#1F3D2B] hover:bg-[#163022]" : "bg-[#A3B0A7] opacity-70"
+         }`}
+          >
+        
+        Next Step →
         </Button>
       </div>
     </div>
@@ -256,7 +262,13 @@ const SchedulePickup = () => {
     {/* ===================== STEP 2 + STEP 3 (OUTSIDE step 1 card) ===================== */}
     <div className="space-y-4">
       {/* Step 2 */}
-      <div className="rounded-xl border border-[#E5E7EB] bg-white px-6 py-5 shadow-sm">
+      <div
+      role="button"
+      tabIndex={0}
+      onClick={() =>
+      navigate("/app/schedule/pickupTime", { state: { itemPicked: ItemPicked } })
+     }
+       className="rounded-xl border border-[#E5E7EB] bg-white px-6 py-5 shadow-sm cursor-pointer">
         <div className="flex items-center justify-between">
           <div className="flex items-start gap-4">
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F3F4F6] text-sm font-semibold text-[#111827]">
