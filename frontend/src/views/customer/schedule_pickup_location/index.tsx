@@ -5,6 +5,7 @@ const SchedulePickupLocation = () => {
 const navigate = useNavigate();
 const [selectedAddress, setSelectedAddress] = useState("current");
 const [customAddress, setCustomAddress] = useState("");
+const [showSuccessModal, setShowSuccessModal] = useState(false);
 
 const isAddressValid =
   selectedAddress === "current" ||
@@ -219,6 +220,8 @@ return(
   disabled={!isAddressValid}
   onClick={() => {
     if (!isAddressValid) return;
+
+    setShowSuccessModal(true);
     // confirm logic here
   }}
   className={`h-11 rounded-lg px-6 text-[14px] font-semibold transition flex items-center gap-2 justify-center
@@ -246,6 +249,60 @@ return(
       </div>
     </div>
 
+{/* popup */}
+{showSuccessModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+    <div className="w-full max-w-[720px] rounded-2xl bg-white p-10 shadow-xl">
+      {/* Icon */}
+      {/* Icon */}
+<div className="relative mx-auto flex h-20 w-20 items-center justify-center">
+
+  {/* Inner solid circle */}
+  <div className="absolute h-16 w-16 rounded-full bg-[#88D18E]" />
+  {/* Check */}
+  <svg  className="absolute translate-y-[1px]" xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 39 39" fill="none">
+  <path d="M37.6275 15.8063C38.4724 19.9527 37.8702 24.2634 35.9215 28.0196C33.9728 31.7758 30.7952 34.7504 26.9188 36.4473C23.0423 38.1442 18.7013 38.461 14.6196 37.3446C10.5379 36.2283 6.96227 33.7465 4.48897 30.3129C2.01568 26.8793 0.794243 22.7017 1.02835 18.4765C1.26245 14.2514 2.93794 10.2343 5.77542 7.09496C8.61289 3.95567 12.4408 1.884 16.6209 1.22544C20.8009 0.566885 25.0804 1.36124 28.7456 3.47605" stroke="#344E41" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M13.9473 17.6551L19.4973 23.2051L37.9972 4.70508" stroke="#344E41" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+</div>
+
+      {/* Text */}
+      <h2 className="mt-6 text-center text-[28px] font-semibold text-[#0C111D]">
+        Pickup Scheduled <br /> Successfully!
+      </h2>
+
+      <p className="mt-3 text-center text-[14px] text-[#667085]">
+        Your items should be ready and available at <br />
+        the pickup location
+      </p>
+
+      {/* Buttons */}
+      <div className="mt-8 flex items-center justify-center gap-6">
+        <button
+          type="button"
+          onClick={() => {
+            setShowSuccessModal(false);
+            navigate("/app/history"); // change route if needed
+          }}
+          className="h-12 w-[220px] rounded-xl border border-[#D0D5DD] bg-white text-[16px] font-semibold text-[#344054] hover:bg-[#F9FAFB]"
+        >
+          View History
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setShowSuccessModal(false);
+            navigate("/app/dashboard"); // change route if needed
+          }}
+          className="h-12 w-[220px] rounded-xl bg-[#344E41] text-[16px] font-semibold text-white hover:opacity-95"
+        >
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+)}
  </div>
 
 
