@@ -340,7 +340,7 @@ const { leadingBlanks, totalDays } = useMemo(() => {
    </div>
    {/* brakline */}
     <div className="mt-8 border-t border-[#CFCFCF]"></div>
-    
+
     <div className="mt-6 flex items-center justify-end gap-4">
            <button className="h-[44px] rounded-xl border border-[#344E41] bg-[#FFF] px-5 text-[14px] font-medium text-[#344E41] hover:bg-[#F9FAFB] flex items-center gap-2"
                    onClick={()=>{
@@ -361,7 +361,7 @@ const { leadingBlanks, totalDays } = useMemo(() => {
                    disabled = {!selectedSlotId}
                    onClick={()=>{
                      if(selectedSlotId){
-                       navigate("");
+                       navigate("/app/schedule/pickupLoc");
                      }
                    }}
                    className={`h-[44px] rounded-xl bg-[#344E41] px-6 text-[14px] font-medium text-[#FFF] flex items-center gap-2
@@ -438,14 +438,17 @@ const { leadingBlanks, totalDays } = useMemo(() => {
           className="flex h-10 items-center gap-2 rounded-md bg-[#A3B0A7] px-6 text-sm font-semibold text-white opacity-70"
         >
           Confirm Pickup
-          <span className="text-base">🔒</span>
+          <span className="text-base"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+  <path d="M8.00065 11.3333C8.36884 11.3333 8.66732 11.0349 8.66732 10.6667C8.66732 10.2985 8.36884 10 8.00065 10C7.63246 10 7.33398 10.2985 7.33398 10.6667C7.33398 11.0349 7.63246 11.3333 8.00065 11.3333Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M12.6667 6.66602H3.33333C2.59695 6.66602 2 7.26297 2 7.99935V13.3327C2 14.0691 2.59695 14.666 3.33333 14.666H12.6667C13.403 14.666 14 14.0691 14 13.3327V7.99935C14 7.26297 13.403 6.66602 12.6667 6.66602Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M4.66602 6.66634V4.66634C4.66602 3.78229 5.01721 2.93444 5.64233 2.30932C6.26745 1.6842 7.11529 1.33301 7.99935 1.33301C8.8834 1.33301 9.73125 1.6842 10.3564 2.30932C10.9815 2.93444 11.3327 3.78229 11.3327 4.66634V6.66634" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg></span>
         </button>
       </div>
     </div>
 
 </div>
 
-
-    )};
+)};
 export default SchedulePickupTime;
 

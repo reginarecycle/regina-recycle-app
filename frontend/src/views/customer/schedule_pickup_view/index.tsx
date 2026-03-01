@@ -263,11 +263,6 @@ const SchedulePickup = () => {
     <div className="space-y-4">
       {/* Step 2 */}
       <div
-      role="button"
-      tabIndex={0}
-      onClick={() =>
-      navigate("/app/schedule/pickupTime", { state: { itemPicked: ItemPicked } })
-     }
        className="rounded-xl border border-[#E5E7EB] bg-white px-6 py-5 shadow-sm cursor-pointer">
         <div className="flex items-center justify-between">
           <div className="flex items-start gap-4">
@@ -288,13 +283,7 @@ const SchedulePickup = () => {
       </div>
 
       {/* Step 3 */}
-      <div 
-      role = "button"
-      tabIndex = {0}
-      onClick = {() => 
-      navigate("/app/schedule/pickupLoc", { state: { itemPicked: ItemPicked } })
-      }
-
+      <div
       className="rounded-xl border border-[#E5E7EB] bg-white px-6 py-5 shadow-sm cursor-pointer">
         <div className="flex items-center justify-between">
           <div className="flex items-start gap-4">
@@ -315,7 +304,7 @@ const SchedulePickup = () => {
       </div>
     </div>
 
-    {/* ===================== STICKY FOOTER (OUTSIDE everything) ===================== */}
+     {/* ===================== STICKY FOOTER (OUTSIDE everything) ===================== */}
     <div className="sticky bottom-0 z-10 -mx-6 border-t border-[#E5E7EB] bg-white px-6 py-4">
       <div className="flex items-center justify-between gap-6">
         <div className="flex flex-1 items-center gap-8 text-sm">
@@ -349,10 +338,15 @@ const SchedulePickup = () => {
           className="flex h-10 items-center gap-2 rounded-md bg-[#A3B0A7] px-6 text-sm font-semibold text-white opacity-70"
         >
           Confirm Pickup
-          <span className="text-base">🔒</span>
+          <span className="text-base"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+  <path d="M8.00065 11.3333C8.36884 11.3333 8.66732 11.0349 8.66732 10.6667C8.66732 10.2985 8.36884 10 8.00065 10C7.63246 10 7.33398 10.2985 7.33398 10.6667C7.33398 11.0349 7.63246 11.3333 8.00065 11.3333Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M12.6667 6.66602H3.33333C2.59695 6.66602 2 7.26297 2 7.99935V13.3327C2 14.0691 2.59695 14.666 3.33333 14.666H12.6667C13.403 14.666 14 14.0691 14 13.3327V7.99935C14 7.26297 13.403 6.66602 12.6667 6.66602Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M4.66602 6.66634V4.66634C4.66602 3.78229 5.01721 2.93444 5.64233 2.30932C6.26745 1.6842 7.11529 1.33301 7.99935 1.33301C8.8834 1.33301 9.73125 1.6842 10.3564 2.30932C10.9815 2.93444 11.3327 3.78229 11.3327 4.66634V6.66634" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></span>
         </button>
       </div>
     </div>
+
   </div>
 );
 
