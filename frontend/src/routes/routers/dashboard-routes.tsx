@@ -3,7 +3,7 @@ import { Routes } from "../routes";
 import type { RouteObject } from "react-router-dom";
 
 const UserDashboard = lazy(() => import("@/views/customer/home"));
-const CollectorDashboard = lazy(() => import("@/views/collector/home"));
+const CollectorDashboard = lazy(() => import("@/views/collector/history"));
 const CustomerProfile = lazy(() => import("@/views/customer/profile"));
 
 export const dashboardRoutes = () => {

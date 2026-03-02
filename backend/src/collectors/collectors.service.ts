@@ -1,13 +1,52 @@
 import { Injectable } from '@nestjs/common';
-import { CreateCollectorDto } from './dto/create-collector.dto';
+import { PrismaService } from '../prisma/prisma.service';
 import { UpdateCollectorDto } from './dto/update-collector.dto';
 
 @Injectable()
 export class CollectorsService {
+  constructor (private prisma: PrismaService) {}
 
-  getStats( collectorId: string) {
-    return `This action returns stats for collector with ID: ${collectorId}`;
-  }
+  async getStats( collectorUserId: string) {
+    const total = await this.prisma.pickup.count({
+      where: {collectorUserId},
+    });
+
+    const completed = await this.prisma.pickup.count({
+      where:{
+        collectorUserId,
+        status: 'COMPLETED',
+      },
+    });
+  
+    const pending = await this.prisma.pickup.count({
+      where:{
+        collectorUserId,
+        status: 'PENDING',
+      },
+    });
+
+    const inProgress = await this.prisma.pickup.count({
+      where:{
+        collectorUserId,
+        status: 'IN_PROGRESS',
+      },
+    });
+
+    const cancelled = await this.prisma.pickup.count({
+      where:{
+        collectorUserId,
+        status: 'CANCELLED',
+      },
+    });
+
+    return {
+      total, 
+      completed,
+      pending,
+      inProgress,
+      cancelled,
+    };
+    }
 
   getMaterialDistribution(collectorId: string, period?: string) {
     return `This action returns material distribution for collector with ID: ${collectorId} for period: ${period || 'all time'}`;

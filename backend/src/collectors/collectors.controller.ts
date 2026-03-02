@@ -9,7 +9,7 @@ export class CollectorsController {
   @Get('stats')
   @UseGuards()
   getStats(/* @CurrentUser() user: User */) {
-    const collectorId = 'temp-collector-id';
+    const collectorId = 'real-collector-id';
     return this.collectorsService.getStats(collectorId);
   }
 
@@ -19,14 +19,14 @@ export class CollectorsController {
   /* @CurrentUser() user: User, */
   @Query('period') period?: string, // 'month', 'week', 'year'
   ) {
-      const collectorId = 'temp-collector-id';
+      const collectorId = 'real-collector-id';
     return this.collectorsService.getMaterialDistribution(collectorId, period);
   }
 
   @Get('pickup-overview')
   @UseGuards()
   getPickupOverview(/* @CurrentUser() user: User */) {
-    const collectorId = 'temp-collector-id';
+    const collectorId = 'real-collector-id';
     return this.collectorsService.getPickupOverview(collectorId);
   }
 
@@ -38,7 +38,7 @@ export class CollectorsController {
     @Query('limit') limit?: number,
     @Query('offset') offset?: number,
   ) {
-    const collectorId = 'temp-collector-id';
+    const collectorId = 'real-collector-id';
     return this.collectorsService.getPickups(
       collectorId,
       status,
@@ -53,7 +53,7 @@ export class CollectorsController {
     @Query('limit') limit?: number,
     @Query('period') period?: string, // 'month', 'week', 'year'  
   ) {
-    const collectorId = 'temp-collector-id';
+    const collectorId = 'real-collector-id';
     return this.collectorsService.getTopLocations(collectorId, limit, period);
   }
 
@@ -65,7 +65,7 @@ export class CollectorsController {
     @Query('search') search?: string,
     @Query('offset') offset?: number,
   ) {
-    const collectorId = 'temp-collector-id';
+    const collectorId = 'real-collector-id';
     return this.collectorsService.getCustomers(collectorId, search, limit, offset);
   }
 
@@ -75,7 +75,7 @@ export class CollectorsController {
     /* @CurrentUser() user: User, */
     @Param('customerId') customerId: string,
   ) {
-    const collectorId = 'temp-user-id';  
+    const collectorId = 'real-collector-id';  
     return this.collectorsService.getCustomerDetails(collectorId, customerId);
   }
 
@@ -85,7 +85,7 @@ export class CollectorsController {
     /* @CurrentUser() user: User, */
     @Body() dto: any,
   ) {
-    const collectorId = 'temp-user-id';
+    const collectorId = 'real-collector-id';
     return this.collectorsService.updateProfile(collectorId, dto);
   }
   @Get('me/pricing')
@@ -97,7 +97,7 @@ export class CollectorsController {
     @Query('search') search?: string,
     @Query('status') status?: string,
   ) {
-    const userId = 'temp-user-id';
+    const userId = 'real-collector-id';
     return this.collectorsService.getPricing(
       userId,
       page,
@@ -114,14 +114,14 @@ export class CollectorsController {
   @Param('materialId') materialId: string,
   @Body() dto: any,
   ) {
-    const collectorId = 'temp-user-id';  
+    const collectorId = 'real-collector-id';  
     return this.collectorsService.updateMaterialPricing(collectorId, materialId, dto);
   }
 
   @Get('pricing-settings')
   @UseGuards()
   getMaterialSettings(/* @CurrentUser() user: User */) {
-    const userId = 'temp-user-id';
+    const userId = 'real-collector-id';
     return this.collectorsService.getMaterialSettings(userId);
   }
 
@@ -131,7 +131,7 @@ export class CollectorsController {
     /* @CurrentUser() user: User, */
     @Body() dto: any,
   ) {
-    const userId = 'temp-user-id';
+    const userId = 'real-collector-id';
     return this.collectorsService.updateMaterialSettings(userId, dto);
   }
 
