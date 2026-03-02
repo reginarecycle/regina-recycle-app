@@ -54,7 +54,7 @@ export function StatsCards({
                 stats-card
                 rounded-lg
                 shadow-sm
-                ${color === 'gold' ? 'bg-[#FFFBEB]' : ''}
+                ${color === 'gold' ? 'bg-[#FFFBEB]' : 'bg-[#FFFFFF]'}
             `}
         >
             <CardHeader className={`font-medium ${titleColorClass}`}>
