@@ -1,5 +1,5 @@
 import "@/Learn.css"
-// import Navbar from "@/components/layout/Navbar"
+import Navbar from "@/components/layout/Navbar"
 import LeftBar from "@/components/learn/LeftBar"
 import SearchBar from "@/components/learn/SearchBar"
 import Main from "@/components/learn/Main"
@@ -14,7 +14,7 @@ function Learn() {
       <SearchBar />
       <Main />
       <LearnButton />
-      <LearnFooter />
+      {/* <LearnFooter /> */}
     </div>
   )
 }

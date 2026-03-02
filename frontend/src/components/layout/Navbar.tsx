@@ -1,4 +1,5 @@
 import logo from "../../assets/logo.svg"
+import { Button } from "../ui/button"
 
 function Navbar() {
     return (
@@ -44,7 +45,7 @@ function Navbar() {
 
 
                 <div className="flex items-center gap-3">
-                    <button
+                    <Button
                         className="
     flex items-center justify-center
     h-10 px-5
@@ -57,10 +58,10 @@ function Navbar() {
   "
                     >
                         Login
-                    </button>
+                    </Button>
 
 
-                    <button
+                    <Button
                         className="
     flex items-center justify-center gap-2
     w-[132px]
@@ -73,7 +74,7 @@ function Navbar() {
   "
                     >
                         Get Started
-                    </button>
+                    </Button>
 
                 </div>
             </div>
