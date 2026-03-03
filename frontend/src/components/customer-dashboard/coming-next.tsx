@@ -1,7 +1,7 @@
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
-import TruckIcon from "../../../assets/truck-icon.svg"
-import Ellipse from "../../../assets/Ellipse 209.svg"
-import Line from "../../../assets/Line 7.svg"
+import TruckIcon from "@/assets/truck-icon.svg"
+import Ellipse from "@/assets/Ellipse 209.svg"
+import Line from "@/assets/Line 7.svg"
 import { MapPin, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 

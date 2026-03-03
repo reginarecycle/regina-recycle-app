@@ -1,10 +1,10 @@
 import "../../../customer-dashboard.css"
-import WelcomeMessage from "@/components/layout/customer-dashboard/welcome-message";
-import { StatsCards } from "@/components/layout/customer-dashboard/stats-cards";
-import ComingNext from "@/components/layout/customer-dashboard/coming-next";
-import Schedule from "@/components/layout/customer-dashboard/schedule";
-import WalletBalance from "@/components/layout/customer-dashboard/wallet-balance";
-import DashboardTip from "@/components/layout/customer-dashboard/dashboard-tip";
+import WelcomeMessage from "@/components/customer-dashboard/welcome-message";
+import { StatsCards } from "@/components/customer-dashboard/stats-cards";
+import ComingNext from "@/components/customer-dashboard/coming-next";
+import Schedule from "@/components/customer-dashboard/schedule";
+import WalletBalance from "@/components/customer-dashboard/wallet-balance";
+import DashboardTip from "@/components/customer-dashboard/dashboard-tip";
 import "@/assets/fonts/DMSans-VariableFont_opsz,wght.ttf"
 
 export function dashboard() {
