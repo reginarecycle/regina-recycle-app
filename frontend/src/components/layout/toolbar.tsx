@@ -1,4 +1,3 @@
-// this is a navbar that shows up after the user logs in (displays the page the user is in)
 import { Button } from "@/components/ui/button";
 import {
     Select,

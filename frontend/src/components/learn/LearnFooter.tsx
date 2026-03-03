@@ -2,7 +2,7 @@ import logo from "@/assets/logo.svg";
 
 function LearnFooter() {
     return (
-        <div className="w-full bg-white mt-auto border-t border-gray-200">
+        <footer className="w-full bg-white mt-auto border-t border-gray-200">
             <div className="max-w-7xl mx-auto px-6 py-4">
                 <div className="flex flex-wrap items-center justify-between gap-4">
 
@@ -28,7 +28,7 @@ function LearnFooter() {
 
                 </div>
             </div>
-        </div>
+        </footer>
     );
 }
 

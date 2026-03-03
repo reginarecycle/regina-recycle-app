@@ -1,4 +1,3 @@
-// this is the top bar that shows up before the user logs in (has a login and sign up button)
 import logo from "../../assets/logo.svg"
 import { Button } from "../ui/button"
 
