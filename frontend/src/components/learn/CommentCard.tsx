@@ -1,9 +1,13 @@
 import LightBulb from '@/assets/LightBulb.svg'
+import { Star } from 'lucide-react'
 
 function CommentCard() {
     return (
         <div className="Comment-Card">
-            <h3>Tip of the day</h3>
+            <h3 className="flex gap-0.5">
+                <Star className="mt-0.5" size={12} fill="#A16207" />
+                Tip of the day
+            </h3>
             <h4>Pizza Boxes ?</h4>
             <img
                 src={LightBulb}

@@ -1,6 +1,6 @@
 import { Outlet, useLocation } from "react-router-dom";
-import Navbar from "./Navbar";
-import LearnFooter from "../learn/LearnFooter";
+import Navbar from "@/components/layout/Navbar"
+import LearnFooter from "@/components/layout/LearnFooter";
 import { Toolbar } from "@/components/layout/toolbar";
 
 const LandingLayout = () => {
@@ -11,17 +11,14 @@ const LandingLayout = () => {
   const isLoginPage = location.pathname === "/login"
 
   return (
-    <main className="min-h-screen flex flex-col">
-      {/* if on the learn page use the Navbar, otherwise use the Toolbar */}
+    <main>
       {isLearnPage || isLoginPage ? <Navbar /> : <Toolbar />}
 
 
-      {/* Main content area - grows to fill available space */}
-      <div className="flex-1">
+      <div className="min-h-svh lg:min-h-[767px] bg-card pb-[184px]">
         <Outlet />
       </div>
 
-      {/* Footer always shown */}
       {isLearnPage ? <LearnFooter /> : <>footer</>}
     </main>
   );

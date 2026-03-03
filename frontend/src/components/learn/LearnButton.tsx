@@ -1,8 +1,13 @@
+import { Button } from "../ui/button"
+import { ChevronDown } from "lucide-react"
+
 export function LearnButton() {
     return (
-        <div className="learn-wrapper">
-            <button className="load-more-btn">Load More</button>
-        </div>
+
+        <Button className="load-more-btn" variant={"outline"}>
+            Load More
+            <ChevronDown />
+        </Button>
     )
 }
 
