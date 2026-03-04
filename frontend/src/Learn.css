@@ -121,6 +121,10 @@ input {
     border: 1px solid var(--Card-Border, #CFCFCF);
     width: 652;
     gap: 4px;
+    color: black;
+}
+
+input::placeholder {
     color: #999CA0;
 }
 
@@ -188,41 +192,170 @@ input {
     border-radius: 999px;
 }
 
-.warning-label {
-    width: 247px;
-    height: 43px;
-    padding-top: 5px;
-    padding-right: 10px;
-    padding-bottom: 5px;
-    padding-left: 10px;
-    background: var(--Card-Background, #F7F7F7);
-    display: flex;
-    margin-right: 5%;
-    margin-left: -2%;
-    margin-top: -3%;
+.cards-wrapper {
+    position: absolute;
+    width: 897px;
+    height: 978.11px;
+    left: 491px;
+    top: 334px;
+    padding: 0;
 }
 
-.load-more-btn {
-    width: 153px;
-    height: 44px;
-    gap: 8px;
-    opacity: 1;
-    padding-top: 8px;
-    padding-right: 16px;
-    padding-bottom: 8px;
-    padding-left: 16px;
-    border-radius: 999px;
-    border-width: 1px;
-    color: black;
+.card-title {
+    /* Cans */
+
+    width: 53px;
+    height: 18px;
+
+    /* text-xs/Medium */
+    font-family: 'Satoshi';
+    font-style: normal;
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 18px;
+    /* identical to box height, or 150% */
     display: flex;
+    align-items: center;
+
+    color: #000000;
+
+
+    /* Inside auto layout */
+    flex: none;
+    order: 0;
+    align-self: stretch;
+    flex-grow: 0;
+
+}
+
+.card-description {
+    /* krljrjntprp */
+
+    width: 230px;
+    height: 18px;
+
+    /* text-xs/Medium */
+    font-family: 'Satoshi';
+    font-style: normal;
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 18px;
+    /* identical to box height, or 150% */
+    display: flex;
+    align-items: center;
+    text-align: center;
+    flex-direction: row;
+
+    color: #000000;
+
+    /* Inside auto layout */
+    flex: none;
+    order: 1;
+    align-self: stretch;
+    flex-grow: 0;
+
+}
+
+.category-txt {
+    font-family: Satoshi;
+    font-weight: 500;
+    font-style: Medium;
+    font-size: 12px;
+    line-height: 18px;
+    letter-spacing: 0%;
+    text-align: center;
+    vertical-align: middle;
+    color: #FFFFFF;
+}
+
+.warning-label {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 5px 10px;
+    gap: 10px;
+
+    width: 247px;
+    height: 43px;
+
+    background: #F7F7F7;
+    flex: none;
+    align-self: stretch;
+    flex-grow: 0;
+    gap: 15px;
+}
+
+.warning-label-txt {
+    height: 16px;
+
+    font-family: 'Satoshi';
+    font-style: normal;
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 16px;
+    /* identical to box height, or 133% */
+    display: flex;
+    align-items: center;
+    text-align: center;
+
+    color: #000000;
+
+    /* Inside auto layout */
+    flex: none;
+    order: 1;
+    flex-grow: 0;
+
+    margin-top: 2%;
+
+}
+
+.learn-card {
     position: relative;
-    justify-content: center;
-    border: 1px solid #344E41;
-    place-self: center;
-    margin-top: -10%;
+    width: 275.44px;
+    height: 302.7px;
+    left: 0px;
+    top: 0 px;
+
+    background: #FFFFFF;
+    box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+
 }
 
 .learn-wrapper {
     padding-bottom: 200px;
     background-color: color-mix(in oklab, var(--color-gray-50) 50%, transparent);
+}
+
+.load-more-btn {
+    box-sizing: border-box;
+
+    /* Auto layout */
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 16px;
+    gap: 8px;
+
+    position: relative;
+    width: 153px;
+    height: 44px;
+
+    /* White */
+    background: #FFFFFF;
+    /* Primary/Default */
+    border: 1px solid #344E41;
+    border-radius: 20px;
+
+    font-family: Satoshi;
+    font-weight: 700;
+    font-style: Bold;
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: 0%;
+    text-align: center;
+    vertical-align: middle;
+    color: #344E41;
+
 }
