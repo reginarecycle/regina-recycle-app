@@ -1,4 +1,4 @@
-import logo from "@/assets/logo.svg"
+import logo from "@/assets/logoicon.svg"
 import { Button } from "@/components/ui/button"
 
 function Navbar() {
