@@ -1,4 +1,4 @@
-import LightBulb from '@/assets/LightBulb.svg'
+import LightBulb from "@/assets/LightBulb.svg"
 import { Star } from 'lucide-react'
 
 function CommentCard() {

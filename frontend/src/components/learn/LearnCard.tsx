@@ -1,9 +1,8 @@
-import { Card, CardFooter, CardContent } from "../ui/card"
+import { Card, CardFooter, CardContent } from "@/components/ui/card"
 import Verified from "@/assets/icons/verfied-icon.svg"
 import Warning from "@/assets/icons/warning-icon.png"
 import Compostable from "@/assets/icons/compostable-icon.png"
 import Garbage from "@/assets/icons/garbage-icon.svg"
-// import { TriangleAlert } from "lucide-react"
 import WarningIcon from "@/assets/icons/grey-warning-icon.svg"
 
 type props = {

@@ -1,8 +1,6 @@
 import { BadgeCheck, Sprout, TriangleAlert } from "lucide-react"
-import { Button } from "../ui/button"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input";
-// import { InputOTP } from "../ui/input-otp"
-
 
 function SearchBar() {
     return (
