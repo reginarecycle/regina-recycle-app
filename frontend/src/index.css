@@ -71,12 +71,11 @@ html, body {
 
 }
 
-<<<<<<< HEAD
+
 body {
   margin: 0;
 }
-=======
->>>>>>> origin/development
+
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);

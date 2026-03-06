@@ -1,5 +1,3 @@
-import React from "react";
-
 export type TxStatus = "CREDIT" | "WITHDRAWAL" | "FAILED";
 
 export type TransactionDetails = {
