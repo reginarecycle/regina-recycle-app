@@ -26,6 +26,17 @@ const Items: Item[] = [
   { id: "refill", name: "Refillable beer bottles", payoutInfo: "…" },
 ];
 
+const Itemicon = () => (
+  <div className="h-8 w-8 rounded-full bg-[#F3F4F6] flex items-center justify-center">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="12" viewBox="0 0 14 12" fill="none">
+      <path
+        d="M1.33333 12C0.966667 12 0.652889 11.8696 0.392 11.6087C0.131111 11.3478 0.000444444 11.0338 0 10.6667V0L1.11667 1.11667L2.21667 0L3.33333 1.11667L4.45 0L5.55 1.11667L6.66667 0L7.78333 1.11667L8.88333 0L10 1.11667L11.1167 0L12.2167 1.11667L13.3333 0V10.6667C13.3333 11.0333 13.2029 11.3473 12.942 11.6087C12.6811 11.87 12.3671 12.0004 12 12H1.33333ZM1.33333 10.6667H6V6.66667H1.33333V10.6667ZM7.33333 10.6667H12V9.33333H7.33333V10.6667ZM7.33333 8H12V6.66667H7.33333V8ZM1.33333 5.33333H12V3.33333H1.33333V5.33333Z"
+        fill="#111827"
+      />
+    </svg>
+  </div>
+);
+
 
 const SchedulePickup = () => {
 
@@ -124,7 +135,7 @@ const SchedulePickup = () => {
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-md bg-[#F3F4F6]" />
+                   <Itemicon/>
                     <span className="text-sm text-[#111827]">{item.name}</span>
                   </div>
 
@@ -187,7 +198,7 @@ const SchedulePickup = () => {
                       className="flex items-center justify-between gap-4"
                     >
                       <div className="flex items-start gap-3">
-                        <div className="mt-1 h-7 w-7 rounded-md bg-[#F3F4F6]" />
+                        <Itemicon />
                         <div>
                           <p className="text-[13px] font-semibold text-[#111827]">
                             {item.name}

@@ -32,7 +32,7 @@ return(
        <button className=""
             type="button"
             onClick={()=>{
-              navigate("/app/schedule/pickup");
+              navigate("/app/schedule");
             }}>
         <span className="text-[#111827 · 75%] text-[14px] font-semibold">EDIT SELECTION</span>
       </button>

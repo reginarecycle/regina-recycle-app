@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 type Slot = { id: string; label: string };
 
@@ -101,7 +102,7 @@ const { leadingBlanks, totalDays } = useMemo(() => {
        <button className=""
             type="button"
             onClick={()=>{
-              navigate("/app/schedule/pickup");
+              navigate("/app/schedule");
             }}>
         <span className="text-[#111827 · 75%] text-[14px] font-semibold">EDIT SELECTION</span>
       </button>
@@ -344,7 +345,7 @@ const { leadingBlanks, totalDays } = useMemo(() => {
     <div className="mt-6 flex items-center justify-end gap-4">
            <button className="h-[44px] rounded-xl border border-[#344E41] bg-[#FFF] px-5 text-[14px] font-medium text-[#344E41] hover:bg-[#F9FAFB] flex items-center gap-2"
                    onClick={()=>{
-                       navigate("/app/schedule/pickup");
+                       navigate("/app/schedule");
                    }}
            >
               <span>
@@ -357,18 +358,15 @@ const { leadingBlanks, totalDays } = useMemo(() => {
            </button>
 
 
-           <button type = "button"
+           <Button type = "button"
                    disabled = {!selectedSlotId}
                    onClick={()=>{
                      if(selectedSlotId){
                        navigate("/app/schedule/pickupLoc");
                      }
                    }}
-                   className={`h-[44px] rounded-xl bg-[#344E41] px-6 text-[14px] font-medium text-[#FFF] flex items-center gap-2
-                   ${selectedSlotId
-                       ? "bg-[#344E41] text-[white] hover:opacity-90"
-                       : "bg-[#E5E7EB] text-[#9CA3Af] cursor-not-allowed"}`
-                   }>
+                   className="h-[44px] rounded-xl bg-[#344E41] px-6 text-[14px] font-medium text-[#FFF] flex items-center gap-2"
+                   >
              <span className="text-[16px]">
              Next Step
              </span>
@@ -377,7 +375,7 @@ const { leadingBlanks, totalDays } = useMemo(() => {
                <path d="M3.33398 7.99967H12.6673M12.6673 7.99967L8.00065 3.33301M12.6673 7.99967L8.00065 12.6663" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                </svg>
                </span>
-           </button>
+           </Button>
        </div>
 
     </div>
