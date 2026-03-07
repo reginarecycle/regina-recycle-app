@@ -1,25 +1,49 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import ThresholdProgress from "@/components/scheduleView/progressBar";
+import { useSchedule } from "@/components/scheduleView/ScheduleContext";
 
 type Slot = { id: string; label: string };
 
-const slotsByDay: Record<number, Slot[]> = {
- 1: [
+type SlotsByDate = Record<string, Slot[]>;
+const slotsByDate: SlotsByDate = {
+ "2026-03-05": [
    { id: "1a", label: "10:00 AM - 12:00 PM" },
    { id: "1b", label: "12:00 PM - 2:00 PM" },
    { id: "1c", label: "3:00 PM - 5:00 PM" },
  ],
- 2: [
+ "2026-03-06": [
    { id: "2a", label: "9:00 AM - 11:00 AM" },
    { id: "2b", label: "1:00 PM - 3:00 PM" },
  ],
- 3: [{ id: "3a", label: "2:00 PM - 4:00 PM" }],
- 4: [],
+ "2026-03-20": [
+   { id: "1a", label: "10:00 AM - 12:00 PM" },
+   { id: "1b", label: "12:00 PM - 2:00 PM" },
+   { id: "1c", label: "3:00 PM - 5:00 PM" },
+ ],
+ "2026-03-11": [
+   { id: "2a", label: "9:00 AM - 11:00 AM" },
+   { id: "2b", label: "1:00 PM - 3:00 PM" },
+ ],
+ "2026-03-10": [
+   { id: "1a", label: "10:00 AM - 12:00 PM" },
+   { id: "1b", label: "12:00 PM - 2:00 PM" },
+   { id: "1c", label: "3:00 PM - 5:00 PM" },
+ ],
+ "2026-03-13": [
+   { id: "2a", label: "9:00 AM - 11:00 AM" },
+   { id: "2b", label: "1:00 PM - 3:00 PM" },
+ ],
 };
 
 
+
+
 const SchedulePickupTime = () => {
+  //data store
+const { scheduleData, updateScheduleData} = useSchedule();
+
 const navigate = useNavigate();
 
 const DAYS: string[] = ["M", "T", "W", "T", "F", "S", "S"];
@@ -31,22 +55,62 @@ const DAYS: string[] = ["M", "T", "W", "T", "F", "S", "S"];
 function daysInMonth(year: number, monthIndex: number): number {
  return new Date(year, monthIndex + 1, 0).getDate();
 }
+const MONTHS = [
+ "January","February","March","April","May","June",
+ "July","August","September","October","November","December"
+]
 
 
- const year = 2026;
- const monthIndex = 0; // January
+const [isMonthOpen, setIsMonthOpen] = useState(false);
+const [isYearOpen, setIsYearOpen] = useState(false);
+
+const today = useMemo(() => {
+ const t = new Date();
+ t.setHours(0, 0, 0, 0);
+ return t;
+}, []);
+
+const restoredPickupDate = useMemo(() => {
+ if (!scheduleData.pickupDate) return null;
 
 
- const [selectedDay, setSelectedDay] = useState<number>(1);
+ const [year, month, day] = scheduleData.pickupDate.split("-").map(Number);
+ const date = new Date(year, month - 1, day);
+ date.setHours(0, 0, 0, 0);
+ return date;
+}, [scheduleData.pickupDate]);
+
+
+const [viewYear, setViewYear] = useState<number>(
+ restoredPickupDate ? restoredPickupDate.getFullYear() : 2026
+);
+
+const [viewMonthIndex, setViewMonthIndex] = useState<number>(
+ restoredPickupDate ? restoredPickupDate.getMonth() : 2
+);
+
+
+const [selectedDate, setSelectedDate] = useState<Date | null>(restoredPickupDate);
+
+
+const [hasClickedDate, setHasClickedDate] = useState<boolean>(!!restoredPickupDate);
+
+
+const [selectedSlotId, setSelectedSlotId] = useState<string | null>(
+ scheduleData.slotId ?? null
+);
+
+
 
 
 const { leadingBlanks, totalDays } = useMemo(() => {
-   const first = new Date(year, monthIndex, 1);
-   return {
-     leadingBlanks: startDayMondayIndex(first),
-     totalDays: daysInMonth(year, monthIndex),
-   };
- }, [year, monthIndex]);
+ const first = new Date(viewYear, viewMonthIndex, 1);
+ return {
+   leadingBlanks: startDayMondayIndex(first),
+   totalDays: daysInMonth(viewYear, viewMonthIndex),
+ };
+}, [viewYear, viewMonthIndex]);
+
 
 
  const cells = useMemo(() => {
@@ -66,17 +130,78 @@ const { leadingBlanks, totalDays } = useMemo(() => {
    return arr;
  }, [leadingBlanks, totalDays]);
 
-//slot shows only after user click date
- const [hasClickedDate, setHasClickedDate] = useState<boolean>(false);
+
+ //month navigation
+function goPrevMonth() {
+ setSelectedDate(null);
+ setHasClickedDate(false);
+ setSelectedSlotId(null);
 
 
- //selected slot
- const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
+ setViewMonthIndex((m) => {
+   if (m === 0) {
+     setViewYear((y) => y - 1);
+     return 11;
+   }
+   return m - 1;
+ });
+}
 
 
- const slotsForSelectedDay = useMemo<Slot[]>(()=>{
-   return slotsByDay[selectedDay] ?? [];
- }, [selectedDay]);
+function goNextMonth() {
+ setSelectedDate(null);
+ setHasClickedDate(false);
+ setSelectedSlotId(null);
+
+
+ setViewMonthIndex((m) => {
+   if (m === 11) {
+     setViewYear((y) => y + 1);
+     return 0;
+   }
+   return m + 1;
+ });
+}
+
+
+const selectedKey = useMemo(() => {
+ if (!selectedDate) return null;
+ const y = selectedDate.getFullYear();
+ const m = String(selectedDate.getMonth() + 1).padStart(2, "0");
+ const d = String(selectedDate.getDate()).padStart(2, "0");
+ return `${y}-${m}-${d}`;
+}, [selectedDate]);
+
+
+const slotsForSelectedDay = useMemo<Slot[]>(() => {
+ if (!selectedKey) return [];
+ return slotsByDate[selectedKey] ?? [];
+}, [selectedKey]);
+
+
+
+
+const monthRef = useRef<HTMLDivElement | null>(null);
+const yearRef = useRef<HTMLDivElement | null>(null);
+
+
+useEffect(() => {
+ function onDocClick(e: MouseEvent) {
+   const t = e.target as Node;
+   if (monthRef.current && !monthRef.current.contains(t)) setIsMonthOpen(false);
+   if (yearRef.current && !yearRef.current.contains(t)) setIsYearOpen(false);
+ }
+ document.addEventListener("mousedown", onDocClick);
+ return () => document.removeEventListener("mousedown", onDocClick);
+}, []);
+
+
+
+
+const years = useMemo(() => {
+ const start = new Date().getFullYear();
+ return Array.from({ length: 15 }, (_, i) => start + i);
+}, []);
 
 
     return(
@@ -133,7 +258,8 @@ const { leadingBlanks, totalDays } = useMemo(() => {
      <div className="flex px-4 py-3 items-center w-full">
        {/* <div className="flex direction-column items-start flex-1"> */}
        <div className="flex p-1 items-center rounded-lg">
-         <button className="h-6 w-6">
+         <button className="h-6 w-6" type="button" onClick={goPrevMonth}>
+
          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
          <path d="M15.375 18.75L8.625 12L15.375 5.25" stroke="#999CA0" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
          </svg>
@@ -142,29 +268,112 @@ const { leadingBlanks, totalDays } = useMemo(() => {
        <div className="flex justify-center items-start flex-1 ">
 
 
-       <div className="flex h-8 p-[4px 4px 4px 8px] items-center gap-1 rounded-lg">
-         <span className="text-[14px] text-[#0C111D] font-semibold">January</span>
-         <button className="h-6 w-6">
-         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-         <path d="M16.5 9.75L12 14.25L7.5 9.75" stroke="#0C111D" stroke-linecap="round" stroke-linejoin="round"/>
-         </svg>
-         </button>
-       </div>
+       <div ref={monthRef} className="relative flex items-center gap-1">
+    <span className="text-[14px] text-[#0C111D] font-semibold">
+   {MONTHS[viewMonthIndex]}
+    </span>
 
 
-        <div className="flex h-8 p-[4px 4px 4px 8px] items-center gap-1 rounded-lg">
-         <span className="text-[14px] text-[#0C111D] font-semibold">{year}</span>
-         <button className="h-6 w-6">
-         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-         <path d="M16.5 9.75L12 14.25L7.5 9.75" stroke="#0C111D" stroke-linecap="round" stroke-linejoin="round"/>
-         </svg>
+ <button
+   type="button"
+   className="h-6 w-6"
+   onClick={() => {
+     setIsMonthOpen((v) => !v);
+     setIsYearOpen(false);
+   }}
+   aria-label="Choose month"
+ >
+   {/* your chevron svg */}
+   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+     <path d="M16.5 9.75L12 14.25L7.5 9.75" stroke="#0C111D" strokeLinecap="round" strokeLinejoin="round"/>
+   </svg>
+ </button>
+
+
+ {isMonthOpen && (
+   <div className="absolute top-9 left-0 z-20 w-48 rounded-xl border border-[#E5E7EB] bg-white shadow-lg">
+     <div className="max-h-64 overflow-auto p-2">
+       {MONTHS.map((m, idx) => (
+         <button
+           key={m}
+           type="button"
+           onClick={() => {
+             setViewMonthIndex(idx);
+             setIsMonthOpen(false);
+
+
+             // reset selection when changing month (optional)
+             setSelectedDate(null);
+             setHasClickedDate(false);
+             setSelectedSlotId(null);
+           }}
+           className={`w-full rounded-lg px-3 py-2 text-left text-[14px] hover:bg-[#F3F4F6]
+             ${idx === viewMonthIndex ? "bg-[#F3F4F6] font-semibold" : ""}
+           `}
+         >
+           {m}
          </button>
-       </div>
+       ))}
+     </div>
+   </div>
+ )}
+</div>
+
+
+        <div ref={yearRef} className="relative flex items-center gap-1">
+ <span className="text-[14px] text-[#0C111D] font-semibold">
+   {viewYear}
+ </span>
+
+
+ <button
+   type="button"
+   className="h-6 w-6"
+   onClick={() => {
+     setIsYearOpen((v) => !v);
+     setIsMonthOpen(false);
+   }}
+   aria-label="Choose year"
+ >
+   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+     <path d="M16.5 9.75L12 14.25L7.5 9.75" stroke="#0C111D" strokeLinecap="round" strokeLinejoin="round"/>
+   </svg>
+ </button>
+
+
+ {isYearOpen && (
+   <div className="absolute top-9 left-0 z-20 w-28 rounded-xl border border-[#E5E7EB] bg-white shadow-lg">
+     <div className="max-h-64 overflow-auto p-2">
+       {years.map((y) => (
+         <button
+           key={y}
+           type="button"
+           onClick={() => {
+             setViewYear(y);
+             setIsYearOpen(false);
+
+
+             setSelectedDate(null);
+             setHasClickedDate(false);
+             setSelectedSlotId(null);
+           }}
+           className={`w-full rounded-lg px-3 py-2 text-left text-[14px] hover:bg-[#F3F4F6]
+             ${y === viewYear ? "bg-[#F3F4F6] font-semibold" : ""}
+           `}
+         >
+           {y}
+         </button>
+       ))}
+     </div>
+   </div>
+ )}
+</div>
+
        </div>
 
 
        <div className="flex p-1 items-center rounded-lg">
-         <button className="h-6 w-6">
+         <button className="h-6 w-6" type="button" onClick={goNextMonth}>
          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
          <path d="M8.625 5.25L15.375 12L8.625 18.75" stroke="#999CA0" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
          </svg>
@@ -193,24 +402,56 @@ const { leadingBlanks, totalDays } = useMemo(() => {
              }
 
 
-             const isSelected = cell.day === selectedDay;
+             const dateObj = new Date(viewYear, viewMonthIndex, cell.day);
+       dateObj.setHours(0, 0, 0, 0);
 
+
+       const isPast = dateObj < today;
+
+
+        const isSelected =
+         selectedDate?.getFullYear() === viewYear &&
+         selectedDate?.getMonth() === viewMonthIndex &&
+         selectedDate?.getDate() === cell.day;
 
              return (
                <button
-                 key={`day-${cell.day}`}
-                 type="button"
-                 onClick={() => {setSelectedDay(cell.day);
-                                 setHasClickedDate(true);
-                                 setSelectedSlotId(null);
+                   key={`day-${cell.day}`}
+                   type="button"
+                   disabled={isPast}
+                   onClick={() => {
+                         if (isPast) return;
 
-                 }}
-                 className={`mx-auto flex h-9 w-12 items-center justify-center rounded-lg text-[14px] font-medium ${
-                   isSelected
-                     ? "bg-[#344E41] text-white"
-                     : "text-[##0C111D] hover:bg-[#F3F4F6]"
-                 }`}
-               >
+
+                         const y = dateObj.getFullYear();
+                         const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+                         const d = String(dateObj.getDate()).padStart(2, "0");
+                         const pickupDate = `${y}-${m}-${d}`;
+
+
+                         setSelectedDate(dateObj);
+                         setHasClickedDate(true);
+                         setSelectedSlotId(null);
+
+
+                         updateScheduleData({
+                           pickupDate,
+                           slotId: null,
+                           slotLabel: null,
+                         });
+                       }}
+
+                   className={`mx-auto flex h-9 w-12 items-center justify-center rounded-lg text-[14px] font-medium
+                     ${
+                       isPast
+                         ? "text-[#C0C4CC] cursor-not-allowed"
+                         : isSelected
+                           ? "bg-[#344E41] text-white"
+                           : "text-[#0C111D] hover:bg-[#F3F4F6]"
+                     }
+                   `}
+                 >
+
                  {cell.day}
                </button>
              );
@@ -247,16 +488,23 @@ const { leadingBlanks, totalDays } = useMemo(() => {
 
 
                    return (
-                     <button
+                    <button
                        key={slot.id}
                        type="button"
-                       onClick={() => setSelectedSlotId(slot.id)}
+                       onClick={() => {
+                               setSelectedSlotId(slot.id);
+                               updateScheduleData({
+                                 slotId: slot.id,
+                                 slotLabel: slot.label,
+                               });
+                             }}
                        className={`w-full h-[56px] flex items-center justify-between gap-3 rounded-xl px-6 transition-all ${
                          selected
                            ? "bg-[#344E41] text-white"
                            : "border border-[#E5E7EB] text-[#111827] hover:bg-[#F9FAFB]"
                        }`}
                      >
+
                        {/* left */}
                        <div className="flex items-center gap-3">
                        <span className="text-[16px]">
@@ -403,47 +651,67 @@ const { leadingBlanks, totalDays } = useMemo(() => {
 
 
     {/* ===================== STICKY FOOTER (OUTSIDE everything) ===================== */}
-    <div className="sticky bottom-0 z-10 -mx-6 border-t border-[#E5E7EB] bg-white px-6 py-4">
-      <div className="flex items-center justify-between gap-6">
-        <div className="flex flex-1 items-center gap-8 text-sm">
-          <div>
-            <p className="text-[11px] font-semibold text-[#98A2B3]">ITEMS</p>
-            <p className="mt-1 text-[13px] text-[#98A2B3]">0 Categories</p>
-          </div>
+    <div className="fixed bottom-0 right-0 left-[260px] z-40 border-t border-[#E5E7EB] bg-white px-6 py-4 h-[85px]">
+ <div className="flex h-full w-full items-center justify-between gap-6 overflow-hidden">
+   <div className="min-w-0 flex flex-1 items-center gap-6 overflow-hidden">
+     <div className="shrink-0">
+       <p className="text-[11px] font-semibold uppercase text-[#98A2B3]">Items</p>
+       <div className="mt-1 flex items-center gap-2">
+         {/* icon */}
+         <p className="text-[16px] font-semibold text-[#0C111D]">
+           50 units (3 Categories)
+         </p>
+       </div>
+     </div>
 
-          <div className="h-10 w-px bg-[#E5E7EB]" />
 
-          <div>
-            <p className="text-[11px] font-semibold text-[#98A2B3]">
-              APPOINTMENT
-            </p>
-            <p className="mt-1 text-[13px] text-[#98A2B3]">Not scheduled</p>
-          </div>
+     <div className="h-10 w-px shrink-0 bg-[#E5E7EB]" />
 
-          <div className="h-10 w-px bg-[#E5E7EB]" />
 
-          <div>
-            <p className="text-[11px] font-semibold text-[#98A2B3]">EST. COST</p>
-            <p className="mt-1 text-[16px] font-semibold text-[#98A2B3]">
-              $0.00
-            </p>
-          </div>
-        </div>
+     <div className="shrink-0">
+       <p className="text-[11px] font-semibold uppercase text-[#98A2B3]">Appointment</p>
+       <div className="mt-1 flex items-center gap-2">
+         {/* icon */}
+         <p className="text-[14px] font-semibold text-[#0C111D]">
+           {scheduleData.pickupDate && scheduleData.slotLabel
+             ? `${scheduleData.pickupDate}, ${scheduleData.slotLabel}`
+             : "Not scheduled"}
+         </p>
+       </div>
+     </div>
 
-        <button
-          type="button"
-          disabled
-          className="flex h-10 items-center gap-2 rounded-md bg-[#A3B0A7] px-6 text-sm font-semibold text-white opacity-70"
-        >
-          Confirm Pickup
-          <span className="text-base"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-  <path d="M8.00065 11.3333C8.36884 11.3333 8.66732 11.0349 8.66732 10.6667C8.66732 10.2985 8.36884 10 8.00065 10C7.63246 10 7.33398 10.2985 7.33398 10.6667C7.33398 11.0349 7.63246 11.3333 8.00065 11.3333Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M12.6667 6.66602H3.33333C2.59695 6.66602 2 7.26297 2 7.99935V13.3327C2 14.0691 2.59695 14.666 3.33333 14.666H12.6667C13.403 14.666 14 14.0691 14 13.3327V7.99935C14 7.26297 13.403 6.66602 12.6667 6.66602Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M4.66602 6.66634V4.66634C4.66602 3.78229 5.01721 2.93444 5.64233 2.30932C6.26745 1.6842 7.11529 1.33301 7.99935 1.33301C8.8834 1.33301 9.73125 1.6842 10.3564 2.30932C10.9815 2.93444 11.3327 3.78229 11.3327 4.66634V6.66634" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg></span>
-        </button>
-      </div>
-    </div>
+
+     <div className="h-10 w-px shrink-0 bg-[#E5E7EB]" />
+
+
+     <div className="shrink-0">
+       <p className="text-[11px] font-semibold uppercase text-[#98A2B3]">Est. Cost</p>
+       <div className="mt-1 flex items-center gap-2">
+         {/* icon */}
+         <p className="text-[14px] font-semibold text-[#618171]">$24.50</p>
+       </div>
+     </div>
+
+
+     <div className="h-10 w-px shrink-0 bg-[#E5E7EB]" />
+
+
+     <div className="min-w-0 flex-1 self-start">
+       <ThresholdProgress current={24.00} target={5.00} />
+     </div>
+   </div>
+
+
+   <button
+     type="button"
+     disabled
+     className="shrink-0 flex h-12 min-w-[180px] items-center justify-center gap-2 rounded-xl px-6 text-[15px] font-semibold bg-[#344E41] text-white cursor-not-allowed opacity-70"
+   >
+     Confirm Pickup
+   </button>
+ </div>
+</div>
+
 
 </div>
 
