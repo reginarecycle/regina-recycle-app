@@ -85,6 +85,32 @@
     margin-right: 20px;
 }
 
+/* Tablet */
+@media (max-width: 900px) {
+    .leftbar-container {
+        flex-direction: column;
+    }
+
+    .leftbar-text h2 {
+        font-size: 1.6rem;
+    }
+}
+
+/* Mobile */
+@media (max-width: 500px) {
+    .leftbar-section {
+        padding: 1.5rem 1rem;
+    }
+
+    .leftbar-text h2 {
+        font-size: 1.4rem;
+    }
+
+    .leftbar-text p {
+        font-size: 0.95rem;
+    }
+}
+
 footer {
     position: fixed;
     bottom: 0;
