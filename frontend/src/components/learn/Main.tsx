@@ -5,14 +5,17 @@ import Boxes from "@/assets/boxes-img.svg"
 
 export function Main() {
     return (
-        <div className="w-full min-h-[1100px] py-10 px-4 flex-c">
-            <div className="cards-wrapper -ml-4 w-full h-full
-              grid 
-              grid-cols-1 
-              sm:grid-cols-2 
-              lg:grid-cols-3 
-              gap-6 md:gap-8 
-              justify-items-center lg:justify-items-end"
+        <div className="w-full py-10 px-4 flex justify-center h-full">
+            <div className="cards-wrapper w-full -ml-4
+        max-w-7xl
+        grid
+        grid-cols-1
+        sm:grid-cols-2
+        lg:grid-cols-3
+        gap-6
+        md:gap-8
+        xl:gap-10
+        justify-items-center"
             >
                 <LearnCard
                     photo={Cans}
