@@ -8,27 +8,28 @@ export class PickupsController {
   constructor(private readonly pickupsService: PickupsService) {}
 
   @Post()
-  create(@Body() createPickupDto: CreatePickupDto) {
-    return this.pickupsService.create(createPickupDto);
+  schedulePickup(@Body() createPickupDto: CreatePickupDto){
+    return this.pickupsService.schedulePickup(createPickupDto);
   }
 
   @Get()
-  findAll() {
-    return this.pickupsService.findAll();
+  getPickups(){
+    return this.pickupsService.getPickups();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.pickupsService.findOne(+id);
+  getPickupById(@Param('id') id: string){
+    return this.pickupsService.getPickupById(+id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePickupDto: UpdatePickupDto) {
-    return this.pickupsService.update(+id, updatePickupDto);
+  updatePickup(@Param('id') id: string, @Body() updatePickupDto: UpdatePickupDto,
+  ){
+    return this.pickupsService.updatePickup(+id, updatePickupDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.pickupsService.remove(+id);
+  cancelPickup(@Param('id') id: string){
+    return this.pickupsService.cancelPickup(+id);
   }
 }

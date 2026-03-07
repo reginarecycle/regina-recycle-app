@@ -4,23 +4,23 @@ import { UpdatePickupDto } from './dto/update-pickup.dto';
 
 @Injectable()
 export class PickupsService {
-  create(createPickupDto: CreatePickupDto) {
-    return 'This action adds a new pickup';
+  schedulePickup(createPickupDto: CreatePickupDto) {
+    return 'This action schedules a new pickup';
   }
 
-  findAll() {
+  getPickups() {
     return `This action returns all pickups`;
   }
 
-  findOne(id: number) {
+  getPickupById(id: number) {
     return `This action returns a #${id} pickup`;
   }
 
-  update(id: number, updatePickupDto: UpdatePickupDto) {
+  updatePickup(id: number, updatePickupDto: UpdatePickupDto) {
     return `This action updates a #${id} pickup`;
   }
 
-  remove(id: number) {
+  cancelPickup(id: number) {
     return `This action removes a #${id} pickup`;
   }
 }

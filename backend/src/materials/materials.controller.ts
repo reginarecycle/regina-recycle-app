@@ -8,27 +8,30 @@ export class MaterialsController {
   constructor(private readonly materialsService: MaterialsService) {}
 
   @Post()
-  create(@Body() createMaterialDto: CreateMaterialDto) {
-    return this.materialsService.create(createMaterialDto);
+  createMaterial(@Body() createMaterialDto: CreateMaterialDto) {
+    return this.materialsService.createMaterial(createMaterialDto);
   }
 
   @Get()
-  findAll() {
-    return this.materialsService.findAll();
+  getMaterials() {
+    return this.materialsService.getMaterials();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.materialsService.findOne(+id);
+  getMaterialById(@Param('id') id: string) {
+    return this.materialsService.getMaterialById(+id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMaterialDto: UpdateMaterialDto) {
-    return this.materialsService.update(+id, updateMaterialDto);
+  updateMaterial(
+    @Param('id') id: string,
+    @Body() updateMaterialDto: UpdateMaterialDto,
+  ) {
+    return this.materialsService.updateMaterial(+id, updateMaterialDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.materialsService.remove(+id);
+  deleteMaterial(@Param('id') id: string) {
+    return this.materialsService.deleteMaterial(+id);
   }
 }

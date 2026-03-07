@@ -1,1 +1,13 @@
-export class CreateMaterialDto {}
+import { IsString, IsNumber, IsOptional } from "class-validator";
+
+export class CreateMaterialDto {
+    @IsString()
+    name: string;
+
+    @IsNumber()
+    price: number;
+
+    @IsOptional()
+    @IsString()
+    description?: string;
+}

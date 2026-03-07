@@ -4,23 +4,23 @@ import { UpdateMaterialDto } from './dto/update-material.dto';
 
 @Injectable()
 export class MaterialsService {
-  create(createMaterialDto: CreateMaterialDto) {
-    return 'This action adds a new material';
+  createMaterial(createMaterialDto: CreateMaterialDto) {
+    return 'This action creates a new material';
   }
 
-  findAll() {
+  getMaterials() {
     return `This action returns all materials`;
   }
 
-  findOne(id: number) {
+  getMaterialById(id: number) {
     return `This action returns a #${id} material`;
   }
 
-  update(id: number, updateMaterialDto: UpdateMaterialDto) {
+  updateMaterial(id: number, updateMaterialDto: UpdateMaterialDto) {
     return `This action updates a #${id} material`;
   }
 
-  remove(id: number) {
+  deleteMaterial(id: number) {
     return `This action removes a #${id} material`;
   }
 }
