@@ -36,7 +36,7 @@ export function WalletBalance({
                 </h3>
             </CardContent>
             <div className="withdraw-wrapper mt-5">
-                <Button className="withdraw-button w-full h-13 gap-2.5">
+                <Button className="withdraw-button w-full h-13 gap-2.5 hover:bg-[#618171]" size={'lg'}>
                     <img src={CashMultiple} />
                     Withdraw Funds
                 </Button>

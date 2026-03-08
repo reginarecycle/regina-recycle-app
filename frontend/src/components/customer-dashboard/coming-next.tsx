@@ -45,9 +45,22 @@ export function ComingNext({
                             </h3>
                         </div>
                     </div>
-                    <div className="pickup-buttons">
-                        <Button className="text-[#344E41] border-[#344E41] font-bold text-[14px]" variant={"outline"} size={"lg"} >Reschedule</Button>
-                        <Button className="text-[#DD1E1E] border-[#DD1E1E] font-bold text-[16px]" variant={"outline"} size={"lg"} >Cancel</Button>
+                    <div className="pickup-buttons flex gap-3">
+                        <Button
+                            className="text-[#344E41] border-[#344E41] font-bold text-[14px] hover:bg-[#344E41] hover:text-white transition-colors duration-200"
+                            variant={"outline"}
+                            size={"lg"}
+                        >
+                            Reschedule
+                        </Button>
+
+                        <Button
+                            className="text-[#DD1E1E] border-[#DD1E1E] font-bold text-[16px] hover:bg-[#DD1E1E] hover:text-white transition-colors duration-200"
+                            variant={"outline"}
+                            size={"lg"}
+                        >
+                            Cancel
+                        </Button>
                     </div>
                 </CardContent>
                 <CardFooter></CardFooter>
