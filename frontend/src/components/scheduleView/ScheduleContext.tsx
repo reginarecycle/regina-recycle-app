@@ -1,8 +1,10 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
 
 
 type ScheduleData = {
  categories: string[];
+ itemPicked: Record<string, number>;
+ totalSelected: number;
  pickupDate: string | null;
  slotId: string | null;
  slotLabel: string | null;
@@ -20,6 +22,8 @@ type ScheduleContextType = {
 
 const defaultScheduleData: ScheduleData = {
  categories: [],
+ itemPicked: {},
+ totalSelected: 0,
  pickupDate: null,
  slotId: null,
  slotLabel: null,
@@ -45,18 +49,18 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
  }, [scheduleData]);
 
 
- function updateScheduleData(updates: Partial<ScheduleData>) {
-   setScheduleData((prev) => ({
-     ...prev,
-     ...updates,
-   }));
- }
+ const updateScheduleData = useCallback((updates: Partial<ScheduleData>) => {
+ setScheduleData((prev) => ({
+   ...prev,
+   ...updates,
+ }));
+}, []);
 
 
- function resetScheduleData() {
-   setScheduleData(defaultScheduleData);
-   localStorage.removeItem("scheduleData");
- }
+ const resetScheduleData = useCallback(() => {
+ setScheduleData(defaultScheduleData);
+ localStorage.removeItem("scheduleData");
+}, []);
 
 
  return (
