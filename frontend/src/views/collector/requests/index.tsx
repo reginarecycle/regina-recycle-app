@@ -4,3 +4,5 @@ export function CollectorRequests() {
         <h1>This is the CollectorRequests page, deal with it</h1>
     )
 }
+
+export default CollectorRequests;

@@ -23,5 +23,5 @@ export enum Routes {
     profile = "/app/profile",
 
     //collector requests
-    requests = "/app/collector/requests"
+    requests = "/app/collector/requests",
 }
