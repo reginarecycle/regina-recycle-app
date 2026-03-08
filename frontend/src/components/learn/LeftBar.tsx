@@ -1,7 +1,7 @@
 import CommentCard from "./CommentCard"
 function LeftBar() {
     return (
-        <section>
+        <section className="flex-col">
             <div className="Left-Bar">
                 <div>
                     <h2>What can be Recycled?</h2>

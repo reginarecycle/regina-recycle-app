@@ -37,7 +37,7 @@ function LearnCard({
     };
     const iconSrc = getIcon();
     return (
-        <Card className="learn-card flex">
+        <Card className="relative learn-card flex">
             <CardContent>
 
                 <img

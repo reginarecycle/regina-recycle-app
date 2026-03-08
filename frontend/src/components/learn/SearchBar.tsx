@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 
 function SearchBar() {
     return (
-        <div className="search-bar bg-[#FFFFFF]">
+        <div className="search-bar bg-[#FFFFFF] relative">
             <div className="relative flex justify-between">
                 <div>
                     {/* <Search className="search-icon size-3.5 absolute left-6 top-1/3" strokeWidth={3} /> */}

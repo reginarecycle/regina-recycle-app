@@ -2,7 +2,6 @@
     width: 292px;
     height: 76px;
     font: Satoshi;
-    position: absolute;
     left: 0;
     display: flex;
     flex-direction: column;
@@ -85,32 +84,6 @@
     margin-right: 20px;
 }
 
-/* Tablet */
-@media (max-width: 900px) {
-    .leftbar-container {
-        flex-direction: column;
-    }
-
-    .leftbar-text h2 {
-        font-size: 1.6rem;
-    }
-}
-
-/* Mobile */
-@media (max-width: 500px) {
-    .leftbar-section {
-        padding: 1.5rem 1rem;
-    }
-
-    .leftbar-text h2 {
-        font-size: 1.4rem;
-    }
-
-    .leftbar-text p {
-        font-size: 0.95rem;
-    }
-}
-
 footer {
     position: fixed;
     bottom: 0;
@@ -130,6 +103,7 @@ footer {
     border: 1px solid var(--Card-Background2, #EBE9E8);
     padding: 20px 30px;
     margin-left: -8px;
+    position: absolute;
 }
 
 input {
@@ -349,8 +323,9 @@ input::placeholder {
 }
 
 .learn-wrapper {
-    padding-bottom: 200px;
+    /* padding-bottom: 200px; */
     background-color: color-mix(in oklab, var(--color-gray-50) 50%, transparent);
+
 }
 
 .load-more-btn {
