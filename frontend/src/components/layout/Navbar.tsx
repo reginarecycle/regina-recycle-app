@@ -56,6 +56,8 @@ function Navbar() {
     transition
     hover:bg-[#E8FFF2]
   "
+                        size={'lg'}
+                        variant={'secondary'}
                     >
                         Login
                     </Button>
@@ -72,6 +74,8 @@ function Navbar() {
     transition
     hover:bg-[#2F4F3F]
   "
+                        size={'lg'}
+                        variant={'secondary'}
                     >
                         Get Started
                     </Button>

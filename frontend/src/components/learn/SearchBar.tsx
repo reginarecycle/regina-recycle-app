@@ -10,24 +10,24 @@ function SearchBar() {
                     {/* <Search className="search-icon size-3.5 absolute left-6 top-1/3" strokeWidth={3} /> */}
                     <Input name="myInput" type="text" placeholder="Search for items (e.g. ‘Milk Container’, ‘Battery’ )" />
                 </div>
-                <Button className="search-button">Search</Button>
+                <Button className="search-button" size={'lg'} variant={'secondary'}>Search</Button>
             </div>
 
             <div className="mt-[14px]">
-                <div className="flex gap-2.75">
-                    <Button className="all-button" size={'lg'}>
+                <div className="flex gap-2.75 text-[12px]">
+                    <Button className="all-button gap-[11px]" size={'lg'} variant={'secondary'}>
                         <BadgeCheck className="size-6" />
                         All
                     </Button>
-                    <Button className="recyclables-button" size={'lg'}>
+                    <Button className="recyclables-button gap-[11px]" size={'lg'} variant={'secondary'}>
                         <BadgeCheck className="size-6" />
                         Recyclables
                     </Button>
-                    <Button className="hazardous-button bg-[#FFFFFF]" variant={'secondary'} size={'lg'}>
+                    <Button className="hazardous-button gap-[11px] bg-[#FFFFFF]" variant={'outline'} size={'lg'}>
                         <TriangleAlert className="size-6" />
                         Hazardous
                     </Button>
-                    <Button className="compost-button bg-[#FFFFFF]" variant={'secondary'} size={'lg'}>
+                    <Button className="compost-button gap-[11px] bg-[#FFFFFF]" variant={'outline'} size={'lg'}>
                         <Sprout className="size-6" />
                         Compost
                     </Button>
