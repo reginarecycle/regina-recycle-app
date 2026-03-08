@@ -18,6 +18,7 @@ export  enum Routes {
     dashboard = "/app/dashboard",
     collectorapp = "/app/collector",
     collectordashboard = "/app/collector/dashboard",
+    collectorsettings = "/app/collector/settings",
 
     //profile
     profile = "/app/profile",
