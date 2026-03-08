@@ -1,7 +1,11 @@
 import statusGif from "../../assets/status.gif";
 
+type ThresholdProgressProps = {
+ current: number;
+ target: number;
+};
 
-const ThresholdProgress = ({ current, target }) => {
+const ThresholdProgress = ({ current, target }: ThresholdProgressProps) => {
  const percent = Math.min((current / target) * 100, 100);
  const remaining = Math.max(target - current, 0);
  const isMet = current >= target;
