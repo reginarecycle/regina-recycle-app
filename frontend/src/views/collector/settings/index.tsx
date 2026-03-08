@@ -19,34 +19,12 @@ import {
     AlertTriangle,
     MapPin,
 } from "lucide-react";
-import { z } from "zod";
-
-// Validation schemas
-const collectorProfileSchema = z.object({
-    businessName: z.string().min(1, "Business name is required"),
-    businessEmail: z.string().email("Invalid email address"),
-    businessPhone: z.string().min(1, "Phone number is required"),
-    registrationNumber: z.string().min(1, "Registration number is required"),
-    address: z.string().min(1, "Address is required"),
-    city: z.string().min(1, "City is required"),
-    provinceState: z.string().min(1, "Province/State is required"),
-    postalCode: z.string().min(1, "Postal code is required"),
-});
-
-const collectorSecuritySchema = z
-    .object({
-        currentPassword: z.string().min(6, "Password must be at least 6 characters"),
-        newPassword: z.string().min(6, "Password must be at least 6 characters"),
-        confirmPassword: z.string().min(6, "Confirm Password must be at least 6 characters"),
-    })
-    .refine((data) => data.newPassword === data.confirmPassword, {
-        message: "Passwords do not match",
-        path: ["confirmPassword"],
-    });
-
-
-type CollectorProfileFormValues = z.infer<typeof collectorProfileSchema>;
-type CollectorSecurityFormValues = z.infer<typeof collectorSecuritySchema>;
+import {
+  collectorProfileSchema,
+  collectorSecuritySchema,
+  type CollectorProfileFormValues,
+  type CollectorSecurityFormValues,
+} from "@/lib/validation";
 
 export default function CollectorSettingsPage() {
     const [currentTab, setCurrentTab] = useState("profile");
@@ -61,10 +39,10 @@ export default function CollectorSettingsPage() {
         resolver: zodResolver(collectorProfileSchema),
         mode: "onChange",
         defaultValues: {
-            businessName: "John Doe",
-            businessEmail: "doe@gmail.com",
+            businessName: "Shahnaz and Sons Recycling",
+            businessEmail: "ssr@gmail.com",
             businessPhone: "1-(306)-0000",
-            registrationNumber: "doe@gmail.com",
+            registrationNumber: "123456789",
             address: "123 Lane Str.",
             city: "",
             provinceState: "",

@@ -28,7 +28,6 @@ import {
 } from "lucide-react";
 
 export default function ProfilePage() {
-  // My Details form
   const {
     register: registerDetails,
     handleSubmit: handleSubmitDetails,
