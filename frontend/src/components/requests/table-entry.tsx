@@ -6,7 +6,6 @@ import { Badge } from "../ui/badge";
 import { ChevronRight } from "lucide-react";
 
 type Material = 'Plastic' | 'Glass' | 'Cardboard' | 'Carton' | 'Paper';
-type RequestState = 'Incoming' | 'Accepted' | 'Completed';
 
 type RequestProps = {
     Username: string;
@@ -19,7 +18,7 @@ type RequestProps = {
     endTime: string;
     Comparability: number;
     Action: string;
-    State: RequestState;
+    status: "incoming" | "assigned" | "completed";
 };
 
 export function TableEntry({
@@ -33,7 +32,7 @@ export function TableEntry({
     endTime = "2pm",
     Comparability = 0,
     Action = "View Details",
-    State = "Incoming",
+    status = "assigned",
 }: RequestProps) {
 
     const materials = [material1];

@@ -14,49 +14,84 @@ import { RequestsFooter } from "./requests-footer";
 import { RequestsData } from "./requests-data";
 
 export function RequestsTable() {
+
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState("");
+    const [activeTab, setActiveTab] = useState<"incoming" | "assigned" | "completed">("incoming");
+
     const rowsPerPage = 8;
 
-    // Filter data based on search term (case insensitive)
-    // Filter data based on search term (case insensitive)
     const filteredData = RequestsData.filter((row) => {
         const search = searchTerm.toLowerCase();
 
-        return (
+        const matchesSearch =
             row.Username.toLowerCase().includes(search) ||
             row.Location.toLowerCase().includes(search) ||
             row.material1.toLowerCase().includes(search) ||
             (row.material2 && row.material2.toLowerCase().includes(search)) ||
             (row.material3 && row.material3.toLowerCase().includes(search)) ||
             row.Date.toLowerCase().includes(search) ||
-            row.endTime.toLowerCase().includes(search) ||
             row.startTime.toLowerCase().includes(search) ||
-            row.Comparability.toString().includes(search)
-        );
+            row.endTime.toLowerCase().includes(search) ||
+            row.Comparability.toString().includes(search);
+
+        const matchesTab = row.status === activeTab;
+
+        return matchesSearch && matchesTab;
     });
 
     const totalRows = filteredData.length;
-    const totalPages = Math.ceil(totalRows / rowsPerPage);
 
-    // Reset current page to 1 whenever search term changes
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm]);
+    }, [searchTerm, activeTab]);
 
-    // Slice the filtered data for pagination
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
     const currentRows = filteredData.slice(startIndex, endIndex);
 
     return (
         <Card className="bg-white w-full gap-0">
-            <CardHeader className="border-b border-[#CFCFCF] !h-[64px]">
-                Another header
+
+            <CardHeader className="border-b border-[#CFCFCF] px-6 py-0 h-[64px] flex items-center">
+                <div className="flex gap-8 h-full">
+
+                    {[
+                        { label: "Incoming Requests", key: "incoming" },
+                        { label: "Assigned", key: "assigned" },
+                        { label: "Completed", key: "completed" }
+                    ].map((tab) => {
+
+                        const count = RequestsData.filter(r => r.status === tab.key).length;
+                        const active = activeTab === tab.key;
+
+                        return (
+                            <div
+                                key={tab.key}
+                                onClick={() => setActiveTab(tab.key as any)}
+                                className={`flex items-center gap-2 cursor-pointer border-b-2 transition-all
+                                ${active
+                                        ? "border-[#4D7C63] text-[#4D7C63]"
+                                        : "border-transparent text-gray-500 hover:text-black"
+                                    }`}
+                            >
+                                <span className="font-medium text-[15px]">
+                                    {tab.label}
+                                </span>
+
+                                {tab.key === "incoming" && (
+                                    <span className="bg-gray-200 text-black text-[12px] px-2 py-[2px] rounded-full font-bold">
+                                        {count}
+                                    </span>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
             </CardHeader>
+
             <CardTitle className="flex items-center justify-between border-b border-[#CFCFCF] !h-[64px] px-6">
 
-                {/* Search input container with icon on left */}
                 <div className="flex items-center bg-gray-100 rounded-md px-2 h-[31px] w-[321px]">
                     <Search className="w-4 h-4 text-black mr-2" strokeWidth={2.5} />
                     <input
@@ -67,7 +102,6 @@ export function RequestsTable() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-
 
                 <div className="p-2 rounded-full bg-[#f7f7f7] cursor-pointer hover:bg-gray-200 flex-shrink-0">
                     <ListFilter size={18} strokeWidth={3} />
@@ -89,7 +123,9 @@ export function RequestsTable() {
 
                 <TableBody>
                     {currentRows.length > 0 ? (
-                        currentRows.map((row, index) => <TableEntry key={index} {...row} />)
+                        currentRows.map((row, index) => (
+                            <TableEntry key={index} {...row} />
+                        ))
                     ) : (
                         <TableRow>
                             <TableHead colSpan={6} className="text-center py-4 text-muted-foreground">
@@ -105,6 +141,7 @@ export function RequestsTable() {
                 rowsPerPage={rowsPerPage}
                 onPageChange={(page) => setCurrentPage(page)}
             />
+
         </Card>
     );
 }

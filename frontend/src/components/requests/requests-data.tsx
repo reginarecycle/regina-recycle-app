@@ -11,6 +11,7 @@ export type RequestRow = {
     endTime: string;
     Comparability: number;
     Action: string;
+    status: "incoming" | "assigned" | "completed";
 };
 
 export const RequestsData: RequestRow[] = [
@@ -23,6 +24,7 @@ export const RequestsData: RequestRow[] = [
         endTime: "2pm",
         Comparability: 0,
         Action: "View More",
+        status: "assigned",
     },
     {
         Username: "John Doe",
@@ -34,6 +36,7 @@ export const RequestsData: RequestRow[] = [
         endTime: "3pm",
         Comparability: 100,
         Action: "View More",
+        status: "assigned",
     },
     {
         Username: "Sara Doe",
@@ -46,6 +49,7 @@ export const RequestsData: RequestRow[] = [
         endTime: "3pm",
         Comparability: 100,
         Action: "View More",
+        status: "assigned",
     },
     {
         Username: "Sara Doe",
@@ -58,6 +62,7 @@ export const RequestsData: RequestRow[] = [
         endTime: "3pm",
         Comparability: 100,
         Action: "View More",
+        status: "incoming",
     },
     {
         Username: "Sara Doe",
@@ -70,6 +75,7 @@ export const RequestsData: RequestRow[] = [
         endTime: "3pm",
         Comparability: 100,
         Action: "View More",
+        status: "assigned",
     },
     {
         Username: "Sara Doe",
@@ -82,6 +88,7 @@ export const RequestsData: RequestRow[] = [
         endTime: "3pm",
         Comparability: 100,
         Action: "View More",
+        status: "completed",
     },
     {
         Username: "Sara Doe",
@@ -94,6 +101,7 @@ export const RequestsData: RequestRow[] = [
         endTime: "3pm",
         Comparability: 100,
         Action: "View More",
+        status: "completed",
     },
     {
         Username: "Sara Doe",
@@ -106,6 +114,7 @@ export const RequestsData: RequestRow[] = [
         endTime: "3pm",
         Comparability: 100,
         Action: "View More",
+        status: "assigned",
     },
     {
         Username: "Sara Doe",
@@ -118,6 +127,7 @@ export const RequestsData: RequestRow[] = [
         endTime: "3pm",
         Comparability: 100,
         Action: "View More",
+        status: "assigned",
     },
     {
         Username: "Sara Doe",
@@ -130,6 +140,19 @@ export const RequestsData: RequestRow[] = [
         endTime: "3pm",
         Comparability: 100,
         Action: "View More",
+        status: "incoming",
+    },
+    {
+        Username: "Johnny test",
+        Location: "Periwinkle drive",
+        material1: 'Plastic',
+        material2: 'Cardboard',
+        Date: "2, Feb 2026",
+        startTime: "12pm",
+        endTime: "3pm",
+        Comparability: 10,
+        Action: "View More",
+        status: "incoming",
     },
 
 ];
