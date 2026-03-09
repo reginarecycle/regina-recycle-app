@@ -1,32 +1,46 @@
+import { useState } from "react";
 import {
     Table,
     TableHeader,
     TableBody,
-    TableFooter,
     TableHead,
     TableRow,
-    TableCell,
 } from "@/components/ui/table";
 
-import { Card, CardFooter, CardHeader } from "../ui/card";
-import { Input } from "../ui/input";
-import { ListFilter } from "lucide-react";
+import { Card, CardHeader, CardTitle } from "../ui/card";
+import { ListFilter, Search } from "lucide-react";
 import { TableEntry } from "./table-entry";
+import { RequestsFooter } from "./requests-footer";
+import { RequestsData } from "./requests-data";
 
 export function RequestsTable() {
+    const [currentPage, setCurrentPage] = useState(1);
+    const rowsPerPage = 8; // show 10 rows per page
+
+    const totalRows = RequestsData.length;
+    const totalPages = Math.ceil(totalRows / rowsPerPage);
+
+    // Slice the data array according to current page
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    const currentRows = RequestsData.slice(startIndex, endIndex);
+
     return (
         <Card className="bg-white w-full gap-0">
 
             {/* Header */}
-            <CardHeader className="flex items-center justify-between border-b border-[#CFCFCF] h-[64px] px-6 py-0 ">
-                <h2 className="text-lg font-semibold">Customers</h2>
+            <CardHeader className="flex items-center justify-between border-b border-[#CFCFCF] !h-[48px]">
+                <CardTitle className="text-lg font-bold">Customers</CardTitle>
 
                 <div className="flex items-center gap-3">
-                    <Input
-                        placeholder="Search for customer name"
-                        className="w-[321px] h-[31px] flex-shrink-0"
-                    />
-
+                    <div className="flex items-center bg-gray-100 rounded-md px-2 h-[31px] w-[321px]">
+                        <Search className="w-4 h-4 text-black mr-2" strokeWidth={2.5} />
+                        <input
+                            type="text"
+                            placeholder="Search for customer name"
+                            className="flex-1 bg-transparent outline-none text-sm"
+                        />
+                    </div>
                     <div className="p-2 rounded-full bg-[#f7f7f7] cursor-pointer hover:bg-gray-200 flex-shrink-0">
                         <ListFilter size={18} strokeWidth={3} />
                     </div>
@@ -35,32 +49,27 @@ export function RequestsTable() {
 
             <Table>
                 <TableHeader>
-                    <TableRow className="h-[44px] ">
-                        <TableHead className="text-[#999CA0]" >Customer</TableHead>
-                        <TableHead className="text-[#999CA0]" >Contact</TableHead>
-                        <TableHead className="text-[#999CA0]" >Status</TableHead>
-                        <TableHead className="text-[#999CA0]" >Collections</TableHead>
-                        <TableHead className="text-[#999CA0]" >Action</TableHead>
+                    <TableRow className="h-[44px]">
+                        <TableHead className="text-[#999CA0] px-6">Customer</TableHead>
+                        <TableHead className="text-[#999CA0]">Contact</TableHead>
+                        <TableHead className="text-[#999CA0]">Status</TableHead>
+                        <TableHead className="text-[#999CA0]">Collections</TableHead>
+                        <TableHead className="text-[#999CA0]">Action</TableHead>
                     </TableRow>
                 </TableHeader>
 
                 <TableBody>
-                    <TableEntry />
-                    <TableEntry />
-                    <TableEntry />
+                    {currentRows.map((row, index) => (
+                        <TableEntry key={index} {...row} />
+                    ))}
                 </TableBody>
-
-                <TableFooter>
-                    <TableRow>
-                        <TableCell colSpan={5}>Pagination goes here</TableCell>
-                    </TableRow>
-                </TableFooter>
             </Table>
 
-            <CardFooter>
-                sdkjhsjdkfh
-            </CardFooter>
-
+            <RequestsFooter
+                totalRows={totalRows}
+                rowsPerPage={rowsPerPage}
+                onPageChange={(page) => setCurrentPage(page)}
+            />
         </Card>
     );
 }
