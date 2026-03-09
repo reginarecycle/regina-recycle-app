@@ -19,6 +19,7 @@ type RequestProps = {
     Comparability: number;
     Action?: string;
     estimatedPayment?: number;
+    payout?: number;
     status: "incoming" | "accepted" | "completed";
 };
 
@@ -34,6 +35,7 @@ export function TableEntry({
     Comparability = 0,
     Action = "View Details",
     estimatedPayment = 0,
+    payout,
     status = "incoming",
 }: RequestProps) {
 
@@ -42,6 +44,18 @@ export function TableEntry({
     if (material3) materials.push(material3);
 
     const compatible = Comparability === 100;
+
+    const displayAmount = status === "accepted"
+        ? estimatedPayment
+        : status === "completed"
+            ? (payout ?? estimatedPayment ?? 0)
+            : 0;
+
+    // Updated action label logic
+    const actionLabel =
+        status === "incoming" ? "View Details" :
+            status === "accepted" ? "Complete" :
+                "View Details";
 
     return (
         <TableRow className="border-b hover:bg-muted/30 transition-colors">
@@ -56,25 +70,27 @@ export function TableEntry({
                 {Location}
             </TableCell>
 
-            {/* Materials */}
-            <TableCell className="w-[27%]">
-                <div className="flex gap-2 flex-wrap">
-                    {materials.map((material, idx) => (
-                        <Badge
-                            key={idx}
-                            className="bg-[#5f7f6e] hover:bg-[#5f7f6e] text-white text-[12px] px-3 py-1 rounded-full font-bold"
-                        >
-                            {material}
-                        </Badge>
-                    ))}
-                </div>
-            </TableCell>
+            {/* Materials – only Incoming */}
+            {status === "incoming" && (
+                <TableCell className="w-[27%]">
+                    <div className="flex gap-2 flex-wrap">
+                        {materials.map((material, idx) => (
+                            <Badge
+                                key={idx}
+                                className="bg-[#5f7f6e] hover:bg-[#5f7f6e] text-white text-[12px] px-3 py-1 rounded-full font-bold"
+                            >
+                                {material}
+                            </Badge>
+                        ))}
+                    </div>
+                </TableCell>
+            )}
 
             {/* Date & Time */}
             <TableCell className="w-[15%]">
                 <div className="flex flex-col text-[14px] font-bold text-black gap-1">
-                    <span>{Date}</span>
-                    <span>{startTime}-{endTime}</span>
+                    <span>{Date},</span>
+                    <span>{startTime} - {endTime}</span>
                 </div>
             </TableCell>
 
@@ -91,28 +107,26 @@ export function TableEntry({
                 )}
             </TableCell>
 
-            {/* columns for the accepted tab */}
-            {status === "accepted" ? (
-                <>
-
-                    <TableCell className="w-[12%] text-[14px] font-bold text-black">
-                        ${estimatedPayment}
-                    </TableCell>
-
-                    <TableCell className="w-[12%]">
-                        <button className="border border-[#4D7C63] text-[#4D7C63] px-4 py-1 rounded-md font-medium hover:bg-[#4D7C63] hover:text-white transition mr-6">
-                            Complete
-                        </button>
-                    </TableCell>
-                </>
-            ) : (
-                <TableCell className="w-auto">
-                    <div className="flex items-center gap-1 text-[14px] font-bold text-black cursor-pointer hover:underline">
-                        {Action}
-                        <ChevronRight size={16} />
-                    </div>
+            {/* Payout ($) – shown in Accepted and Completed */}
+            {(status === "accepted" || status === "completed") && (
+                <TableCell className="w-[12%] text-[14px] font-bold text-black">
+                    ${displayAmount}
                 </TableCell>
             )}
+
+            {/* Action */}
+            <TableCell className="w-[12%]">
+                {status === "accepted" ? (
+                    <button className="border border-[#4D7C63] text-[#4D7C63] px-4 py-1 rounded-md font-medium hover:bg-[#4D7C63] hover:text-white transition">
+                        Complete
+                    </button>
+                ) : (
+                    <div className="flex items-center gap-1 text-[14px] font-bold text-black cursor-pointer hover:underline">
+                        {actionLabel}
+                        <ChevronRight size={16} />
+                    </div>
+                )}
+            </TableCell>
 
         </TableRow>
     );

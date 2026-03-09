@@ -60,13 +60,11 @@ export function RequestsTable() {
 
             <CardHeader className="border-b border-[#CFCFCF] px-6 py-0 h-[64px] flex items-center">
                 <div className="flex gap-8 h-full">
-
                     {[
                         { label: "Incoming Requests", key: "incoming" },
                         { label: "Accepted", key: "accepted" },
                         { label: "Completed", key: "completed" }
                     ].map((tab) => {
-
                         const count = RequestsData.filter(r => r.status === tab.key).length;
                         const active = activeTab === tab.key;
 
@@ -75,7 +73,7 @@ export function RequestsTable() {
                                 key={tab.key}
                                 onClick={() => setActiveTab(tab.key as any)}
                                 className={`flex items-center gap-2 cursor-pointer border-b-2 transition-all
-                                ${active
+            ${active
                                         ? "border-[#4D7C63] text-[#4D7C63]"
                                         : "border-transparent text-gray-500 hover:text-black"
                                     }`}
@@ -84,7 +82,7 @@ export function RequestsTable() {
                                     {tab.label}
                                 </span>
 
-                                {tab.key === "incoming" && (
+                                {count > 0 && (
                                     <span className="bg-gray-200 text-black text-[12px] px-2 py-[2px] rounded-full font-bold">
                                         {count}
                                     </span>
@@ -117,17 +115,24 @@ export function RequestsTable() {
             <Table>
                 <TableHeader>
                     <TableRow className="h-[44px]">
-
                         <TableHead className="text-[#999CA0] px-6">Username</TableHead>
                         <TableHead className="text-[#999CA0]">Location</TableHead>
-                        <TableHead className="text-[#999CA0]">Material</TableHead>
-                        {/* Conditional headers */}
-                        {!isAcceptedTab && <TableHead className="text-[#999CA0]">Material</TableHead>}
+
+                        {/* Material only on Incoming tab */}
+                        {isIncomingTab && (
+                            <TableHead className="text-[#999CA0]">Material</TableHead>
+                        )}
+
                         <TableHead className="text-[#999CA0]">Date & Time</TableHead>
+
+                        {/* Comparability shown in ALL tabs */}
                         <TableHead className="text-[#999CA0]">Comparability</TableHead>
 
-                        {isAcceptedTab && (
-                            <TableHead className="text-[#999CA0]">Estimated Payment ($)</TableHead>
+                        {/* Payment column – different name depending on tab */}
+                        {(isAcceptedTab || isCompletedTab) && (
+                            <TableHead className="text-[#999CA0]">
+                                {isCompletedTab ? "Payout ($)" : "Estimated Payment ($)"}
+                            </TableHead>
                         )}
 
                         <TableHead className="text-[#999CA0]">Action</TableHead>
