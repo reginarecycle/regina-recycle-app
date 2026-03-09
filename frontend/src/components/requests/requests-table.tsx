@@ -40,23 +40,24 @@ export function RequestsTable() {
         <Card className="bg-white w-full gap-0">
             {/* Header */}
             <CardHeader className="flex items-center justify-between border-b border-[#CFCFCF] !h-[48px]">
-                <CardTitle className="text-lg font-bold">Customers</CardTitle>
 
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center bg-gray-100 rounded-md px-2 h-[31px] w-[321px]">
-                        <Search className="w-4 h-4 text-black mr-2" strokeWidth={2.5} />
-                        <input
-                            type="text"
-                            placeholder="Search for customer name"
-                            className="flex-1 bg-transparent outline-none text-sm"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                    <div className="p-2 rounded-full bg-[#f7f7f7] cursor-pointer hover:bg-gray-200 flex-shrink-0">
-                        <ListFilter size={18} strokeWidth={3} />
-                    </div>
+                {/* Search input container with icon on left */}
+                <div className="flex items-center bg-gray-100 rounded-md px-2 h-[31px] w-[321px]">
+                    <Search className="w-4 h-4 text-black mr-2" strokeWidth={2.5} />
+                    <input
+                        type="text"
+                        placeholder="Search for customer name"
+                        className="flex-1 bg-transparent outline-none text-sm"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                 </div>
+
+                {/* Filter icon on the far right */}
+                <div className="p-2 rounded-full bg-[#f7f7f7] cursor-pointer hover:bg-gray-200 flex-shrink-0">
+                    <ListFilter size={18} strokeWidth={3} />
+                </div>
+
             </CardHeader>
 
             <Table>
