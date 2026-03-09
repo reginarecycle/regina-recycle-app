@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Table,
     TableHeader,
@@ -15,19 +15,29 @@ import { RequestsData } from "./requests-data";
 
 export function RequestsTable() {
     const [currentPage, setCurrentPage] = useState(1);
-    const rowsPerPage = 8; // show 10 rows per page
+    const [searchTerm, setSearchTerm] = useState("");
+    const rowsPerPage = 8;
 
-    const totalRows = RequestsData.length;
+    // Filter data based on search term (case insensitive)
+    const filteredData = RequestsData.filter((row) =>
+        row.Customer.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const totalRows = filteredData.length;
     const totalPages = Math.ceil(totalRows / rowsPerPage);
 
-    // Slice the data array according to current page
+    // Reset current page to 1 whenever search term changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
+
+    // Slice the filtered data for pagination
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
-    const currentRows = RequestsData.slice(startIndex, endIndex);
+    const currentRows = filteredData.slice(startIndex, endIndex);
 
     return (
         <Card className="bg-white w-full gap-0">
-
             {/* Header */}
             <CardHeader className="flex items-center justify-between border-b border-[#CFCFCF] !h-[48px]">
                 <CardTitle className="text-lg font-bold">Customers</CardTitle>
@@ -39,6 +49,8 @@ export function RequestsTable() {
                             type="text"
                             placeholder="Search for customer name"
                             className="flex-1 bg-transparent outline-none text-sm"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
                     <div className="p-2 rounded-full bg-[#f7f7f7] cursor-pointer hover:bg-gray-200 flex-shrink-0">
@@ -59,9 +71,15 @@ export function RequestsTable() {
                 </TableHeader>
 
                 <TableBody>
-                    {currentRows.map((row, index) => (
-                        <TableEntry key={index} {...row} />
-                    ))}
+                    {currentRows.length > 0 ? (
+                        currentRows.map((row, index) => <TableEntry key={index} {...row} />)
+                    ) : (
+                        <TableRow>
+                            <TableHead colSpan={5} className="text-center py-4 text-muted-foreground">
+                                No results found.
+                            </TableHead>
+                        </TableRow>
+                    )}
                 </TableBody>
             </Table>
 
