@@ -1,4 +1,5 @@
 import { StatsCards } from "@/components/requests/stats-cards";
+import { RequestsTable } from "@/components/requests/requests-table";
 
 export function CollectorRequests() {
     return (
@@ -26,7 +27,9 @@ export function CollectorRequests() {
                     color="purple"
                     unit="COMPLETED"
                 />
-
+            </div>
+            <div className="px-6 py-6">
+                <RequestsTable />
             </div>
         </div>
     )

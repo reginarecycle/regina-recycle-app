@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import PurpleCalendar from "@/assets/purple-calendar.svg"
 import YellowArrow from "@/assets/yellow-arrow.svg"
 import GreenBox from "@/assets/green-box.svg"
+import { TableEntry } from "./table-entry";
 
 type StatsCardsProps = {
     title: string;
