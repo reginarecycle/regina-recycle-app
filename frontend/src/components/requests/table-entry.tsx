@@ -5,7 +5,8 @@ import {
 import { Badge } from "../ui/badge";
 import { ChevronRight } from "lucide-react";
 import { useState } from "react";
-import { RequestAcceptedModal } from "@/components/requests/request-accepted"; // ← import here
+import { RequestAcceptedModal } from "@/components/requests/request-accepted";
+import { RequestDetailsModal } from "@/components/requests/request-details";
 
 type Material = 'Plastic' | 'Glass' | 'Cardboard' | 'Carton' | 'Paper';
 
@@ -23,8 +24,8 @@ type RequestProps = {
     estimatedPayment?: number;
     payout?: number;
     status: "incoming" | "accepted" | "completed";
-    // Optional: if you later want to call a real API / update state in parent
     onComplete?: (username: string) => void;
+    // You can add more fields later that RequestDetailsModal needs
 };
 
 export function TableEntry({
@@ -44,6 +45,7 @@ export function TableEntry({
     onComplete,
 }: RequestProps) {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
 
     const materials = [material1];
     if (material2) materials.push(material2);
@@ -64,16 +66,12 @@ export function TableEntry({
                 "View Details";
 
     const handleComplete = () => {
-        // Optional: call parent callback if you passed one
         onComplete?.(Username);
-
-        // Show the success modal
         setShowSuccessModal(true);
+    };
 
-        // In real app you would also:
-        // - call an API to mark as completed
-        // - update local state / invalidate queries
-        // - maybe navigate or refresh list
+    const handleViewDetails = () => {
+        setShowDetailsModal(true);
     };
 
     return (
@@ -143,7 +141,10 @@ export function TableEntry({
                             Complete
                         </button>
                     ) : (
-                        <div className="flex items-center gap-1 text-[14px] font-bold text-black cursor-pointer hover:underline">
+                        <div
+                            onClick={handleViewDetails}
+                            className="flex items-center gap-1 text-[14px] font-bold text-black cursor-pointer hover:underline"
+                        >
                             {actionLabel}
                             <ChevronRight size={16} />
                         </div>
@@ -151,15 +152,29 @@ export function TableEntry({
                 </TableCell>
             </TableRow>
 
-            {/* Success Modal – only shown after clicking Complete */}
+            {/* Success Modal – appears after clicking Complete (Accepted tab) */}
             <RequestAcceptedModal
                 isOpen={showSuccessModal}
                 onClose={() => setShowSuccessModal(false)}
                 onViewActivePickups={() => {
                     setShowSuccessModal(false);
-                    // still need to add navigation to the incoming-pickups tab
-                    // navigate("/active-pickups");
-                    console.log("Navigating to Active Pickups...");
+                    // navigate or setActiveTab logic here in parent
+                }}
+            />
+
+            {/* Request Details Modal – appears after clicking View Details */}
+            <RequestDetailsModal
+                isOpen={showDetailsModal}
+                onClose={() => setShowDetailsModal(false)}
+                onAccept={() => {
+                    // handle accept logic (e.g. call API, show success modal, etc.)
+                    setShowDetailsModal(false);
+                    // You might want to trigger the success modal here too
+                    // setShowSuccessModal(true);
+                }}
+                onReject={() => {
+                    // handle reject logic
+                    setShowDetailsModal(false);
                 }}
             />
         </>
