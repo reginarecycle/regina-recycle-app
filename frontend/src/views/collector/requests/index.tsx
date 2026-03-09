@@ -7,25 +7,24 @@ export function CollectorRequests() {
             <div className="w-full grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 pt-6 px-6">
 
                 <StatsCards
-                    title="TOTAL USERS"
+                    title="PERFECT MATCH"
                     data={5}
                     color="green"
-                    unit="USERS"
+                    unit="Requests"
                 />
 
                 <StatsCards
-                    title="AVG REVENUE/USER"
+                    title="NEEDS COMPLETION"
                     data={25000}
-                    currency="$"
                     color="yellow"
-                    unit="PER CUSTOMER"
+                    unit="Requests"
                 />
 
                 <StatsCards
-                    title="TOTAL COLLECTION"
-                    data={91}
-                    color="purple"
-                    unit="COMPLETED"
+                    title="POTENTIAL REVENUE"
+                    data={9100}
+                    currency="$"
+                    color="blue"
                 />
             </div>
             <div className="px-6 py-6">

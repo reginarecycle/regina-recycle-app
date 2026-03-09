@@ -1,35 +1,32 @@
-import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
-import PurpleCalendar from "@/assets/purple-calendar.svg"
+import { Card, CardContent } from "@/components/ui/card";
+import BlueCash from "@/assets/blue-cash.svg"
 import YellowArrow from "@/assets/yellow-arrow.svg"
 import GreenBox from "@/assets/green-box.svg"
-import { TableEntry } from "./table-entry";
 
 type StatsCardsProps = {
     title: string;
     data: number;
-    unit: string;
-    color?: 'green' | 'purple' | 'yellow' | string;
+    unit?: string;
+    color?: 'green' | 'blue' | 'yellow' | string;
     currency?: string;
 };
 
 export function StatsCards({
     title = "default",
     data = 0,
-    unit = "units",
+    unit = "",
     color = "green",
     currency = "",
 }: StatsCardsProps) {
-
-    const titleColorClass = "white";
 
     const colorThemes = {
         green: {
             accent: 'text-[#22C55E]',
             icon: GreenBox,
         },
-        purple: {
-            accent: 'text-[#A855F7]',
-            icon: PurpleCalendar,
+        blue: {
+            accent: 'text-[#3B82F6]',
+            icon: BlueCash,
         },
         yellow: {
             accent: 'text-[#F59E0B]',
@@ -46,7 +43,7 @@ export function StatsCards({
         : (theme.accent || 'text-[#22C55E]');
 
     const formattedData =
-        color === "yellow"
+        color === "blue"
             ? data.toLocaleString()
             : data;
 
@@ -80,13 +77,10 @@ export function StatsCards({
             <img src={Icon} alt={`${color} icon`} className="w-10 h-10 sm:w-12 sm:h-12" />
 
             <CardContent className="card-txt flex-col px-0">
-                <div className="text-[#999CA0] text-sm sm:text-base">{title}</div>
+                <div className="text-[#999CA0] text-sm sm:text-base font-bold">{title}</div>
                 <div className="h-[38px] w-fitflex items-baseline gap-2">
                     <span className={` text-2xl sm:text-3xl font-bold mr-1.5 ${accentClass}`}>
-                        {currency}{formattedData}
-                    </span>
-                    <span className={`text-xs sm:text-sm font-medium text-[#999CA0]`}>
-                        {unit}
+                        {currency}{formattedData} {unit}
                     </span>
                 </div>
 

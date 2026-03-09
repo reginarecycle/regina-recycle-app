@@ -19,9 +19,22 @@ export function RequestsTable() {
     const rowsPerPage = 8;
 
     // Filter data based on search term (case insensitive)
-    const filteredData = RequestsData.filter((row) =>
-        row.Customer.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Filter data based on search term (case insensitive)
+    const filteredData = RequestsData.filter((row) => {
+        const search = searchTerm.toLowerCase();
+
+        return (
+            row.Username.toLowerCase().includes(search) ||
+            row.Location.toLowerCase().includes(search) ||
+            row.material1.toLowerCase().includes(search) ||
+            (row.material2 && row.material2.toLowerCase().includes(search)) ||
+            (row.material3 && row.material3.toLowerCase().includes(search)) ||
+            row.Date.toLowerCase().includes(search) ||
+            row.endTime.toLowerCase().includes(search) ||
+            row.startTime.toLowerCase().includes(search) ||
+            row.Comparability.toString().includes(search)
+        );
+    });
 
     const totalRows = filteredData.length;
     const totalPages = Math.ceil(totalRows / rowsPerPage);
@@ -38,35 +51,38 @@ export function RequestsTable() {
 
     return (
         <Card className="bg-white w-full gap-0">
-            {/* Header */}
-            <CardHeader className="flex items-center justify-between border-b border-[#CFCFCF] !h-[48px]">
+            <CardHeader className="border-b border-[#CFCFCF] !h-[64px]">
+                Another header
+            </CardHeader>
+            <CardTitle className="flex items-center justify-between border-b border-[#CFCFCF] !h-[64px] px-6">
 
                 {/* Search input container with icon on left */}
                 <div className="flex items-center bg-gray-100 rounded-md px-2 h-[31px] w-[321px]">
                     <Search className="w-4 h-4 text-black mr-2" strokeWidth={2.5} />
                     <input
                         type="text"
-                        placeholder="Search for customer name"
+                        placeholder="Search for transaction id"
                         className="flex-1 bg-transparent outline-none text-sm"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
 
-                {/* Filter icon on the far right */}
+
                 <div className="p-2 rounded-full bg-[#f7f7f7] cursor-pointer hover:bg-gray-200 flex-shrink-0">
                     <ListFilter size={18} strokeWidth={3} />
                 </div>
 
-            </CardHeader>
+            </CardTitle>
 
             <Table>
                 <TableHeader>
                     <TableRow className="h-[44px]">
-                        <TableHead className="text-[#999CA0] px-6">Customer</TableHead>
-                        <TableHead className="text-[#999CA0]">Contact</TableHead>
-                        <TableHead className="text-[#999CA0]">Status</TableHead>
-                        <TableHead className="text-[#999CA0]">Collections</TableHead>
+                        <TableHead className="text-[#999CA0] px-6">Username</TableHead>
+                        <TableHead className="text-[#999CA0]">Location</TableHead>
+                        <TableHead className="text-[#999CA0]">Material</TableHead>
+                        <TableHead className="text-[#999CA0]">Date & Time</TableHead>
+                        <TableHead className="text-[#999CA0]">Comparability</TableHead>
                         <TableHead className="text-[#999CA0]">Action</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -76,7 +92,7 @@ export function RequestsTable() {
                         currentRows.map((row, index) => <TableEntry key={index} {...row} />)
                     ) : (
                         <TableRow>
-                            <TableHead colSpan={5} className="text-center py-4 text-muted-foreground">
+                            <TableHead colSpan={6} className="text-center py-4 text-muted-foreground">
                                 No results found.
                             </TableHead>
                         </TableRow>
