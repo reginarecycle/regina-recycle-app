@@ -17,8 +17,9 @@ type RequestProps = {
     startTime: string;
     endTime: string;
     Comparability: number;
-    Action: string;
-    status: "incoming" | "assigned" | "completed";
+    Action?: string;
+    estimatedPayment?: number;
+    status: "incoming" | "accepted" | "completed";
 };
 
 export function TableEntry({
@@ -32,7 +33,8 @@ export function TableEntry({
     endTime = "2pm",
     Comparability = 0,
     Action = "View Details",
-    status = "assigned",
+    estimatedPayment = 0,
+    status = "incoming",
 }: RequestProps) {
 
     const materials = [material1];
@@ -89,13 +91,28 @@ export function TableEntry({
                 )}
             </TableCell>
 
-            {/* Action */}
-            <TableCell className="w-auto">
-                <div className="flex items-center gap-1 text-[14px] font-bold text-black cursor-pointer hover:underline">
-                    {Action}
-                    <ChevronRight size={16} />
-                </div>
-            </TableCell>
+            {/* columns for the accepted tab */}
+            {status === "accepted" ? (
+                <>
+
+                    <TableCell className="w-[12%] text-[14px] font-bold text-black">
+                        ${estimatedPayment}
+                    </TableCell>
+
+                    <TableCell className="w-[12%]">
+                        <button className="border border-[#4D7C63] text-[#4D7C63] px-4 py-1 rounded-md font-medium hover:bg-[#4D7C63] hover:text-white transition mr-6">
+                            Complete
+                        </button>
+                    </TableCell>
+                </>
+            ) : (
+                <TableCell className="w-auto">
+                    <div className="flex items-center gap-1 text-[14px] font-bold text-black cursor-pointer hover:underline">
+                        {Action}
+                        <ChevronRight size={16} />
+                    </div>
+                </TableCell>
+            )}
 
         </TableRow>
     );

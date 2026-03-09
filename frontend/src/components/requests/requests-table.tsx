@@ -17,7 +17,7 @@ export function RequestsTable() {
 
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState("");
-    const [activeTab, setActiveTab] = useState<"incoming" | "assigned" | "completed">("incoming");
+    const [activeTab, setActiveTab] = useState<"incoming" | "accepted" | "completed">("incoming");
 
     const rowsPerPage = 8;
 
@@ -50,6 +50,11 @@ export function RequestsTable() {
     const endIndex = startIndex + rowsPerPage;
     const currentRows = filteredData.slice(startIndex, endIndex);
 
+    // variables to keep track of which tab you're on
+    const isAcceptedTab = activeTab === "accepted";
+    const isIncomingTab = activeTab === "incoming";
+    const isCompletedTab = activeTab === "completed";
+
     return (
         <Card className="bg-white w-full gap-0">
 
@@ -58,7 +63,7 @@ export function RequestsTable() {
 
                     {[
                         { label: "Incoming Requests", key: "incoming" },
-                        { label: "Assigned", key: "assigned" },
+                        { label: "Accepted", key: "accepted" },
                         { label: "Completed", key: "completed" }
                     ].map((tab) => {
 
@@ -112,11 +117,19 @@ export function RequestsTable() {
             <Table>
                 <TableHeader>
                     <TableRow className="h-[44px]">
+
                         <TableHead className="text-[#999CA0] px-6">Username</TableHead>
                         <TableHead className="text-[#999CA0]">Location</TableHead>
                         <TableHead className="text-[#999CA0]">Material</TableHead>
+                        {/* Conditional headers */}
+                        {!isAcceptedTab && <TableHead className="text-[#999CA0]">Material</TableHead>}
                         <TableHead className="text-[#999CA0]">Date & Time</TableHead>
                         <TableHead className="text-[#999CA0]">Comparability</TableHead>
+
+                        {isAcceptedTab && (
+                            <TableHead className="text-[#999CA0]">Estimated Payment ($)</TableHead>
+                        )}
+
                         <TableHead className="text-[#999CA0]">Action</TableHead>
                     </TableRow>
                 </TableHeader>

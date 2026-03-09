@@ -11,7 +11,7 @@ export type RequestRow = {
     endTime: string;
     Comparability: number;
     Action: string;
-    status: "incoming" | "assigned" | "completed";
+    status: "incoming" | "accepted" | "completed";
 };
 
 export const RequestsData: RequestRow[] = [
@@ -24,7 +24,7 @@ export const RequestsData: RequestRow[] = [
         endTime: "2pm",
         Comparability: 0,
         Action: "View More",
-        status: "assigned",
+        status: "accepted",
     },
     {
         Username: "John Doe",
@@ -36,7 +36,7 @@ export const RequestsData: RequestRow[] = [
         endTime: "3pm",
         Comparability: 100,
         Action: "View More",
-        status: "assigned",
+        status: "accepted",
     },
     {
         Username: "Sara Doe",
@@ -49,7 +49,7 @@ export const RequestsData: RequestRow[] = [
         endTime: "3pm",
         Comparability: 100,
         Action: "View More",
-        status: "assigned",
+        status: "accepted",
     },
     {
         Username: "Sara Doe",
@@ -75,7 +75,7 @@ export const RequestsData: RequestRow[] = [
         endTime: "3pm",
         Comparability: 100,
         Action: "View More",
-        status: "assigned",
+        status: "accepted",
     },
     {
         Username: "Sara Doe",
@@ -114,7 +114,7 @@ export const RequestsData: RequestRow[] = [
         endTime: "3pm",
         Comparability: 100,
         Action: "View More",
-        status: "assigned",
+        status: "accepted",
     },
     {
         Username: "Sara Doe",
@@ -127,7 +127,7 @@ export const RequestsData: RequestRow[] = [
         endTime: "3pm",
         Comparability: 100,
         Action: "View More",
-        status: "assigned",
+        status: "accepted",
     },
     {
         Username: "Sara Doe",
