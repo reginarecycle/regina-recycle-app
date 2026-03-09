@@ -10,7 +10,6 @@ export type RequestRow = {
     startTime: string;
     endTime: string;
     Comparability: number;
-    Action: string;
     status: "incoming" | "accepted" | "completed";
 };
 
@@ -23,7 +22,6 @@ export const RequestsData: RequestRow[] = [
         startTime: "12pm",
         endTime: "2pm",
         Comparability: 0,
-        Action: "View More",
         status: "accepted",
     },
     {
@@ -35,7 +33,6 @@ export const RequestsData: RequestRow[] = [
         startTime: "12pm",
         endTime: "3pm",
         Comparability: 100,
-        Action: "View More",
         status: "accepted",
     },
     {
@@ -48,7 +45,6 @@ export const RequestsData: RequestRow[] = [
         startTime: "12pm",
         endTime: "3pm",
         Comparability: 100,
-        Action: "View More",
         status: "accepted",
     },
     {
@@ -61,7 +57,6 @@ export const RequestsData: RequestRow[] = [
         startTime: "12pm",
         endTime: "3pm",
         Comparability: 100,
-        Action: "View More",
         status: "incoming",
     },
     {
@@ -74,7 +69,6 @@ export const RequestsData: RequestRow[] = [
         startTime: "12pm",
         endTime: "3pm",
         Comparability: 100,
-        Action: "View More",
         status: "accepted",
     },
     {
@@ -87,7 +81,6 @@ export const RequestsData: RequestRow[] = [
         startTime: "12pm",
         endTime: "3pm",
         Comparability: 100,
-        Action: "View More",
         status: "completed",
     },
     {
@@ -100,7 +93,6 @@ export const RequestsData: RequestRow[] = [
         startTime: "12pm",
         endTime: "3pm",
         Comparability: 100,
-        Action: "View More",
         status: "completed",
     },
     {
@@ -113,7 +105,6 @@ export const RequestsData: RequestRow[] = [
         startTime: "12pm",
         endTime: "3pm",
         Comparability: 100,
-        Action: "View More",
         status: "accepted",
     },
     {
@@ -126,7 +117,6 @@ export const RequestsData: RequestRow[] = [
         startTime: "12pm",
         endTime: "3pm",
         Comparability: 100,
-        Action: "View More",
         status: "accepted",
     },
     {
@@ -139,7 +129,6 @@ export const RequestsData: RequestRow[] = [
         startTime: "12pm",
         endTime: "3pm",
         Comparability: 100,
-        Action: "View More",
         status: "incoming",
     },
     {
@@ -151,7 +140,6 @@ export const RequestsData: RequestRow[] = [
         startTime: "12pm",
         endTime: "3pm",
         Comparability: 10,
-        Action: "View More",
         status: "incoming",
     },
 
