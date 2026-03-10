@@ -7,6 +7,7 @@ import inventoryIcon from "@/assets/material-symbols_inventory-2-rounded.svg";
 import graphIcon from "@/assets/mdi_graph-line-shimmer.svg";
 import cashIcon from "@/assets/mdi_cash-multiple.svg";
 import historyIcon from "@/assets/lucide_history.svg";
+import {useNavigate} from "react-router-dom";
 
 const PriorityBadge = ({ type }: { type: string }) => {
 const styles = {
@@ -68,7 +69,13 @@ const urgentRequests: UrgentRequestItem[] = [
 },
 ];
 
-const RequestRow = ({ item }: { item: UrgentRequestItem }) => {
+const RequestRow = ({
+  item,
+  onAssignNow,
+}: {
+  item: UrgentRequestItem;
+  onAssignNow: () => void;
+}) => {
 return (
  <div className="grid grid-cols-[140px_260px_120px_260px_260px] gap-2 items-center border-t px-6 py-4 font-semibold">
    <p>{item.date}</p>
@@ -91,7 +98,9 @@ return (
    </div>
 
    <div className="flex justify-end shrink-0">
- <Button className="shrink-0 border px-3 py-1 text-[14px] font-semibold h-[24px] gap-[8px] bg-[#FFFFFF] text-[#344E41] w-[100px] border-[#344E41]">
+ <Button 
+ onClick={onAssignNow}
+ className="shrink-0 border px-3 py-1 text-[14px] font-semibold h-[24px] gap-[8px] bg-[#FFFFFF] text-[#344E41] w-[100px] border-[#344E41]">
    Assign now
  </Button>
 </div>
@@ -100,6 +109,20 @@ return (
 };
 
 const CollectorDashboard = () => {
+  const navigate = useNavigate();
+  
+  const goToIncomingRequests = () => {
+  navigate("/app/collector/requests?tab=incoming");
+};
+
+const goToAcceptedRequests = () => {
+  navigate("/app/collector/requests?tab=accepted");
+};
+
+const goToCompletedRequests = () => {
+  navigate("/app/collector/requests?tab=completed");
+};
+  
 const donutSegments = [
  { label: "Plastic", color: "#001E62", value: 95 },
  { label: "Cartoon", color: "#0F6C74", value: 20 },
@@ -417,6 +440,7 @@ return (
 
  <Button
    type="button"
+   onClick = {goToAcceptedRequests}
    className="flex items-center gap-1 bg-[#FFFFFF] text-[14px] font-semibold text-[#344E41] hover:bg-white hover:text-[#618171]"
  >
    View All
@@ -478,7 +502,9 @@ return (
 </div>
 
 
-<Button className="flex h-[40px] w-[176px] items-center justify-center gap-[8px] rounded-[8px] bg-[#163A24] px-[16px] py-[8px] text-[14px] font-semibold text-white hover:bg-[#163A24]">
+<Button 
+onClick={goToCompletedRequests}
+className="flex h-[40px] w-[176px] items-center justify-center gap-[8px] rounded-[8px] bg-[#163A24] px-[16px] py-[8px] text-[14px] font-semibold text-white hover:bg-[#163A24]">
 <svg
   xmlns="http://www.w3.org/2000/svg"
   className="h-[16px] w-[16px] shrink-0"
@@ -605,7 +631,9 @@ Complete Pickup
      URGENT REQUEST
    </p>
  </div>
- <button className="flex items-center gap-1 font-semibold text-[14px] text-[#344E41] hover:text-[#618171]">
+ <button 
+ onClick={goToIncomingRequests}
+ className="flex items-center gap-1 font-semibold text-[14px] text-[#344E41] hover:text-[#618171]">
    View All
    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
      <path
@@ -630,7 +658,8 @@ Complete Pickup
 
 {/* Row */}
 {urgentRequests.map((items, index) => (
-<RequestRow key={index} item={items} />
+<RequestRow key={index} item={items}
+onAssignNow={goToIncomingRequests} />
 ))}
 
 </div>
