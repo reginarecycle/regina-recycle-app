@@ -1,5 +1,7 @@
+
+import CollectorDashboard from "../dashboard";
 const CollectorHome = () => {
-  return <div>CollectorHome</div>;
+  return <CollectorDashboard />;
 };
 
 export default CollectorHome;
