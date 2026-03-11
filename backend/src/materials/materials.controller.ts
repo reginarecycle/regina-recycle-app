@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { MaterialsService } from './materials.service';
 import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
@@ -13,13 +13,21 @@ export class MaterialsController {
   }
 
   @Get()
-  getMaterials() {
-    return this.materialsService.getMaterials();
+  getMaterials(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string
+  ) {
+    return this.materialsService.getMaterials(
+      Number(page) || 1,
+      Number (limit) || 10,
+      search
+    );
   }
 
   @Get(':id')
   getMaterialById(@Param('id') id: string) {
-    return this.materialsService.getMaterialById(+id);
+    return this.materialsService.getMaterialById(id);
   }
 
   @Patch(':id')

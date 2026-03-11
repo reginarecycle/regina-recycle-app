@@ -1,1 +1,5 @@
-export class CreatePickupDto {}
+export class CreatePickupDto {
+    requesterUserId?: string;
+    addressId?: string;
+    scheduledAt: Date;
+}
