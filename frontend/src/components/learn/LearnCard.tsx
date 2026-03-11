@@ -22,7 +22,7 @@ function LearnCard({
     description = "This is a description",
     subtext = "This is a warning label",
 }: props) {
-    // Icon mapping (unchanged)
+    // based on the category there is an icon assigned
     const getIcon = () => {
         switch (category) {
             case "Recyclable": return Verified;
@@ -35,23 +35,22 @@ function LearnCard({
 
     const iconSrc = getIcon();
 
-    // New: Category badge background color
+    // based on the category the label color for the category changes
     const getBadgeBgColor = () => {
         switch (category) {
-            case "Garbage": return "#999CA0";     // gray
-            case "Compostable": return "#CA8A05";     // gold/yellow
-            case "Hazardous": return "#FEE2E2";     // light red
+            case "Garbage": return "#999CA0";
+            case "Compostable": return "#CA8A05";
+            case "Hazardous": return "#FEE2E2";
             case "Recyclable":
-            default: return "#618171";     // current green
+            default: return "#618171";  // default is the green for recyclables
         }
     };
 
-    // New: Text color inside badge (only Hazardous needs red text)
+    // text color only changes for the hazardous category
     const badgeTextColor = category === "Hazardous" ? "#991B1B" : "white";
 
     return (
         <Card className="relative learn-card flex w-full max-w-[275.44px] overflow-hidden">
-            {/* card img */}
             <CardContent className="!p-0">
                 <img
                     className="absolute w-full h-43.25 top-0.5"
@@ -61,11 +60,10 @@ function LearnCard({
             </CardContent>
 
             <CardFooter>
-                {/* card text and labels */}
+                {/* label color for category */}
                 <div className="absolute w-full h-[57.83%] top-0 left-0">
                     <div className="w-[100%] h-[100%] top-0 bg-[#00000066] rounded-[12px_12px_0px_0px] rotate-[-0.15deg] absolute left-0" />
 
-                    {/* Category badge – only background & text color change here */}
                     <div
                         className="flex w-[100px] h-[23px] items-center justify-center px-[17px] py-px absolute top-[152px] left-[173px] rounded-[4px_0px_0px_0px] right-[17px]"
                         style={{ backgroundColor: getBadgeBgColor() }}
@@ -78,13 +76,13 @@ function LearnCard({
                         </span>
                     </div>
                 </div>
-
+                {/* breif description of the material */}
                 <div className="flex flex-col w-[247px] items-start gap-2.5 absolute top-[191px] left-3.5">
                     <div className="flex flex-col w-[53px] items-start gap-[7px] relative flex-[0_0_auto]">
                         <h2 className="card-title">{title}</h2>
                         <p className="card-description">{description}</p>
                     </div>
-
+                    {/* another label used for warnings */}
                     <div className="inline-flex items-center relative flex-[0_0_auto]">
                         <div className="warning-label">
                             <img src={WarningIcon} className="h-[24px] w-[24px]" alt="warning" />
@@ -93,7 +91,7 @@ function LearnCard({
                     </div>
                 </div>
 
-                {/* Top-right icon circle – background stays #49b972 as before */}
+                {/* the icon in the top rigt thats chosen based on the category */}
                 <div className="flex w-8 h-8 items-center justify-around gap-2.5 p-1 absolute top-[11px] left-[236px]">
                     <div className="inline-flex items-center absolute top-0 left-0">
                         <div className="relative w-8 h-8 rounded-2xl overflow-hidden">

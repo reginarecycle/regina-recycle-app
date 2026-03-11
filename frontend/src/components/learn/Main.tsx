@@ -4,9 +4,9 @@ import Cans from "@/assets/cans-photo.svg"
 import Boxes from "@/assets/boxes-img.svg"
 import SearchBar from "@/components/learn/SearchBar"
 
-// Define the category type once
 type Category = "Recyclable" | "Garbage" | "Compostable" | "Hazardous"
 
+//constant data for testing until we can pass actual data through
 const allItems: Array<{
     photo: string
     category: Category
@@ -52,6 +52,7 @@ export function Main() {
     return (
         <>
             <div className="pt-4 md:pt-6">
+                {/* import the search bar */}
                 <SearchBar
                     searchTerm={searchTerm}
                     onSearchChange={setSearchTerm}
@@ -76,6 +77,7 @@ export function Main() {
               justify-items-center
             "
                     >
+                        {/* using the list of constant data create a bunch of cards */}
                         {visibleItems.map((item, i) => (
                             <LearnCard
                                 key={i}

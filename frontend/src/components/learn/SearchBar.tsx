@@ -38,13 +38,13 @@ function SearchBar({
                     Search
                 </Button>
             </div>
-
+            {/* buttons used to filter through categories */}
             <div className="mt-4 flex flex-wrap gap-2">
                 <div className="flex gap-2.75 text-[12px]">
                     <Button
                         className="all-button flex items-center gap-[11px] min-w-[66px]"
                         size={'lg'}
-                        // variant={activeCategory === "All" ? "secondary" : "outline"}
+                        variant={activeCategory === "All" ? "secondary" : "outline"}
                         onClick={() => onCategoryClick("All")}
                     >
                         <BadgeCheck className="size-6" />
