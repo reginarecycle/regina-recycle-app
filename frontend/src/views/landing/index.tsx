@@ -5,7 +5,7 @@ const Home = () => {
   return (
     <div>
       <Input placeholder="Hello world" />
-      <Button>Home 1</Button>
+      <Button text="test" />
     </div>
   );
 };

@@ -1,5 +1,14 @@
 import { Controller, Post, Body, HttpCode, HttpStatus, Get, UseGuards, Request, Patch } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { RegisterDto } from './dto/register.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { LoginDto } from './dto/login.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { JwtAuthGuard } from './guards/jwt.guard';
+import { CurrentUser } from './decorator/current-user.decorator';
+import type { User } from '@prisma/client';
 
 @Controller('auth')
 export class AuthController {
@@ -10,9 +19,9 @@ export class AuthController {
    * Register new user or collector
    */
   @Post('register')
-  async register(@Body() dto: any) {
-    // TODO: Add RegisterDto
-    return this.authService.register(dto);
+  @HttpCode(HttpStatus.CREATED)
+  async register(@Body() registerDto: RegisterDto) {
+    return this.authService.register(registerDto);
   }
 
   /**
@@ -21,9 +30,8 @@ export class AuthController {
    */
   @Post('verify-email')
   @HttpCode(HttpStatus.OK)
-  async verifyEmail(@Body() dto: any) {
-    // TODO: Add VerifyEmailDto
-    return this.authService.verifyEmail(dto);
+  async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto) {
+    return this.authService.verifyEmail(verifyEmailDto.token);
   }
 
   /**
@@ -32,9 +40,8 @@ export class AuthController {
    */
   @Post('resend-otp')
   @HttpCode(HttpStatus.OK)
-  async resendOTP(@Body() dto: any) {
-       // TODO: Add ResendOTPDto
-       return this.authService.resendOTP(dto);
+  async resendOTP(@Body() body: { email: string }) {
+       return this.authService.resendOTP(body.email);
   }
 
   /**
@@ -43,9 +50,8 @@ export class AuthController {
    */
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
-  async forgotPassword(@Body() dto: any) {
-    // TODO: Add ForgotPasswordDto
-    return this.authService.forgotPassword(dto);
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(forgotPasswordDto.email);
   }
 
    /**
@@ -54,10 +60,10 @@ export class AuthController {
    */
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
-  async resetPassword(@Body() dto: any) {
-    // TODO: Add ResetPasswordDto
-    return this.authService.resetPassword(dto);
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(resetPasswordDto.token, resetPasswordDto.newPassword);
   }
+
 
    /**
    * POST /api/auth/login
@@ -65,9 +71,8 @@ export class AuthController {
    */
     @Post('login')
     @HttpCode(HttpStatus.OK)
-    async login(@Body() dto: any) {
-      // TODO: Add LoginDto
-      return this.authService.login(dto);
+    async login(@Body() loginDto: LoginDto) {
+      return this.authService.login(loginDto);
     }
 
    /**
@@ -75,9 +80,9 @@ export class AuthController {
    * Get current user (requires JWT)
    */
     @Get('me')
-    @UseGuards()//TODO: Add JWTAuthGuard
-    async getCurrentUser(@Request() req) {
-      return this.authService.getCurrentUser(req.user.id);
+    @UseGuards(JwtAuthGuard)
+    async getCurrentUser(@CurrentUser() user: User) {
+      return this.authService.getCurrentUser(user.userId);
     }
 
      /**
@@ -85,9 +90,16 @@ export class AuthController {
    * Change password for authenticated user (requires JWT)
    */
     @Patch('change-password')
-    @UseGuards()//TODO: Add JWTAuthGuard
-    async changePassword(@Request() req, @Body() dto: any) {
-      return this.authService.changePassword(req.user.id, dto);
+    @UseGuards(JwtAuthGuard)
+    async changePassword(
+     @CurrentUser() user: User,
+      @Body() changePasswordDto: ChangePasswordDto,
+    ) {
+      return this.authService.changePassword(
+        user.userId,
+        changePasswordDto.newPassword,
+        changePasswordDto.currentPassword,
+      );
     }
 
 }
