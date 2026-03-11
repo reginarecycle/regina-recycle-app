@@ -196,6 +196,7 @@ export default function ProfilePage() {
                   error={detailsErrors.email?.message}
                   type="email"
                   placeholder="doe@gmail.com"
+                  disabled
                   required
                 />
               </div>

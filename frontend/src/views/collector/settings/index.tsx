@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import InputField from "@/components/forms/input-field";
+import DataTable, { type Column } from "@/components/ui/data-table";
 import {
     Clock,
     Users,
@@ -26,8 +27,20 @@ import {
   type CollectorSecurityFormValues,
 } from "@/lib/validation";
 
+// Material type definition
+type Material = {
+  id: number;
+  name: string;
+  desc: string;
+  basePrice: number;
+  bulkRate: number;
+  active: boolean;
+  icon: string;
+};
+
 export default function CollectorSettingsPage() {
     const [currentTab, setCurrentTab] = useState("profile");
+    const [currentPage, setCurrentPage] = useState(1);
 
     // Profile form
     const {
@@ -76,7 +89,7 @@ export default function CollectorSettingsPage() {
     const [notificationsChanged, setNotificationsChanged] = useState(false);
 
     // Pricing state
-    const [materials, setMaterials] = useState([
+    const [materials, setMaterials] = useState<Material[]>([
         { id: 1, name: "Glass Bottles", desc: "Clear & Coloured", basePrice: 0.10, bulkRate: 0.12, active: true, icon: "🍾" },
         { id: 2, name: "PET Plastic", desc: "Water & Soft drink bottles", basePrice: 0.05, bulkRate: 0.07, active: true, icon: "🥤" },
         { id: 3, name: "Aluminium Cans", desc: "Beverages only", basePrice: 0.10, bulkRate: 0.15, active: true, icon: "🥫" },
@@ -105,6 +118,133 @@ export default function CollectorSettingsPage() {
         const numValue = parseFloat(value) || 0;
         setMaterials(materials.map(m => m.id === id ? { ...m, [field]: numValue } : m));
     };
+
+    // Define table columns
+    const materialColumns: Column<Material>[] = [
+        {
+            key: "name",
+            header: "Material Category",
+            render: (material) => (
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-xl">
+                        {material.icon}
+                    </div>
+                    <div>
+                        <div className="font-medium text-sm">{material.name}</div>
+                        <div className="text-xs text-muted-foreground">{material.desc}</div>
+                    </div>
+                </div>
+            ),
+        },
+        {
+            key: "basePrice",
+            header: "Base price",
+            render: (material) => (
+                <div className="relative w-36">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                    <Input
+                        value={material.basePrice.toFixed(2)}
+                        onChange={(e) => handlePriceChange(material.id, "basePrice", e.target.value)}
+                        className="pl-8 h-10 bg-[#F9FAFB] border-gray-200"
+                    />
+                </div>
+            ),
+        },
+        {
+            key: "bulkRate",
+            header: "Bulk rate (100+ Units)",
+            render: (material) => (
+                <div className="relative w-36">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                    <Input
+                        value={material.bulkRate.toFixed(2)}
+                        onChange={(e) => handlePriceChange(material.id, "bulkRate", e.target.value)}
+                        className="pl-8 h-10 bg-[#F9FAFB] border-gray-200"
+                    />
+                </div>
+            ),
+        },
+        {
+            key: "active",
+            header: "Action",
+            render: (material) => (
+                <Switch
+                    checked={material.active}
+                    onCheckedChange={() => handleToggleMaterial(material.id)}
+                />
+            ),
+        },
+        {
+            key: "status",
+            header: "Status",
+            render: (material) => (
+                <Badge
+                    className={`uppercase text-xs font-semibold ${
+                        material.active
+                            ? "bg-green-100 text-green-800 border-0"
+                            : "bg-gray-100 text-gray-600 border-0"
+                    }`}
+                >
+                    {material.active ? "ACTIVE" : "INACTIVE"}
+                </Badge>
+            ),
+        },
+    ];
+
+    // Mobile render function
+    const renderMobileMaterial = (material: Material) => (
+        <>
+            <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3 flex-1">
+                    <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-2xl shrink-0">
+                        {material.icon}
+                    </div>
+                    <div>
+                        <div className="font-semibold">{material.name}</div>
+                        <div className="text-sm text-muted-foreground">{material.desc}</div>
+                    </div>
+                </div>
+                <Switch
+                    checked={material.active}
+                    onCheckedChange={() => handleToggleMaterial(material.id)}
+                />
+            </div>
+
+            <div className="space-y-2 pl-15">
+                <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Base price:</span>
+                    <div className="relative w-28">
+                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs">$</span>
+                        <Input
+                            value={material.basePrice.toFixed(2)}
+                            onChange={(e) => handlePriceChange(material.id, "basePrice", e.target.value)}
+                            className="pl-6 h-8 text-sm bg-[#F9FAFB]"
+                        />
+                    </div>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Bulk rate:</span>
+                    <div className="relative w-28">
+                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs">$</span>
+                        <Input
+                            value={material.bulkRate.toFixed(2)}
+                            onChange={(e) => handlePriceChange(material.id, "bulkRate", e.target.value)}
+                            className="pl-6 h-8 text-sm bg-[#F9FAFB]"
+                        />
+                    </div>
+                </div>
+                <Badge
+                    className={`${
+                        material.active
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-600"
+                    } text-xs`}
+                >
+                    {material.active ? "ACTIVE" : "INACTIVE"}
+                </Badge>
+            </div>
+        </>
+    );
 
     return (
         <div className="p-6 md:p-8">
@@ -168,6 +308,7 @@ export default function CollectorSettingsPage() {
                                         error={profileErrors.businessEmail?.message}
                                         type="email"
                                         placeholder="doe@gmail.com"
+                                        disabled
                                         required
                                     />
                                     <InputField
@@ -253,138 +394,23 @@ export default function CollectorSettingsPage() {
                     {/* Pricing Tab */}
                     <TabsContent value="pricing" className="mt-0 p-8">
                         <div className="space-y-8">
-                            <div>
-                                <h2 className="text-xl font-semibold mb-1">Pricing & Materials</h2>
-                                <p className="text-sm text-muted-foreground">
-                                    Manage your collection & accepted recycling materials
-                                </p>
-                            </div>
-
-                            {/* Materials Section */}
-                            <div className="border rounded-lg overflow-hidden bg-white">
-                                {/* Desktop Table */}
-                                <div className="hidden lg:block">
-                                    <table className="w-full">
-                                        <thead className="bg-[#FAFAFA]">
-                                            <tr className="border-b">
-                                                <th className="text-left px-4 py-3 text-sm font-medium text-[#9CA3AF]">Material Category</th>
-                                                <th className="text-left px-4 py-3 text-sm font-medium text-[#9CA3AF]">Base price</th>
-                                                <th className="text-left px-4 py-3 text-sm font-medium text-[#9CA3AF]">Bulk rate (100+ Units)</th>
-                                                <th className="text-left px-4 py-3 text-sm font-medium text-[#9CA3AF]">Action</th>
-                                                <th className="text-left px-4 py-3 text-sm font-medium text-[#9CA3AF]">Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {materials.map((material, index) => (
-                                                <tr key={material.id} className={index !== materials.length - 1 ? "border-b" : ""}>
-                                                    <td className="px-4 py-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-10 h-10 rounded-lg bg-background-gray-100 flex items-center justify-center text-xl">
-                                                                {material.icon}
-                                                            </div>
-                                                            <div>
-                                                                <div className="font-medium text-sm">{material.name}</div>
-                                                                <div className="text-xs text-muted-foreground">{material.desc}</div>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-4 py-4">
-                                                        <div className="relative w-36">
-                                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
-                                                            <Input
-                                                                value={material.basePrice.toFixed(2)}
-                                                                onChange={(e) => handlePriceChange(material.id, 'basePrice', e.target.value)}
-                                                                className="pl-8 h-10 bg-[#F9FAFB] border-gray-200"
-                                                            />
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-4 py-4">
-                                                        <div className="relative w-36">
-                                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
-                                                            <Input
-                                                                value={material.bulkRate.toFixed(2)}
-                                                                onChange={(e) => handlePriceChange(material.id, 'bulkRate', e.target.value)}
-                                                                className="pl-8 h-10 bg-[#F9FAFB] border-gray-200"
-                                                            />
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-4 py-4">
-                                                        <Switch checked={material.active} onCheckedChange={() => handleToggleMaterial(material.id)} />
-                                                    </td>
-                                                    <td className="px-4 py-4">
-                                                        <Badge className={`uppercase text-xs font-semibold ${material.active ? "bg-green-100 text-green-800 border-0" : "bg-gray-100 text-gray-600 border-0"}`}>
-                                                            {material.active ? "ACTIVE" : "INACTIVE"}
-                                                        </Badge>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                {/* Mobile List */}
-                                <div className="lg:hidden divide-y">
-                                    {materials.map((material) => (
-                                        <div key={material.id} className="p-4">
-                                            <div className="flex items-start justify-between mb-3">
-                                                <div className="flex items-center gap-3 flex-1">
-                                                    <div className="w-12 h-12 rounded-lg bg-background-gray-100 flex items-center justify-center text-2xl shrink-0">
-                                                        {material.icon}
-                                                    </div>
-                                                    <div>
-                                                        <div className="font-semibold">{material.name}</div>
-                                                        <div className="text-sm text-muted-foreground">{material.desc}</div>
-                                                    </div>
-                                                </div>
-                                                <Switch checked={material.active} onCheckedChange={() => handleToggleMaterial(material.id)} />
-                                            </div>
-
-                                            <div className="space-y-2 pl-15">
-                                                <div className="flex items-center justify-between text-sm">
-                                                    <span className="text-muted-foreground">Base price:</span>
-                                                    <div className="relative w-28">
-                                                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs">$</span>
-                                                        <Input
-                                                            value={material.basePrice.toFixed(2)}
-                                                            onChange={(e) => handlePriceChange(material.id, 'basePrice', e.target.value)}
-                                                            className="pl-6 h-8 text-sm bg-[#F9FAFB]"
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center justify-between text-sm">
-                                                    <span className="text-muted-foreground">Bulk rate:</span>
-                                                    <div className="relative w-28">
-                                                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs">$</span>
-                                                        <Input
-                                                            value={material.bulkRate.toFixed(2)}
-                                                            onChange={(e) => handlePriceChange(material.id, 'bulkRate', e.target.value)}
-                                                            className="pl-6 h-8 text-sm bg-[#F9FAFB]"
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <Badge className={`${material.active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"} text-xs`}>
-                                                    {material.active ? "ACTIVE" : "INACTIVE"}
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Footer */}
-                                <div className="px-4 py-4 bg-white border-t flex flex-col sm:flex-row items-center justify-between gap-4">
-                                    <p className="text-sm text-muted-foreground text-center sm:text-left">
-                                        Showing 4 to 12 materials available for ReginaRecycle Collectors.
-                                    </p>
-                                    <div className="flex items-center gap-1 flex-wrap justify-center">
-                                        <Button variant="outline" className="h-10 px-3 min-w-0 text-sm" disabled>← Prev</Button>
-                                        <Button className="h-10 w-10 p-0 min-w-0 bg-primary text-white">1</Button>
-                                        <Button variant="outline" className="h-10 w-10 p-0 min-w-0">2</Button>
-                                        <Button variant="outline" className="h-10 w-10 p-0 min-w-0">3</Button>
-                                        <Button variant="outline" className="h-10 w-10 p-0 min-w-0">5</Button>
-                                        <Button variant="outline" className="h-10 px-3 min-w-0 text-sm">Next →</Button>
-                                    </div>
-                                </div>
-                            </div>
+                            {/* Materials Table using DataTable component */}
+                            <DataTable
+                                data={materials}
+                                columns={materialColumns}
+                                keyExtractor={(material) => material.id}
+                                header={{
+                                    title: "Pricing & Materials",
+                                    subtitle: "Manage your collection & accepted recycling materials",
+                                }}
+                                pagination={{
+                                    currentPage: currentPage,
+                                    totalPages: 5,
+                                    onPageChange: setCurrentPage,
+                                    showText: "Showing 4 to 12 materials available for ReginaRecycle Collectors.",
+                                }}
+                                mobileRender={renderMobileMaterial}
+                            />
 
                             {/* Service Fees and Bulk Strategy */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -521,7 +547,7 @@ export default function CollectorSettingsPage() {
                         <Separator className="my-8" />
 
                         {/* Danger Zone */}
-                        <div className="relative flex flex-col sm:flex-row justify-center items-center w-full max-w-[1078px] p-6 sm:p-9 rounded-[14px] border border-red-600 bg-[rgba(221,30,30,0.06)] backdrop-blur-[20px] shrink-0">
+                        <div className="relative flex flex-col sm:flex-row justify-center items-center w-full max-w-269.5 p-6 sm:p-9 rounded-[14px] border border-red-600 bg-[rgba(221,30,30,0.06)] backdrop-blur-[20px] shrink-0">
                             <img
                                 src="/delete-account.png"
                                 alt="Delete Account Decor"
@@ -546,7 +572,6 @@ export default function CollectorSettingsPage() {
                             </div>
                         </div>
                     </TabsContent>
-
 
                     {/* Notification Tab */}
                     <TabsContent value="notification" className="mt-0 p-8">
