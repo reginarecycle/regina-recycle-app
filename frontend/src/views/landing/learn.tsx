@@ -9,9 +9,9 @@ function Learn() {
       <LeftBar />
       <div className="flex-1 md:ml-[280px] lg:ml-[320px]">
 
-        <div className="pt-4 md:pt-6">
+        {/* <div className="pt-4 md:pt-6">
           <SearchBar />
-        </div>
+        </div> */}
         {/* where the cards are imported */}
         <div>
           <Main />

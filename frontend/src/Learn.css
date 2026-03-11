@@ -179,6 +179,14 @@ input::placeholder {
     border-radius: 999px;
 }
 
+.garbage-button {
+    border-radius: 16px;
+    border-width: 1px;
+    border: 1px solid var(--Card-Border, #CFCFCF);
+    color: #999CA0;
+    border-radius: 999px;
+}
+
 .cards-wrapper {
     position: absolute;
     width: 897px;
