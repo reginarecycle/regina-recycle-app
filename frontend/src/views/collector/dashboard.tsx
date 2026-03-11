@@ -8,6 +8,34 @@ import graphIcon from "@/assets/mdi_graph-line-shimmer.svg";
 import cashIcon from "@/assets/mdi_cash-multiple.svg";
 import historyIcon from "@/assets/lucide_history.svg";
 import {useNavigate} from "react-router-dom";
+import { LineChart, Line, XAxis, CartesianGrid } from "recharts"
+import {
+ ChartContainer,
+ ChartTooltip,
+ ChartTooltipContent,
+} from "@/components/ui/chart"
+
+const chartData = [
+ { day: "Mon", current: 20, previous: 38 },
+ { day: "Tue", current: 52, previous: 70 },
+ { day: "Wed", current: 28, previous: 48 },
+ { day: "Thur", current: 60, previous: 82 },
+ { day: "Fri", current: 45, previous: 68 },
+ { day: "Sat", current: 66, previous: 92 },
+ { day: "Sun", current:92, previous: 120 },
+]
+
+
+const chartConfig = {
+ current: {
+   label: "Current",
+   color: "#344E41",
+ },
+ previous: {
+   label: "Previous",
+   color: "#999CA0",
+ },
+}
 
 const PriorityBadge = ({ type }: { type: string }) => {
 const styles = {
@@ -98,11 +126,12 @@ return (
    </div>
 
    <div className="flex justify-end shrink-0">
- <Button 
- onClick={onAssignNow}
- className="shrink-0 border px-3 py-1 text-[14px] font-semibold h-[24px] gap-[8px] bg-[#FFFFFF] text-[#344E41] w-[100px] border-[#344E41]">
-   Assign now
- </Button>
+<Button
+  size="sm"
+  onClick={onAssignNow}
+  className="h-[24px] px-[16px] rounded-[8px] border border-[#344E41] bg-white text-[#344E41] text-[14px]">
+  Assign now
+</Button>
 </div>
  </div>
 );
@@ -321,116 +350,60 @@ return (
              </span>
            </div>
          </div>
+
          {/* Chart Area */}
-         <div className="mx-[24px] mt-[24px] h-[352px] w-auto">
-           <div className="relative mx-auto -ml-[2px] h-[286px] w-full">
-             {[0, 1, 2, 3, 4, 5, 6].map((line) => (
- <div
-   key={line}
-   className="absolute top-0 h-full border-l border-dashed border-[#E2E2E2]"
-   style={{ left: `${(line / 6) * 100}%` }}
- />
-))}
-             <svg
-               xmlns="http://www.w3.org/2000/svg"
-               height="231"
-               viewBox="0 0 644 231"
-               fill="none"
-               preserveAspectRatio="none"
-               className="absolute bottom-0 left-0 w-full"
-             >
-               <path
-                 d="M110.845 145.991C77.3604 145.991 25.1644 230.631 -2.41089 230.631H645.608V0C645.608 0 436.824 145.991 391.522 145.991C346.219 145.991 339.326 106.227 303.872 106.227C268.418 106.227 223.115 194.276 180.768 194.276C138.42 194.276 144.329 145.991 110.845 145.991Z"
-                 fill="url(#paint0_linear_1176_13306)"
-               />
-               <defs>
-                 <linearGradient
-                   id="paint0_linear_1176_13306"
-                   x1="321.599"
-                   y1="0"
-                   x2="321.599"
-                   y2="230.631"
-                   gradientUnits="userSpaceOnUse"
-                 >
-                   <stop stopColor="#344E41" stopOpacity="0.18" />
-                   <stop offset="1" stopColor="#F3F3F4" stopOpacity="0" />
-                 </linearGradient>
-               </defs>
-             </svg>
-
-             {/* Dashed previous line */}
-             <svg
-               xmlns="http://www.w3.org/2000/svg"
-               height="209"
-               viewBox="0 0 563 209"
-               fill="none"
-               preserveAspectRatio="none"
-               className="absolute left-0 top-0 w-full"
-             >
-               <path
-                 d="M0 208.404C4.38672 208.404 8.53726 206.706 12.2185 204.559C16.034 202.334 20.0128 199.227 24.0707 195.621C31.3986 189.107 39.3218 180.653 47.3305 172.107C48.1967 171.183 49.0638 170.258 49.9313 169.334C58.8755 159.807 67.8658 150.405 76.3891 143.387C80.6529 139.877 84.6972 137.05 88.4525 135.119C92.2756 133.153 95.3627 132.341 97.7638 132.341C103.245 132.341 107.444 134.326 111.35 138.147C114.839 141.561 117.651 146.009 120.688 150.815C121.087 151.446 121.489 152.083 121.898 152.724C125.333 158.12 129.175 163.809 134.62 168.141C140.175 172.56 147.621 175.733 158.122 175.733C163.735 175.733 169.067 174.217 174.018 171.902C178.98 169.582 183.833 166.333 188.563 162.554C198.016 155.002 207.399 144.982 216.464 135.114C217.267 134.241 218.067 133.368 218.864 132.499C227.137 123.476 235.132 114.758 242.81 108.09C247.017 104.435 251.017 101.498 254.788 99.4938C258.609 97.4621 261.783 96.6069 264.387 96.6069C270.782 96.6069 276.072 98.4428 281.194 101.578C285.768 104.378 289.893 108.012 294.351 111.939C294.969 112.483 295.593 113.033 296.225 113.587C306.289 122.4 318.485 132.341 340.048 132.341C343.207 132.341 346.726 131.693 350.38 130.68C354.086 129.653 358.202 128.175 362.629 126.343C371.486 122.679 381.865 117.483 393.111 111.307C415.619 98.9455 441.893 82.4934 466.888 66.0792C491.894 49.6572 515.671 33.2393 533.193 20.9294C541.955 14.7737 549.155 9.64363 554.165 6.05183C556.671 4.25591 558.629 2.84447 559.961 1.88159C560.627 1.40015 561.137 1.03085 561.48 0.781689L561.994 0.408952L562 0.404297"
-                 stroke="#999CA0"
-                 strokeDasharray="6 6"
-               />
-             </svg>
-
-             {/* Green line */}
-             <svg
-               xmlns="http://www.w3.org/2000/svg"
-               height="233"
-               viewBox="0 0 644 233"
-               fill="none"
-               preserveAspectRatio="none"
-               className="absolute bottom-0 left-0 w-full"
-             >
-               <path
-                 fillRule="evenodd"
-                 clipRule="evenodd"
-                 d="M402.371 146.622C398.148 147.747 394.083 148.468 390.434 148.468C365.523 148.468 351.433 137.42 339.807 127.626C339.077 127.011 338.356 126.4 337.642 125.795C332.491 121.43 327.726 117.393 322.442 114.281C316.525 110.797 310.413 108.756 303.026 108.756C300.018 108.756 296.351 109.707 291.936 111.965C287.58 114.192 282.959 117.456 278.099 121.517C269.228 128.928 259.993 138.616 250.435 148.642C249.514 149.609 248.589 150.578 247.662 151.549C237.19 162.515 226.35 173.65 215.429 182.043C209.965 186.242 204.358 189.853 198.625 192.431C192.907 195.003 186.746 196.688 180.262 196.688C168.13 196.688 159.528 193.162 153.111 188.252C146.82 183.438 142.382 177.115 138.413 171.119C137.941 170.406 137.476 169.698 137.016 168.997C133.507 163.657 130.259 158.714 126.228 154.92C121.716 150.673 116.864 148.468 110.532 148.468C107.758 148.468 104.192 149.369 99.7751 151.554C95.4368 153.7 90.7645 156.842 85.8387 160.743C75.9921 168.542 65.606 178.99 55.2731 189.577C54.2709 190.604 53.2691 191.632 52.2684 192.659C43.0163 202.156 33.8629 211.551 25.3972 218.789C20.7093 222.798 16.1128 226.25 11.7048 228.722C7.45201 231.108 2.65705 232.996 -2.41077 232.996V228.457C-0.603791 228.457 2.24331 227.704 6.23107 225.467C10.0636 223.317 14.3062 220.165 18.8869 216.249C27.1605 209.175 36.1479 199.951 45.4441 190.41C46.4357 189.392 47.4307 188.371 48.4289 187.348C58.7203 176.803 69.3269 166.119 79.4907 158.069C84.5703 154.046 89.6577 150.584 94.6648 148.107C99.5935 145.669 104.958 143.929 110.532 143.929C120.896 143.929 127.83 147.751 132.924 152.546C137.374 156.734 140.908 162.121 144.364 167.388C144.827 168.095 145.289 168.799 145.752 169.498C149.763 175.558 153.857 181.29 159.382 185.517C164.781 189.649 171.279 192.15 180.262 192.15C184.336 192.15 188.825 191.087 193.798 188.85C198.758 186.62 203.885 183.361 209.148 179.316C219.68 171.222 230.262 160.374 240.782 149.357C241.719 148.377 242.654 147.395 243.589 146.414C253.089 136.447 262.524 126.549 271.636 118.936C276.642 114.753 281.681 111.147 286.728 108.567C291.716 106.015 297.196 104.218 303.026 104.218C313.317 104.218 321.324 107.142 328.051 111.103C333.865 114.526 339.062 118.935 344.152 123.252C344.865 123.858 345.577 124.461 346.287 125.06C358.232 135.122 370.168 143.929 390.434 143.929C392.432 143.929 395.288 143.511 399.079 142.501C402.811 141.506 407.162 140.016 412.064 138.065C421.866 134.164 433.554 128.548 446.434 121.743C472.177 108.143 502.345 89.977 531.169 71.7687C559.979 53.5691 587.386 35.3649 607.595 21.7079C617.698 14.8802 625.999 9.19081 631.773 5.20907C634.66 3.21824 636.916 1.6544 638.448 0.588733C639.215 0.0559034 639.801 -0.352376 640.195 -0.627207L640.78 -1.03616L640.787 -1.04096C640.788 -1.04198 640.789 -1.04245 643.819 0.40154C646.85 1.84553 646.849 1.84617 646.847 1.84738L646.84 1.85255L646.247 2.26677C645.85 2.54366 645.261 2.95406 644.492 3.48908C642.953 4.55911 640.69 6.12763 637.796 8.12343C632.008 12.115 623.69 17.816 613.567 24.6567C593.325 38.3366 565.857 56.5817 536.967 74.8313C508.092 93.0722 477.738 111.355 451.736 125.092C438.743 131.956 426.753 137.73 416.522 141.802C411.407 143.838 406.652 145.48 402.371 146.622Z"
-                 fill="#344E41"
-               />
-             </svg>
-          {/* dot */}
-        <svg
- viewBox="0 0 11 11"
- className="absolute h-[11px] w-[11px]"
- style={{ left: "42.8%", bottom: "42%" }}
->
-     <circle cx="5.5" cy="5.5" r="4.5" fill="#618171" stroke="white" strokeWidth="2" />
-     </svg>
-     {/*dot */ }
-     <svg
-     viewBox="0 0 11 11"
-     className="absolute w-[9px] h-[9px]"
-     style={{left:"13.8%", bottom:"28%"}}
-     >
-    <circle
-    cx="5.5"
-    cy="5.5"
-    r="4.5"
-    fill="#618171"
-    stroke="white"
-    strokeWidth="2"
+         <div className="mx-[24px] mt-[24px] h-[320px]">
+ <ChartContainer config={chartConfig} className="h-full w-full">
+   <LineChart
+     data={chartData}
+     margin={{ top: 20, right: 0, left: 24, bottom: 0 }}
+   >
+     <CartesianGrid
+       vertical={true}
+       horizontal={false}
+       stroke="#E2E2E2"
+       strokeDasharray="4 4"
      />
-   </svg>
-      </div>
-         
-         <div className="mx-auto mt-[2px] -ml-[2px] h-[1px] w-full bg-[#E2E2E2]" />
 
-        <div className="mx-auto mt-[10px] -ml-[6px] flex w-full items-center font-medium justify-between text-[14px] leading-none text-[#111827]">
-           <span>Mon</span>
-           <span>Tue</span>
-           <span>Wed</span>
-           <span>Thur</span>
-           <span>Fri</span>
-           <span>Sat</span>
-           <span>Sun</span>
-         </div>
-         </div>
+     <XAxis
+       dataKey="day"
+       tickLine={false}
+       axisLine={{ stroke: "#E2E2E2" }}
+       tickMargin={16}
+       // padding={{left:8, right:8}}
+     />
+
+     <ChartTooltip
+       content={<ChartTooltipContent indicator="dot" />}
+     />
+
+     <Line
+       type="monotone"
+       dataKey="previous"
+       stroke="var(--color-previous)"
+       strokeWidth={2}
+       strokeDasharray="6 6"
+       dot={false}
+     />
+
+     <Line
+       type="monotone"
+       dataKey="current"
+       stroke="var(--color-current)"
+       strokeWidth={5}
+       dot={{ r: 5, fill: "#618171", stroke: "white", strokeWidth: 2 }}
+       activeDot={{ r: 6 }}
+     />
+   </LineChart>
+ </ChartContainer>
+</div>
+
+
+
      
        {/* active pickup */}
        {/* active pickup */}
-<div className="mt-6 h-[152px] w-full rounded-[16px] border border-[#E5E7EB] bg-white">
+<div className="mt-10 h-[152px] w-full rounded-[16px] border border-[#E5E7EB] bg-white">
 {/* header */}
 <div className="flex h-[58px] items-center justify-between border-b border-[#E5E7EB] px-[24px] py-[12px]">
  <div>
@@ -438,8 +411,7 @@ return (
    <p className="text-[12px] text-[#999CA0]">Pickups you need to complete</p>
  </div>
 
- <Button
-   type="button"
+ <button
    onClick = {goToAcceptedRequests}
    className="flex items-center gap-1 bg-[#FFFFFF] text-[14px] font-semibold text-[#344E41] hover:bg-white hover:text-[#618171]"
  >
@@ -453,7 +425,7 @@ return (
        strokeLinejoin="round"
      />
    </svg>
- </Button>
+ </button>
 </div>
 
 {/* body */}
@@ -502,21 +474,30 @@ return (
 </div>
 
 
-<Button 
-onClick={goToCompletedRequests}
-className="flex h-[40px] w-[176px] items-center justify-center gap-[8px] rounded-[8px] bg-[#163A24] px-[16px] py-[8px] text-[14px] font-semibold text-white hover:bg-[#163A24]">
-<svg
-  xmlns="http://www.w3.org/2000/svg"
-  className="h-[16px] w-[16px] shrink-0"
-  viewBox="0 0 24 24"
-  fill="none"
+<Button
+  size="lg"
+  onClick={goToCompletedRequests}
+  className="w-[176px] flex items-center justify-center gap-[8px] bg-[#163A24] text-white hover:bg-[#163A24]"
 >
-  <path
-    d="M12 2.5C13.3168 2.5 14.5493 2.74984 15.7021 3.24707C16.8645 3.74844 17.8697 4.42571 18.7217 5.27832C19.5739 6.13117 20.2512 7.13681 20.7539 8.29883C21.2521 9.45047 21.5019 10.6821 21.5 11.999C21.4981 13.3169 21.2483 14.5498 20.7529 15.7021C20.2537 16.8634 19.5761 17.8681 18.7217 18.7207C17.8666 19.5739 16.8612 20.2518 15.7012 20.7539C14.5516 21.2514 13.3193 21.5013 12 21.5C10.6818 21.5 9.44919 21.2501 8.29785 20.7529C7.13685 20.2516 6.13174 19.5744 5.27832 18.7217C4.42499 17.869 3.74774 16.8638 3.24707 15.7021C2.7505 14.55 2.50067 13.3176 2.5 12C2.49936 10.6827 2.74931 9.44982 3.24707 8.29785C3.74911 7.1361 4.42629 6.13101 5.27832 5.27832C6.1303 4.42571 7.13546 3.74844 8.29785 3.24707C9.4507 2.74984 10.6832 2.5 12 2.5ZM16.25 8.0752C15.8476 8.0752 15.4825 8.2099 15.1963 8.49609L10.5996 13.0928L8.80371 11.2969C8.51745 11.0106 8.1524 10.875 7.75 10.875C7.3476 10.875 6.98255 11.0106 6.69629 11.2969C6.41032 11.583 6.27548 11.9475 6.27539 12.3496C6.27539 12.7519 6.41016 13.1171 6.69629 13.4033L9.54688 16.2539C9.83417 16.541 10.192 16.7001 10.5996 16.7002C11.0074 16.7002 11.3659 16.5412 11.6533 16.2539L17.3037 10.6035C17.5899 10.3173 17.7246 9.95215 17.7246 9.5498C17.7246 9.14749 17.5899 8.78231 17.3037 8.49609C17.0175 8.2099 16.6524 8.0752 16.25 8.0752Z"
-    fill="white"
-  />
-</svg>
-Complete Pickup
+  <span className="flex h-[20px] w-[20px] items-center justify-center rounded-full bg-white shrink-0">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <path
+        d="M20 6L9 17L4 12"
+        stroke="#163A24"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  </span>
+
+  Complete Pickup
 </Button>
 </div>
 </div>
@@ -663,8 +644,9 @@ onAssignNow={goToIncomingRequests} />
 ))}
 
 </div>
- </div>
+</div>
+ 
+ 
 );
 };
 export default CollectorDashboard;
-
