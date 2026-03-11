@@ -37,11 +37,10 @@ function LearnCard({
     };
     const iconSrc = getIcon();
     return (
-        <Card className="relative learn-card flex">
-            <CardContent>
-
+        <Card className="relative learn-card flex w-full max-w-[275.44px] overflow-hidden">
+            <CardContent className="!p-0">
                 <img
-                    className="absolute top-0.5 left-[37px] w-[209px] h-[173px]"
+                    className="absolute w-full h-43.25 top-0.5"
                     alt="card-img"
                     src={photo}
                 />

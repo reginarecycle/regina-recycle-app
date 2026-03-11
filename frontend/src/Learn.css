@@ -1,6 +1,4 @@
-.Left-Bar {
-    width: 292px;
-    height: 76px;
+.left-bar {
     font: Satoshi;
     left: 0;
     display: flex;
@@ -11,42 +9,47 @@
     margin-right: 6.5%;
     top: 135px;
     flex-wrap: wrap;
-    position: fixed;
+    max-width: 292px;
 }
 
-.Left-Bar>Div {
-    padding: 10px;
-}
-
-.Left-Bar>div>h2 {
+.left-bar-h2 {
     font-weight: 900;
     font-size: 30px;
     color: black;
 }
 
-.Left-Bar>div>div>p {
+.left-bar-p {
     font-weight: 400;
     font-size: 16px;
     color: #999CA0;
-    /* height: 24px; */
     align-items: center;
     letter-spacing: 0%;
     font-style: normal;
 }
 
 .Comment-Card {
-    width: 271px;
+    width: 100%;
+    max-width: 271px;
     height: 177px;
-    opacity: 1;
-    top: 187px;
+
+    padding-left: 12px;
+    padding-top: 12px;
+    margin-top: 20px;
+    margin-left: 6.5%;
+    margin-right: 6.5%;
+
+    display: flex;
+    flex-direction: column;
+    gap: 20;
+    position: relative;
+
+    box-sizing: border-box;
+
     border-width: 1px;
     border-radius: 12px;
-    margin-top: 5%;
     border: 1px solid #A16207;
     background-color: #FAF9F1;
-    padding: 21px;
-    position: absolute;
-    margin-top: 31px;
+
 }
 
 .Comment-Card>h3 {
@@ -57,6 +60,7 @@
     line-height: 18px;
     letter-spacing: 0%;
     vertical-align: middle;
+
 }
 
 .Comment-Card>h4 {
@@ -91,25 +95,22 @@ footer {
 }
 
 .search-bar {
-    width: 897px;
     height: 150px;
     opacity: 1;
-    top: 135px;
-    left: 477px;
+    /* top: 135px; */
+    /* left: 477px; */
     border-width: 1px;
     border-radius: 16px;
-    position: absolute;
-    right: 0;
+    /* position: absolute; */
+    /* right: 0; */
     border: 1px solid var(--Card-Background2, #EBE9E8);
     padding: 20px 30px;
-    margin-left: -8px;
-    position: absolute;
+    /* margin-left: -8px; */
+    /* position: absolute; */
 }
 
 input {
-    width: 652px;
     height: 48px;
-    opacity: 1;
     gap: 8px;
     border-width: 1px;
     border-radius: 8px;
@@ -119,7 +120,6 @@ input {
     padding-left: 16px;
     background: var(--Card-Background, #F7F7F7);
     border: 1px solid var(--Card-Border, #CFCFCF);
-    width: 652;
     gap: 4px;
     color: black;
 }
@@ -129,7 +129,6 @@ input::placeholder {
 }
 
 .search-button {
-    width: 132px;
     height: 48px;
     border-radius: 8px;
     padding-top: 8px;
@@ -151,28 +150,16 @@ input::placeholder {
 
 
 .all-button {
-    /* width: 66px; */
-    /* height: 34; */
-    /* gap: 8px; */
     border-radius: 999px;
-    /* padding: 10px; */
     background-color: #618171;
     color: white;
-    /* margin-right: 6px; */
     align-items: center;
-    /* gap: 0.5rem; */
 }
 
 .recyclables-button {
-    /* width: 116;
-    height: 34;
-    gap: 8px; */
     border-radius: 16px;
-    /* padding: 10px; */
     background-color: #618171;
     color: white;
-    /* margin-right: 6px;
-    margin-left: 6px; */
     border-radius: 999px;
 }
 
@@ -310,8 +297,7 @@ input::placeholder {
 }
 
 .learn-card {
-    position: relative;
-    width: 275.44px;
+    /* width: 275.44px; */
     height: 302.7px;
     left: 0px;
     top: 0 px;

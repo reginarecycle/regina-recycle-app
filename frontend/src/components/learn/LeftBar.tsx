@@ -1,17 +1,32 @@
 import CommentCard from "./CommentCard"
 function LeftBar() {
     return (
-        <section className="flex-col">
-            <div className="Left-Bar">
-                <div>
-                    <h2>What can be Recycled?</h2>
-                    <div>
-                        <p>Confused about goes in the blue bin? and what can be picked up or dropped off. Browse our categories to sort smart.</p>
-                    </div>
-                </div>
-                <CommentCard />
+        <aside className="
+                w-full
+                md:w-[280px]
+                lg:w-[320px]
+                md:fixed
+                shrink-0
+                p-6
+                space-y-6
+                h-auto md:h-screen
+                z-10
+
+                ">
+
+            <div className="left-bar">
+                <h2 className="left-bar-h2">
+                    What can be Recycled?
+                </h2>
+
+                <p className="left-bar-p">
+                    Confused about what goes in the blue bin and what can be picked
+                    up or dropped off? Browse our categories to sort smart.
+                </p>
             </div>
-        </section>
+            <CommentCard />
+
+        </aside>
     )
 }
 
