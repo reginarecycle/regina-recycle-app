@@ -15,7 +15,7 @@ const LandingLayout = () => {
       {isLearnPage || isLoginPage ? <Navbar /> : <Toolbar />}
 
 
-      <div className="min-h-svh lg:min-h-[767px] bg-card">
+      <div className="min-h-svh lg:min-h-[767px] bg-card overflow-auto">
         <Outlet />
       </div>
 
