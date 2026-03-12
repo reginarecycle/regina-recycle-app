@@ -356,7 +356,7 @@ return (
  <ChartContainer config={chartConfig} className="h-full w-full">
    <LineChart
      data={chartData}
-     margin={{ top: 20, right: 0, left: 24, bottom: 0 }}
+     margin={{ top: 20, right: 0, left: 24, bottom: 10 }}
    >
      <CartesianGrid
        vertical={true}
@@ -370,7 +370,6 @@ return (
        tickLine={false}
        axisLine={{ stroke: "#E2E2E2" }}
        tickMargin={16}
-       // padding={{left:8, right:8}}
      />
 
      <ChartTooltip
@@ -403,7 +402,7 @@ return (
      
        {/* active pickup */}
        {/* active pickup */}
-<div className="mt-10 h-[152px] w-full rounded-[16px] border border-[#E5E7EB] bg-white">
+<div className="mt-10 h-[167px] w-full rounded-[16px] border border-[#E5E7EB] bg-white">
 {/* header */}
 <div className="flex h-[58px] items-center justify-between border-b border-[#E5E7EB] px-[24px] py-[12px]">
  <div>
