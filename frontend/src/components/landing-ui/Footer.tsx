@@ -1,9 +1,3 @@
-// import logo from "../assets/logo.svg";
-
-// import addressIcon from "../assets/icons/address.svg";
-// import mailIcon from "../assets/icons/mail.svg";
-// import phoneIcon from "../assets/icons/phone.svg";
-
 import { MapPin, Mail, Phone } from "lucide-react";
 import { motion } from "framer-motion";
 import RRLogo from "@/assets/rrlogo.svg?react";
