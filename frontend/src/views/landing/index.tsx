@@ -1,13 +1,23 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import Hero from "@/components/landing-ui/Hero";
+import AboutSection from "@/components/landing-ui/AboutUs";
+import BenefitsSection from "@/components/landing-ui/BenefitsSection";
+import KnowledgeHubSection from "@/components/landing-ui/KnowledgeHub";
+import FAQSection from "@/components/landing-ui/FAQ";
+import CTASection from "@/components/landing-ui/CTASection";
+import Footer from "@/components/landing-ui/Footer";
 
-const Home = () => {
+function LandingPage() {
   return (
-    <div>
-      <Input placeholder="Hello world" />
-      <Button text="test" />
-    </div>
+    <>
+      <Hero />
+      <AboutSection />
+      <BenefitsSection />
+      <KnowledgeHubSection />
+      <FAQSection />
+      <CTASection />
+      <Footer />
+    </>
   );
-};
+}
 
-export default Home;
+export default LandingPage;
