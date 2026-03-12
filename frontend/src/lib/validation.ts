@@ -64,3 +64,25 @@ export const resetPasswordSchema = z
 
 export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
+export const profileDetailsSchema = z.object({
+  fullName: z.string().min(1, "Full Name is required"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().min(1, "Phone number is required"),
+  dateOfBirth: z.string().min(1, "Date of birth is required"),
+  address: z.string().min(1, "Address is required"),
+});
+
+export type ProfileDetailsFormValues = z.infer<typeof profileDetailsSchema>;
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(6, "Password must be at least 6 characters"),
+    newPassword: z.string().min(6, "Password must be at least 6 characters"),
+    confirmPassword: z.string().min(6, "Confirm Password must be at least 6 characters"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
