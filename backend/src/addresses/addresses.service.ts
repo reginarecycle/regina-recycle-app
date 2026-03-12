@@ -37,4 +37,3 @@ export class AddressesService {
     return { message: 'Set as default' };
   }
 }
-

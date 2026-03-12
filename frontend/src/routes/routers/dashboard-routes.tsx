@@ -6,6 +6,7 @@ const UserDashboard = lazy(() => import("@/views/customer/home"));
 const CollectorDashboard = lazy(() => import("@/views/collector/history"));
 const CustomerProfile = lazy(() => import("@/views/customer/profile"));
 const CustomerHistory = lazy(() => import("@/views/customer/history"));
+const CollectorSettingsPage = lazy(() => import("@/views/collector/settings"));
 
 export const dashboardRoutes = () => {
   return [
@@ -20,6 +21,10 @@ export const dashboardRoutes = () => {
           path: Routes.collectordashboard,
           element: <CollectorDashboard />,
         },
+        {
+      path: Routes.collectorsettings,
+      element: <CollectorSettingsPage />,
+    },
       ],
     },
     {

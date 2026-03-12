@@ -11,7 +11,7 @@ function App() {
       <Suspense
         fallback={
           <div className="max-sm:h-dvh h-screen flex items-center justify-center">
-            <ReginaRecycleLogo className="text-foreground animate-bounce " />
+            <ReginaRecycleLogo className="text-foreground animate-bounce" />
           </div>
         }
       >

@@ -19,6 +19,8 @@ export  enum Routes {
     collectorapp = "/app/collector",
     collectordashboard = "/app/collector/dashboard",
     customerhistory ="/app/history",
+    collectorsettings = "/app/collector/settings",
+
     //profile
     profile = "/app/profile",
 }
