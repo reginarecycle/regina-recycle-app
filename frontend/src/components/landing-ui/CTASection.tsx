@@ -13,7 +13,7 @@ function CTASection() {
           className="bg-primary relative overflow-hidden rounded-3xl shadow-[0px_0px_8px_0px_rgba(0,0,0,0.3)] p-8 md:p-12 lg:p-16"
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, amount: 0.3 }}
+          viewport={{ once: false, amount: 0.3 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
         >
           {/* Background decorations */}

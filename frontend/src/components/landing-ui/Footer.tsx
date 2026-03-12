@@ -20,7 +20,7 @@ function Footer() {
             className="flex flex-col lg:flex-row items-start justify-between gap-8 lg:gap-12 w-full"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
+            viewport={{ once: false, amount: 0.2 }}
             transition={{ duration: 0.7, ease: "easeOut" }}
           >
             {/* Logo and Description */}

@@ -187,7 +187,7 @@ function BenefitsSection() {
           className="flex flex-col gap-2 items-start mb-12 lg:mb-16 max-w-[556px]"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
+          viewport={{ once: false, amount: 0.3 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
         >
           <h2 className="text-2xl md:text-3xl font-black text-black">
@@ -207,7 +207,7 @@ function BenefitsSection() {
               className="bg-white flex flex-col min-h-[233px] justify-center gap-6 p-4 rounded-xl shadow-[0px_0px_4px_0px_rgba(0,0,0,0.15)]"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
+              viewport={{ once: false, amount: 0.2 }}
               transition={{
                 duration: 0.6,
                 delay: index * 0.1,

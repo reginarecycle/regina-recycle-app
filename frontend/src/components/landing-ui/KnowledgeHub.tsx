@@ -52,7 +52,7 @@ function KnowledgeHubSection() {
           className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-6 mb-12 lg:mb-16"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
+          viewport={{ once: false, amount: 0.3 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
         >
           <div className="flex flex-col gap-2 max-w-[556px]">
@@ -86,7 +86,7 @@ function KnowledgeHubSection() {
               className="flex flex-col rounded-xl border border-[#ebe9e8] overflow-hidden bg-white"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
+              viewport={{ once: false, amount: 0.2 }}
               transition={{
                 duration: 0.6,
                 delay: index * 0.1,
