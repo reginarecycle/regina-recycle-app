@@ -597,8 +597,10 @@ const years = useMemo(() => {
     <div className="mt-8 border-t border-[#CFCFCF]"></div>
 
     <div className="mt-6 flex items-center justify-end gap-4">
-           <Button className="h-[38px] border border-[#344E41] bg-[#FFF] px-5 text-[14px] font-medium text-[#344E41] hover:bg-[#F9FAFB] flex items-center gap-2 w-[158px]"
-                   onClick={BacktoPickup}
+           <Button 
+           size="lg"
+           className=" w-[158px] border border-[#344E41] bg-[#FFF] text-[14px] font-medium text-[#344E41] hover:bg-[#F9FAFB] flex items-center gap-2 "
+            onClick={BacktoPickup}
            >
               <span>
                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -611,13 +613,14 @@ const years = useMemo(() => {
 
 
            <Button type = "button"
+                   size="lg"
                    disabled = {!selectedSlotId}
                    onClick={()=>{
                      if(selectedSlotId){
                        navigate("/app/schedule/pickupLoc");
                      }
                    }}
-                   className="h-[38px] bg-[#344E41] px-6 text-[14px] font-medium text-[#FFF] flex items-center gap-2 w-[158px]"
+                   className="w-[158px] bg-[#344E41] text-[14px] font-medium text-[#FFF] flex items-center gap-2"
                    >
              <span className="text-[16px]">
              Next Step

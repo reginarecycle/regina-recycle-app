@@ -212,7 +212,7 @@ return(
  )}
 </div>
 
-        </div>
+</div>
 
     <div className="h-[300px] rounded-s overflow-hidden border border-[#E5E7EB]">
       <iframe
@@ -231,7 +231,9 @@ return(
 
    <div className="mt-8 border-t border-[#CFCFCF]"></div>
    <div className="mt-6 flex items-center justify-end gap-4">
-    <Button className="h-[38px] border border-[#344E41] bg-[#FFF] px-5 text-[14px] font-medium text-[#344E41] hover:bg-[#F9FAFB] flex items-center gap-2 w-[158px]"
+    <Button 
+    size = "lg"
+    className=" w-[158px] border border-[#344E41] bg-[#FFF] text-[14px] font-medium text-[#344E41] hover:bg-[#F9FAFB] flex items-center gap-2 "
                     onClick={()=>{
                         navigate("/app/schedule/pickupTime");
                     }}

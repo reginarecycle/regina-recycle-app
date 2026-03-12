@@ -309,18 +309,12 @@ const SchedulePickup = () => {
       <div className="mt-6 border-t border-[#E5E7EB] pt-4 flex justify-end">
         <Button
           type="button"
+          size="lg"
           disabled={!Clickable}
          onClick={() => {
-      if (!Clickable) return;
       navigate("/app/schedule/pickupTime");
       }}
-      className={`h-[38px] bg-[#344E41] px-6 text-[14px] font-medium text-[#FFF] flex items-center gap-2 w-[158px]
-     ${
-     Clickable
-       ? "bg-[#344E41] text-[white] hover:opacity-90"
-       : "bg-[#344E41] opacity-60 text-[#9CA3Af] cursor-not-allowed"
-      }`}>
-       
+      className = "w-[158px]" >
         Next Step →
         </Button>
       </div>
