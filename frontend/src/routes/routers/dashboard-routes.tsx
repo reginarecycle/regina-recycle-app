@@ -5,6 +5,7 @@ import type { RouteObject } from "react-router-dom";
 const UserDashboard = lazy(() => import("@/views/customer/home"));
 const CollectorDashboard = lazy(() => import("@/views/collector/home"));
 const CustomerProfile = lazy(() => import("@/views/customer/profile"));
+const CollectorSettingsPage = lazy(() => import("@/views/collector/settings"));
 
 export const dashboardRoutes = () => {
   return [
@@ -19,6 +20,10 @@ export const dashboardRoutes = () => {
           path: Routes.collectordashboard,
           element: <CollectorDashboard />,
         },
+        {
+      path: Routes.collectorsettings,
+      element: <CollectorSettingsPage />,
+    },
       ],
     },
     {
