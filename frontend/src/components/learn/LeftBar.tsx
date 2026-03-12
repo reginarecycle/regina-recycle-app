@@ -1,7 +1,7 @@
 import CommentCard from "./CommentCard"
 function LeftBar() {
     return (
-        <aside className="
+        <div className="
                 w-full
                 md:w-[280px]
                 lg:w-[320px]
@@ -11,7 +11,9 @@ function LeftBar() {
                 space-y-6
                 h-auto md:h-screen
                 z-10
-
+                items-center
+                ml-4
+                mr-2
                 ">
 
             <div className="left-bar">
@@ -26,7 +28,7 @@ function LeftBar() {
             </div>
             <CommentCard />
 
-        </aside>
+        </div>
     )
 }
 
