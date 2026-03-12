@@ -4,6 +4,15 @@ import { useNavigate } from "react-router-dom";
 import TransactionDetailsModal from "../../components/modals/transactiondetailmodal";
 import type { TransactionDetails } from "../../components/modals/transactiondetailmodal";
 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/ui/table";
+
 type TxStatus = "CREDIT" | "WITHDRAWAL" | "FAILED";
 
 type Transaction = {
@@ -181,58 +190,75 @@ export default function TransactionHistory() {
             />
           </div>
 
-          {/* Table Header */}
-          <div className="grid grid-cols-[175px_136px_1fr_181px_205px] h-[44px] px-6 items-center border-y border-[#CFCFCF] text-[#999CA0] font-bold text-[14px]">
-            <div>Date</div>
-            <div>Status</div>
-            <div>Description</div>
-            <div>Amount</div>
-            <div>Action</div>
-          </div>
-
-          {/* Body */}
           <div className="min-h-[560px] bg-white">
-            {mockData.map((t) => (
-              <div
-                key={t.id}
-                className="grid grid-cols-[175px_136px_1fr_181px_205px] h-[56px] px-6 items-center border-b border-[#CFCFCF]"
-              >
-                <div className="font-bold text-[14px]">{t.date}</div>
+  <Table className="w-full table-fixed">
+    <TableHeader>
+      <TableRow className="h-[44px] border-y border-[#CFCFCF] text-[#999CA0] hover:bg-transparent">
+        <TableHead className="w-[175px] px-6 font-bold text-[14px]">
+          Date
+        </TableHead>
+        <TableHead className="w-[136px] font-bold text-[14px]">
+          Status
+        </TableHead>
+        <TableHead className="font-bold text-[14px]">
+          Description
+        </TableHead>
+        <TableHead className="w-[181px] font-bold text-[14px]">
+          Amount
+        </TableHead>
+        <TableHead className="w-[205px] font-bold text-[14px]">
+          Action
+        </TableHead>
+      </TableRow>
+    </TableHeader>
 
-                <div>
-                  <span
-                    className="inline-flex px-2 rounded-full text-[10px] font-bold uppercase"
-                    style={{ background: t.badgeBg, color: t.badgeText }}
-                  >
-                    {t.status}
-                  </span>
-                </div>
+    <TableBody>
+      {mockData.map((t) => (
+        <TableRow
+          key={t.id}
+          className="h-[56px] border-b border-[#CFCFCF] bg-white"
+        >
+          <TableCell className="px-6 font-bold text-[14px] text-[#0C111D]">
+            {t.date}
+          </TableCell>
 
-                <div className="font-bold text-[14px]">{t.description}</div>
+          <TableCell>
+            <span
+              className="inline-flex items-center justify-center rounded-full px-2 text-[10px] font-bold uppercase"
+              style={{ background: t.badgeBg, color: t.badgeText }}
+            >
+              {t.status}
+            </span>
+          </TableCell>
 
-                <div
-                  className="font-bold text-[14px]"
-                  style={{ color: t.amountColor }}
-                >
-                  {t.amount}
-                </div>
+          <TableCell className="font-bold text-[14px] text-[#0C111D]">
+            {t.description}
+          </TableCell>
 
-                <div>
-                  
-                  <button
-                    type="button"
-                    className="font-bold text-[14px] text-[#0C111D] cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleViewMore(t);
-                    }}
-                  >
-                    View More
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <TableCell
+            className="font-bold text-[14px]"
+            style={{ color: t.amountColor }}
+          >
+            {t.amount}
+          </TableCell>
+
+          <TableCell>
+            <button
+              type="button"
+              className="font-bold text-[14px] text-[#0C111D] cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleViewMore(t);
+              }}
+            >
+              View More
+            </button>
+          </TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+</div>
 
           {/* Footer */}
           <div className="flex items-center justify-between h-[62px] px-6 border-t border-[#CFCFCF] bg-white">

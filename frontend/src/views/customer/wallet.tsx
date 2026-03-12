@@ -6,6 +6,30 @@ import WithdrawModal from "@/components/modals/withdrawmodal";
 import TransactionDetailsModal from "@/components/modals/transactiondetailmodal";
 import type { TransactionDetails } from "@/components/modals/transactiondetailmodal";
 
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  XAxis,
+} from "recharts";
+
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+
+import type { ChartConfig } from "@/components/ui/chart";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
 const balanceCad = 3000500;
 
 type RecentTxStatus = "CREDIT" | "WITHDRAWAL" | "FAILED";
@@ -85,6 +109,27 @@ const DETAILS_BY_ID: Record<string, TransactionDetails> = {
     receiver: "Jane Doe",
     fees: "0.00CAD",
     reference: "20005487594",
+  },
+};
+const earningsData = [
+  { month: "JAN", earnings: 0 },
+  { month: "FEB", earnings: 193 },
+  { month: "MAR", earnings: 0 },
+  { month: "APR", earnings: 129 },
+  { month: "MAY", earnings: 0 },
+  { month: "JUN", earnings: 0 },
+  { month: "JUL", earnings: 0 },
+  { month: "AUG", earnings: 0 },
+  { month: "SEPT", earnings: 0 },
+  { month: "OCT", earnings: 0 },
+  { month: "NOV", earnings: 0 },
+  { month: "DEC", earnings: 0 },
+];
+
+const earningsChartConfig: ChartConfig = {
+  earnings: {
+    label: "Earnings",
+    color: "rgba(52,78,65,0.6)",
   },
 };
 
@@ -260,56 +305,29 @@ export default function CustomerWallet() {
               </div>
             </div>
 
-            <div className="mt-3 p-4">
-              <div className="relative h-[220px] w-full">
-                <div className="absolute inset-0 flex flex-col justify-between">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="h-px bg-[#CFCFCF]" />
-                  ))}
-                </div>
-
-                <div className="absolute bottom-0 left-0 right-0 px-2">
-                  <div className="grid grid-cols-12 items-end gap-0">
-                    {Array.from({ length: 12 }).map((_, i) => {
-                      const isFeb = i === 1;
-                      const isApr = i === 3;
-
-                      return (
-                        <div key={i} className="flex items-end justify-center">
-                          {isFeb && (
-                            <div className="h-[193px] w-[94px] rounded bg-[rgba(52,78,65,0.6)] backdrop-blur-[2px]" />
-                          )}
-                          {isApr && (
-                            <div className="h-[129px] w-[94px] rounded bg-[rgba(52,78,65,0.6)] backdrop-blur-[2px]" />
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-3 grid grid-cols-12 px-2 text-[14px] font-medium leading-[20px] text-black">
-                {[
-                  "JAN",
-                  "FEB",
-                  "MAR",
-                  "APR",
-                  "MAY",
-                  "JUN",
-                  "JUL",
-                  "AUG",
-                  "SEPT",
-                  "OCT",
-                  "NOV",
-                  "DEC",
-                ].map((m) => (
-                  <div key={m} className="text-center">
-                    {m}
-                  </div>
-                ))}
-              </div>
-            </div>
+           <div className="mt-3 p-4">
+  <ChartContainer
+    config={earningsChartConfig}
+    className="h-[260px] w-full"
+  >
+    <BarChart data={earningsData}>
+      <CartesianGrid vertical={false} stroke="#CFCFCF" />
+      <XAxis
+        dataKey="month"
+        tickLine={false}
+        axisLine={false}
+        tickMargin={10}
+      />
+      <ChartTooltip content={<ChartTooltipContent />} />
+      <Bar
+        dataKey="earnings"
+        fill="var(--color-earnings)"
+        radius={4}
+        barSize={50}
+      />
+    </BarChart>
+  </ChartContainer>
+</div>
           </section>
 
           {/* Recent Transaction */}
@@ -350,81 +368,77 @@ export default function CustomerWallet() {
                 </svg>
               </button>
             </div>
+<div className="rounded-b-[8px] border border-[#CFCFCF] border-t-0 bg-white overflow-hidden">
+  <Table className="w-full table-fixed">
+    <TableHeader>
+      <TableRow className="h-[44px] border-b border-[#CFCFCF] hover:bg-transparent">
+        <TableHead className="w-[175px] px-[24px] text-[14px] font-bold leading-[20px] text-[#999CA0]">
+          Date
+        </TableHead>
+        <TableHead className="w-[136px] text-[14px] font-bold leading-[20px] text-[#999CA0]">
+          Status
+        </TableHead>
+        <TableHead className="w-[295px] text-[14px] font-bold leading-[20px] text-[#999CA0]">
+          Description
+        </TableHead>
+        <TableHead className="w-[181px] text-[14px] font-bold leading-[20px] text-[#999CA0]">
+          Amount (CAD)
+        </TableHead>
+        <TableHead className="w-[205px] text-[14px] font-bold leading-[20px] text-[#999CA0]">
+          Action
+        </TableHead>
+      </TableRow>
+    </TableHeader>
 
-            <div className="rounded-b-[8px] border border-[#CFCFCF] border-t-0 bg-white overflow-hidden">
-              <div
-                className="
-                  grid grid-cols-[175px_136px_295px_181px_205px]
-                  items-center
-                  h-[44px]
-                  px-[24px]
-                  text-[14px] font-bold leading-[20px]
-                  text-[#999CA0]
-                  border-b border-[#CFCFCF]
-                  bg-white
-                "
+    <TableBody>
+      {RECENT_TX.map((r) => (
+        <TableRow
+          key={r.id}
+          className="h-[56px] border-b border-[#CFCFCF] bg-white last:border-b-0"
+        >
+          <TableCell className="px-[24px] text-[14px] font-bold leading-[20px] text-[#0C111D]">
+            {r.date}
+          </TableCell>
+
+          <TableCell>
+            <span
+              className="inline-flex items-center justify-center rounded-[34px] px-[8px] py-[0px]"
+              style={{ background: r.badgeBg }}
+            >
+              <span
+                className="text-[10px] font-bold leading-[18px] uppercase"
+                style={{ color: r.badgeText }}
               >
-                <div>Date</div>
-                <div>Status</div>
-                <div>Description</div>
-                <div>Amount (CAD)</div>
-                <div>Action</div>
-              </div>
+                {r.status}
+              </span>
+            </span>
+          </TableCell>
 
-              {RECENT_TX.map((r) => (
-                <div
-                  key={r.id}
-                  className="
-                    grid grid-cols-[175px_136px_295px_181px_205px]
-                    items-center
-                    h-[56px]
-                    px-[24px]
-                    border-b border-[#CFCFCF]
-                    bg-white
-                    last:border-b-0
-                  "
-                >
-                  <div className="text-[14px] font-bold leading-[20px] text-[#0C111D]">
-                    {r.date}
-                  </div>
+          <TableCell className="text-[14px] font-bold leading-[20px] text-[#0C111D]">
+            {r.desc}
+          </TableCell>
 
-                  <div>
-                    <span
-                      className="inline-flex items-center justify-center rounded-[34px] px-[8px] py-[0px]"
-                      style={{ background: r.badgeBg }}
-                    >
-                      <span
-                        className="text-[10px] font-bold leading-[18px] uppercase"
-                        style={{ color: r.badgeText }}
-                      >
-                        {r.status}
-                      </span>
-                    </span>
-                  </div>
+          <TableCell
+            className="text-[14px] font-bold leading-[20px]"
+            style={{ color: r.amountColor }}
+          >
+            {r.amount}
+          </TableCell>
 
-                  <div className="text-[14px] font-bold leading-[20px] text-[#0C111D]">
-                    {r.desc}
-                  </div>
-
-                  <div
-                    className="text-[14px] font-bold leading-[20px]"
-                    style={{ color: r.amountColor }}
-                  >
-                    {r.amount}
-                  </div>
-
-                  <div className="flex items-start">
-                    <button
-                      type="button"
-                      className="text-[14px] font-bold leading-[20px] text-[#0C111D]"
-                      onClick={() => handleWalletViewMore(r)}
-                    >
-                      View More
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <TableCell>
+            <button
+              type="button"
+              className="text-[14px] font-bold leading-[20px] text-[#0C111D]"
+              onClick={() => handleWalletViewMore(r)}
+            >
+              View More
+            </button>
+          </TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+</div>
           </section>
         </div>
       </div>
