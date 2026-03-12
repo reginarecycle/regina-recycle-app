@@ -1,14 +1,40 @@
 import { lazy } from "react";
+import { Routes } from "../routes";
 import type { RouteObject } from "react-router-dom";
 
 const UserDashboard = lazy(() => import("@/views/customer/home"));
+const CollectorDashboard = lazy(() => import("@/views/collector/home"));
+const CustomerProfile = lazy(() => import("@/views/customer/profile"));
 const CustomerWallet = lazy(() => import("@/views/customer/wallet"));
 const TransactionHistory = lazy(() => import("@/views/customer/transactionhistory"));
-const CustomerProfile = lazy(() => import("@/views/customer/profile"));
 
-export const dashboardRoutes = (): RouteObject[] => [
-  { path: "dashboard", element: <UserDashboard /> },
-  { path: "wallet", element: <CustomerWallet /> },
-  { path: "wallet/history", element: <TransactionHistory /> },
-  { path: "profile", element: <CustomerProfile /> },
-];
+
+export const dashboardRoutes = () => {
+  return [
+    {
+      path: Routes.dashboard,
+      element: <UserDashboard />,
+    },
+    {
+      path: Routes.collectorapp,
+      children: [
+        {
+          path: Routes.collectordashboard,
+          element: <CollectorDashboard />,
+        },
+      ],
+    },
+    {
+      path: Routes.wallet,
+      element: <CustomerWallet />
+    },
+    {
+      path: Routes.transactionhistory,
+      element: <TransactionHistory />
+    },
+    {
+      path: Routes.profile,
+      element: <CustomerProfile />,
+    },
+  ] as RouteObject[];
+};

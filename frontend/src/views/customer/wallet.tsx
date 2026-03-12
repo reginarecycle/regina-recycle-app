@@ -6,29 +6,21 @@ import WithdrawModal from "@/components/modals/withdrawmodal";
 import TransactionDetailsModal from "@/components/modals/transactiondetailmodal";
 import type { TransactionDetails } from "@/components/modals/transactiondetailmodal";
 
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  XAxis,
-} from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-
 import type { ChartConfig } from "@/components/ui/chart";
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import DataTable, { type Column } from "@/components/ui/data-table";
+import { Button } from "@/components/ui/button";
+
+import { Eye } from "lucide-react";
+
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 const balanceCad = 3000500;
 
@@ -102,7 +94,7 @@ const DETAILS_BY_ID: Record<string, TransactionDetails> = {
   "WALLET-TX-1": {
     amount: "$150.00",
     currency: "CAD",
-    status: "CREDIT", 
+    status: "CREDIT",
     date: "01-12-2026",
     time: "10:00am",
     sender: "Shahnaz Recycle",
@@ -111,6 +103,7 @@ const DETAILS_BY_ID: Record<string, TransactionDetails> = {
     reference: "20005487594",
   },
 };
+
 const earningsData = [
   { month: "JAN", earnings: 0 },
   { month: "FEB", earnings: 193 },
@@ -135,8 +128,6 @@ const earningsChartConfig: ChartConfig = {
 
 export default function CustomerWallet() {
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
-
-  
   const [openDetails, setOpenDetails] = useState(false);
   const [selectedDetails, setSelectedDetails] =
     useState<TransactionDetails | null>(null);
@@ -145,11 +136,79 @@ export default function CustomerWallet() {
 
   const handleWalletViewMore = (tx: RecentTx) => {
     const details = DETAILS_BY_ID[tx.id];
-    if (!details) return; 
+    if (!details) return;
 
     setSelectedDetails(details);
     setOpenDetails(true);
   };
+
+  const recentTransactionColumns: Column<RecentTx>[] = [
+    {
+      key: "date",
+      header: "Date",
+      headerClassName: "w-[175px]",
+      render: (item) => (
+        <span className="text-[14px] font-bold leading-[20px] text-[#0C111D]">
+          {item.date}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      headerClassName: "w-[136px]",
+      render: (item) => (
+        <span
+          className="inline-flex items-center justify-center rounded-[34px] px-[8px] py-[0px]"
+          style={{ background: item.badgeBg }}
+        >
+          <span
+            className="text-[10px] font-bold leading-[18px] uppercase"
+            style={{ color: item.badgeText }}
+          >
+            {item.status}
+          </span>
+        </span>
+      ),
+    },
+    {
+      key: "desc",
+      header: "Description",
+      headerClassName: "w-[295px]",
+      render: (item) => (
+        <span className="text-[14px] font-bold leading-[20px] text-[#0C111D]">
+          {item.desc}
+        </span>
+      ),
+    },
+    {
+      key: "amount",
+      header: "Amount (CAD)",
+      headerClassName: "w-[181px]",
+      render: (item) => (
+        <span
+          className="text-[14px] font-bold leading-[20px]"
+          style={{ color: item.amountColor }}
+        >
+          {item.amount}
+        </span>
+      ),
+    },
+    {
+      key: "action",
+      header: "Action",
+      headerClassName: "w-[205px]",
+      render: (item) => (
+        <button
+          type="button"
+          className="text-[14px] font-bold leading-[20px] text-[#0C111D]"
+          onClick={() => handleWalletViewMore(item)}
+        >
+          View More
+        </button>
+      ),
+    },
+  ];
 
   return (
     <div className="w-full bg-[#F7F7F7]">
@@ -172,28 +231,7 @@ export default function CustomerWallet() {
               </span>
 
               <span className="inline-flex h-6 w-6 items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <path
-                    d="M2.06153 12.3484C1.97819 12.1238 1.97819 11.8769 2.06153 11.6524C2.87323 9.68421 4.25104 8.0014 6.0203 6.81726C7.78955 5.63312 9.87057 5.00098 11.9995 5.00098C14.1285 5.00098 16.2095 5.63312 17.9788 6.81726C19.748 8.0014 21.1258 9.68421 21.9375 11.6524C22.0209 11.8769 22.0209 12.1238 21.9375 12.3484C21.1258 14.3165 19.748 15.9993 17.9788 17.1835C16.2095 18.3676 14.1285 18.9997 11.9995 18.9997C9.87057 18.9997 7.78955 18.3676 6.0203 17.1835C4.25104 15.9993 2.87323 14.3165 2.06153 12.3484Z"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <Eye className="h-6 w-6 text-white" />
               </span>
             </div>
 
@@ -210,18 +248,13 @@ export default function CustomerWallet() {
                 </span>
               </div>
 
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 className="
-                  inline-flex items-center justify-center gap-2
-                  w-[255px] h-[52px]
-                  px-4 py-2
-                  rounded-[8px]
-                  border border-[#344E41]
-                  bg-white
-                  text-[#344E41]
-                  text-[16px] font-bold leading-[24px]
-                  hover:bg-gray-50 active:scale-[0.99]
+                  w-[255px] h-[52px] min-w-0
+                  border-[#344E41] bg-white text-[#344E41]
+                  hover:bg-gray-50
                 "
                 onClick={() => setIsWithdrawOpen(true)}
               >
@@ -242,7 +275,7 @@ export default function CustomerWallet() {
                   />
                 </svg>
                 Withdraw Funds
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -256,78 +289,86 @@ export default function CustomerWallet() {
               p-4
             "
           >
-            <div className="mb-2 flex items-center justify-between">
-              <div>
-                <h2 className="text-[18px] font-semibold leading-[28px] text-black">
-                  Earnings Overview
-                </h2>
-                <p className="text-[14px] font-medium leading-[20px] text-[#999CA0]">
-                  Monthly rewards income (2026)
-                </p>
-              </div>
+            <Tabs defaultValue="monthly" className="w-full">
+  <div className="mb-2 flex items-center justify-between">
+    <div>
+      <h2 className="text-[18px] font-semibold leading-[28px] text-black">
+        Earnings Overview
+      </h2>
+      <p className="text-[14px] font-medium leading-[20px] text-[#999CA0]">
+        Monthly rewards income (2026)
+      </p>
+    </div>
 
-              <div
-                className="
-                  inline-flex items-center gap-2
-                  h-[32px]
-                  rounded-[4px]
-                  bg-[rgba(52,78,65,0.08)]
-                  p-[4px]
-                "
-              >
-                <button
-                  type="button"
-                  className="
-                    h-[28px]
-                    rounded-[4px]
-                    bg-[#344E41]
-                    px-3 py-[5px]
-                    text-white
-                    text-[14px] font-medium leading-[20px]
-                  "
-                >
-                  Monthly
-                </button>
+    <TabsList className="w-auto border-none gap-2 rounded-[4px] bg-[rgba(52,78,65,0.08)] p-[4px] h-[32px]">
+      <TabsTrigger
+        value="monthly"
+        className="h-[24px] rounded-[4px] px-3 py-[5px] text-[14px] font-medium leading-[20px] data-[state=active]:bg-[#344E41] data-[state=active]:text-white data-[state=active]:border-b-0"
+      >
+        Monthly
+      </TabsTrigger>
 
-                <button
-                  type="button"
-                  className="
-                    h-[28px]
-                    rounded-[4px]
-                    bg-transparent
-                    px-3 py-[5px]
-                    text-black
-                    text-[14px] font-medium leading-[20px]
-                  "
-                >
-                  Yearly
-                </button>
-              </div>
-            </div>
+      <TabsTrigger
+        value="yearly"
+        className="h-[24px] rounded-[4px] px-3 py-[5px] text-[14px] font-medium leading-[20px] text-black data-[state=active]:bg-[#344E41] data-[state=active]:text-white data-[state=active]:border-b-0"
+      >
+        Yearly
+      </TabsTrigger>
+    </TabsList>
+  </div>
 
-           <div className="mt-3 p-4">
-  <ChartContainer
-    config={earningsChartConfig}
-    className="h-[260px] w-full"
-  >
-    <BarChart data={earningsData}>
-      <CartesianGrid vertical={false} stroke="#CFCFCF" />
-      <XAxis
-        dataKey="month"
-        tickLine={false}
-        axisLine={false}
-        tickMargin={10}
-      />
-      <ChartTooltip content={<ChartTooltipContent />} />
-      <Bar
-        dataKey="earnings"
-        fill="var(--color-earnings)"
-        radius={4}
-        barSize={50}
-      />
-    </BarChart>
-  </ChartContainer>
-</div>
+  <TabsContent value="monthly" className="mt-3">
+    <div className="p-4">
+      <ChartContainer
+        config={earningsChartConfig}
+        className="h-[260px] w-full"
+      >
+        <BarChart data={earningsData}>
+          <CartesianGrid vertical={false} stroke="#CFCFCF" />
+          <XAxis
+            dataKey="month"
+            tickLine={false}
+            axisLine={false}
+            tickMargin={10}
+          />
+          <ChartTooltip content={<ChartTooltipContent />} />
+          <Bar
+            dataKey="earnings"
+            fill="var(--color-earnings)"
+            radius={4}
+            barSize={50}
+          />
+        </BarChart>
+      </ChartContainer>
+    </div>
+  </TabsContent>
+
+  <TabsContent value="yearly" className="mt-3">
+    <div className="p-4">
+      <ChartContainer
+        config={earningsChartConfig}
+        className="h-[260px] w-full"
+      >
+        <BarChart data={earningsData}>
+          <CartesianGrid vertical={false} stroke="#CFCFCF" />
+          <XAxis
+            dataKey="month"
+            tickLine={false}
+            axisLine={false}
+            tickMargin={10}
+          />
+          <ChartTooltip content={<ChartTooltipContent />} />
+          <Bar
+            dataKey="earnings"
+            fill="var(--color-earnings)"
+            radius={4}
+            barSize={50}
+          />
+        </BarChart>
+      </ChartContainer>
+    </div>
+  </TabsContent>
+</Tabs>
           </section>
 
           {/* Recent Transaction */}
@@ -368,77 +409,15 @@ export default function CustomerWallet() {
                 </svg>
               </button>
             </div>
-<div className="rounded-b-[8px] border border-[#CFCFCF] border-t-0 bg-white overflow-hidden">
-  <Table className="w-full table-fixed">
-    <TableHeader>
-      <TableRow className="h-[44px] border-b border-[#CFCFCF] hover:bg-transparent">
-        <TableHead className="w-[175px] px-[24px] text-[14px] font-bold leading-[20px] text-[#999CA0]">
-          Date
-        </TableHead>
-        <TableHead className="w-[136px] text-[14px] font-bold leading-[20px] text-[#999CA0]">
-          Status
-        </TableHead>
-        <TableHead className="w-[295px] text-[14px] font-bold leading-[20px] text-[#999CA0]">
-          Description
-        </TableHead>
-        <TableHead className="w-[181px] text-[14px] font-bold leading-[20px] text-[#999CA0]">
-          Amount (CAD)
-        </TableHead>
-        <TableHead className="w-[205px] text-[14px] font-bold leading-[20px] text-[#999CA0]">
-          Action
-        </TableHead>
-      </TableRow>
-    </TableHeader>
 
-    <TableBody>
-      {RECENT_TX.map((r) => (
-        <TableRow
-          key={r.id}
-          className="h-[56px] border-b border-[#CFCFCF] bg-white last:border-b-0"
-        >
-          <TableCell className="px-[24px] text-[14px] font-bold leading-[20px] text-[#0C111D]">
-            {r.date}
-          </TableCell>
-
-          <TableCell>
-            <span
-              className="inline-flex items-center justify-center rounded-[34px] px-[8px] py-[0px]"
-              style={{ background: r.badgeBg }}
-            >
-              <span
-                className="text-[10px] font-bold leading-[18px] uppercase"
-                style={{ color: r.badgeText }}
-              >
-                {r.status}
-              </span>
-            </span>
-          </TableCell>
-
-          <TableCell className="text-[14px] font-bold leading-[20px] text-[#0C111D]">
-            {r.desc}
-          </TableCell>
-
-          <TableCell
-            className="text-[14px] font-bold leading-[20px]"
-            style={{ color: r.amountColor }}
-          >
-            {r.amount}
-          </TableCell>
-
-          <TableCell>
-            <button
-              type="button"
-              className="text-[14px] font-bold leading-[20px] text-[#0C111D]"
-              onClick={() => handleWalletViewMore(r)}
-            >
-              View More
-            </button>
-          </TableCell>
-        </TableRow>
-      ))}
-    </TableBody>
-  </Table>
-</div>
+            <div className="rounded-b-[8px] border border-[#CFCFCF] border-t-0 bg-white overflow-hidden">
+              <DataTable
+                data={RECENT_TX}
+                columns={recentTransactionColumns}
+                keyExtractor={(item) => item.id}
+                className="space-y-0"
+              />
+            </div>
           </section>
         </div>
       </div>
@@ -448,7 +427,6 @@ export default function CustomerWallet() {
         onClose={() => setIsWithdrawOpen(false)}
       />
 
-      
       <TransactionDetailsModal
         open={openDetails}
         onClose={() => {

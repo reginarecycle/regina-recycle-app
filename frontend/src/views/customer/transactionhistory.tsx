@@ -4,14 +4,7 @@ import { useNavigate } from "react-router-dom";
 import TransactionDetailsModal from "../../components/modals/transactiondetailmodal";
 import type { TransactionDetails } from "../../components/modals/transactiondetailmodal";
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../components/ui/table";
+import DataTable, { type Column } from "@/components/ui/data-table";
 
 type TxStatus = "CREDIT" | "WITHDRAWAL" | "FAILED";
 
@@ -143,20 +136,82 @@ export default function TransactionHistory() {
 
   const handleViewMore = (tx: Transaction) => {
     const details = DETAILS_BY_ID[tx.id];
-    if (!details) return; 
+    if (!details) return;
 
     setSelectedDetails(details);
     setOpenDetails(true);
   };
 
+  const columns: Column<Transaction>[] = [
+    {
+      key: "date",
+      header: "Date",
+      headerClassName: "w-[175px]",
+      render: (item) => (
+        <span className="font-bold text-[14px]">{item.date}</span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      headerClassName: "w-[136px]",
+      render: (item) => (
+        <span
+          className="inline-flex px-2 rounded-full text-[10px] font-bold uppercase"
+          style={{ background: item.badgeBg, color: item.badgeText }}
+        >
+          {item.status}
+        </span>
+      ),
+    },
+    {
+      key: "description",
+      header: "Description",
+      render: (item) => (
+        <span className="font-bold text-[14px]">{item.description}</span>
+      ),
+    },
+    {
+      key: "amount",
+      header: "Amount",
+      headerClassName: "w-[181px]",
+      render: (item) => (
+        <span
+          className="font-bold text-[14px]"
+          style={{ color: item.amountColor }}
+        >
+          {item.amount}
+        </span>
+      ),
+    },
+    {
+      key: "action",
+      header: "Action",
+      headerClassName: "w-[205px]",
+      render: (item) => (
+        <button
+          type="button"
+          className="font-bold text-[14px] cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleViewMore(item);
+          }}
+        >
+          View More
+        </button>
+      ),
+    },
+  ];
+
   return (
     <div className="w-full bg-[#F7F7F7]">
       <div className="mx-auto w-full max-w-[1512px] min-h-[1086px] px-6 py-6">
-       
+
+        {/* Back */}
         <div className="mb-4">
-          <button
+          <div
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 text-[16px] font-bold text-[#0C111D]"
+            className="inline-flex items-center gap-2 text-[16px] font-bold text-[#0C111D] cursor-pointer"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -173,13 +228,12 @@ export default function TransactionHistory() {
                 strokeLinejoin="round"
               />
             </svg>
-
             Back
-          </button>
+          </div>
         </div>
 
-        {/* Card */}
         <section className="w-full max-w-[1208px] rounded-[8px] border border-[#CFCFCF] bg-white">
+
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4">
             <div className="text-[16px] font-bold">Transaction History</div>
@@ -190,115 +244,19 @@ export default function TransactionHistory() {
             />
           </div>
 
-          <div className="min-h-[560px] bg-white">
-  <Table className="w-full table-fixed">
-    <TableHeader>
-      <TableRow className="h-[44px] border-y border-[#CFCFCF] text-[#999CA0] hover:bg-transparent">
-        <TableHead className="w-[175px] px-6 font-bold text-[14px]">
-          Date
-        </TableHead>
-        <TableHead className="w-[136px] font-bold text-[14px]">
-          Status
-        </TableHead>
-        <TableHead className="font-bold text-[14px]">
-          Description
-        </TableHead>
-        <TableHead className="w-[181px] font-bold text-[14px]">
-          Amount
-        </TableHead>
-        <TableHead className="w-[205px] font-bold text-[14px]">
-          Action
-        </TableHead>
-      </TableRow>
-    </TableHeader>
+          {/* DataTable */}
+          <DataTable
+            data={mockData}
+            columns={columns}
+            keyExtractor={(item) => item.id}
+            pagination={{
+              currentPage: 1,
+              totalPages: 10,
+              onPageChange: (page) => console.log(page),
+              showText: "Showing 1 to 8 of 8",
+            }}
+          />
 
-    <TableBody>
-      {mockData.map((t) => (
-        <TableRow
-          key={t.id}
-          className="h-[56px] border-b border-[#CFCFCF] bg-white"
-        >
-          <TableCell className="px-6 font-bold text-[14px] text-[#0C111D]">
-            {t.date}
-          </TableCell>
-
-          <TableCell>
-            <span
-              className="inline-flex items-center justify-center rounded-full px-2 text-[10px] font-bold uppercase"
-              style={{ background: t.badgeBg, color: t.badgeText }}
-            >
-              {t.status}
-            </span>
-          </TableCell>
-
-          <TableCell className="font-bold text-[14px] text-[#0C111D]">
-            {t.description}
-          </TableCell>
-
-          <TableCell
-            className="font-bold text-[14px]"
-            style={{ color: t.amountColor }}
-          >
-            {t.amount}
-          </TableCell>
-
-          <TableCell>
-            <button
-              type="button"
-              className="font-bold text-[14px] text-[#0C111D] cursor-pointer"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleViewMore(t);
-              }}
-            >
-              View More
-            </button>
-          </TableCell>
-        </TableRow>
-      ))}
-    </TableBody>
-  </Table>
-</div>
-
-          {/* Footer */}
-          <div className="flex items-center justify-between h-[62px] px-6 border-t border-[#CFCFCF] bg-white">
-            <div className="text-[16px] text-[#0C111D]/70">
-              Showing 1 to 8 of 1
-            </div>
-
-            <div className="inline-flex border border-[#CFCFCF] rounded-[8px] overflow-hidden bg-white">
-              <button className="h-[40px] px-4 border-r border-[#CFCFCF] font-bold text-[14px]">
-                Previous
-              </button>
-
-              <div className="h-[40px] w-[40px] flex items-center justify-center border-r border-[#CFCFCF] bg-[#344E41] text-white font-bold text-[14px]">
-                1
-              </div>
-
-              <div className="h-[40px] w-[40px] flex items-center justify-center border-r border-[#CFCFCF] font-bold text-[14px]">
-                2
-              </div>
-              <div className="h-[40px] w-[40px] flex items-center justify-center border-r border-[#CFCFCF] font-bold text-[14px]">
-                3
-              </div>
-              <div className="h-[40px] w-[40px] flex items-center justify-center border-r border-[#CFCFCF] font-bold text-[14px]">
-                1
-              </div>
-              <div className="h-[40px] w-[40px] flex items-center justify-center border-r border-[#CFCFCF] font-bold text-[14px]">
-                8
-              </div>
-              <div className="h-[40px] w-[40px] flex items-center justify-center border-r border-[#CFCFCF] font-bold text-[14px]">
-                9
-              </div>
-              <div className="h-[40px] w-[40px] flex items-center justify-center border-r border-[#CFCFCF] font-bold text-[14px]">
-                10
-              </div>
-
-              <button className="h-[40px] px-4 font-bold text-[14px]">
-                Next
-              </button>
-            </div>
-          </div>
         </section>
 
         {/* Modal */}
@@ -314,3 +272,4 @@ export default function TransactionHistory() {
     </div>
   );
 }
+
