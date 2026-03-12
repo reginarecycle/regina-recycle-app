@@ -1,7 +1,8 @@
-import RRLogo from "@/assets/logo.svg?react";
+import RRLogo from "@/assets/auth-logo.svg?react";
 import { Button } from "../ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { Routes } from "@/routes/routes";
 
 export interface IAuthNavProps {
   link: string;
@@ -9,6 +10,7 @@ export interface IAuthNavProps {
 }
 
 export default function AuthNav({ link, text }: IAuthNavProps) {
+  const navigate = useNavigate();
   return (
     <nav
       className={cn(
@@ -23,10 +25,10 @@ export default function AuthNav({ link, text }: IAuthNavProps) {
           "px-4 sm:px-6 md:px-8 2xl:px-0"
         )}
       >
-        <Link to={link}>
-          <RRLogo className="text-white max-lg:text-primary" />
+        <Link to={Routes.base}>
+          <RRLogo className="text-white max-lg:text-primary cursor-pointer" />
         </Link>
-        <Button size="lg" text={text} />
+        <Button size="lg" text={text} onClick={() => navigate(link)} />
       </div>
     </nav>
   );

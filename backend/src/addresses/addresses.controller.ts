@@ -6,39 +6,39 @@ import {
   Patch,
   Param,
   Delete,
-  UseGuards,
   UnauthorizedException,
 } from '@nestjs/common';
 import { AddressesService } from './addresses.service';
-import { CreateAddressDto } from './dto/create-address.dto';
+import { AddressDto } from './dto/address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { type User } from '@prisma/client/wasm';
+import { Auth } from 'src/common/decorator/auth.decorator';
 
 @Controller('addresses')
 export class AddressesController {
   constructor(private readonly addressesService: AddressesService) {}
 
   @Post()
-  // No auth guard - open for registration (or protect it if needed)
-  create(@Body() createAddressDto: CreateAddressDto) {
-    return this.addressesService.create(createAddressDto);
+  @Auth()
+  create (@CurrentUser() user: User, @Body() addressDto: AddressDto) {
+    return this.addressesService.create(user.userId, addressDto);
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @Auth()
   async findAll(@CurrentUser('id') userId: string) {
     return this.addressesService.findAll(userId);
   }
 
   @Get('default')
-  @UseGuards(JwtAuthGuard)
+  @Auth()
   async getDefault(@CurrentUser('id') userId: string) {
     return this.addressesService.getDefaultAddress(userId);
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  @Auth()
   async findOne(
     @Param('id') id: string,
     @CurrentUser('id') userId: string,
@@ -51,7 +51,7 @@ export class AddressesController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
+  @Auth()
   async update(
     @Param('id') id: string,
     @Body() updateAddressDto: UpdateAddressDto,
@@ -65,7 +65,7 @@ export class AddressesController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @Auth()
   async remove(
     @Param('id') id: string,
     @CurrentUser('id') userId: string,
@@ -78,7 +78,7 @@ export class AddressesController {
   }
 
   @Patch(':id/set-default')
-  @UseGuards(JwtAuthGuard)
+  @Auth()
   async setDefault(
     @Param('id') id: string,
     @CurrentUser('id') userId: string,

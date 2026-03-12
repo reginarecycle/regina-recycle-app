@@ -1,26 +1,31 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ConfigService } from '@nestjs/config';
+import { ErrorMessage } from 'src/common/error-message';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(
-    private configService: ConfigService,
-    private prisma: PrismaService,
-  ) {
-    super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_SECRET') || 'your-secret-key',
-    });
-  }
+    constructor(
+        private prisma: PrismaService,
+        config: ConfigService,
+      ) {
+        const secret = config.get<string>('JWT_SECRET');
+      
+        if (!secret) {
+            throw new Error(ErrorMessage.JWT_SECRET_MISSING);
+        }
+      
+        super({
+          jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+          ignoreExpiration: false,
+          secretOrKey: secret,
+        });
+      }
 
   async validate(payload: any) {
-    // payload contains the decoded JWT token
-    // payload should have: { sub: userId, email: string, iat: number, exp: number }
-    
+    // Payload contains: { sub: userId, email, role }
     const user = await this.prisma.user.findUnique({
       where: { userId: payload.sub },
       select: {
@@ -28,12 +33,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         email: true,
         name: true,
         role: true,
-        // Don't include password
+        status: true,
+        emailVerified: true,
       },
     });
 
     if (!user) {
       throw new UnauthorizedException('User not found');
+    }
+
+    if (user.status !== 'ACTIVE') {
+      throw new UnauthorizedException('Account is inactive');
     }
 
     // This will be attached to request.user

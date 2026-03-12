@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common';
-import { CreateAddressDto } from './dto/create-address.dto';
+import { AddressDto } from './dto/address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { ErrorMessage } from '../common/error-message';
@@ -8,8 +8,8 @@ import { ErrorMessage } from '../common/error-message';
 export class AddressesService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createAddressDto: CreateAddressDto) {
-    const { userId, ...addressData } = createAddressDto;
+  async create(userId: string, createAddressDto: AddressDto) {
+    const { ...addressData } = createAddressDto;
 
     // Verify user exists
     const user = await this.prisma.user.findUnique({
@@ -217,7 +217,5 @@ export class AddressesService {
     if (!address) {
       throw new UnauthorizedException(ErrorMessage.ADDRESS_NO_ACCESS);
     }
-
-    return !!address;
-  }
+    return !!address;}
 }

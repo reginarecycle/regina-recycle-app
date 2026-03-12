@@ -73,6 +73,12 @@ model User {
   phoneNumber       String?
   password          String
   emailVerified     Boolean   @default(false)
+  agreedToTerms     Boolean    @default(false)
+  agreedToTermsAt   DateTime? 
+  emailOtp          String?
+  emailOtpExpiresAt DateTime?
+  passwordOtp       String?    
+  passwordOtpExpiresAt DateTime?
   status            UserStatus @default(ACTIVE)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
