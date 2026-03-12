@@ -4,6 +4,7 @@ import AppProvider from "./provider";
 import ReginaRecycleLogo from "@/assets/logoicon.svg?react";
 import { Suspense } from "react";
 
+
 function App() {
   return (
     <AppProvider>
