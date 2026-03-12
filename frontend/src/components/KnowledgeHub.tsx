@@ -36,9 +36,9 @@ function KnowledgeHub() {
         <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
       
-          <div className="w-full max-w-[252px] rounded-xl border border-[#EBE9E8] bg-white overflow-hidden">
+          <div className=" group w-full max-w-[252px] rounded-xl border border-[#EBE9E8] bg-white overflow-hidden">
             <div className="h-[146px] flex items-center justify-center bg-[#E9FFFD]">
-              <img src={PlasticIcon} alt="Plastic" className="w-12 h-12" />
+              <img src={PlasticIcon} alt="Plastic" className="w-12 h-12 transition-all duration-200 group-hover:-translate-y-1 group-hover:scale-105 " />
             </div>
 
             <div className="p-4">
@@ -52,9 +52,9 @@ function KnowledgeHub() {
           </div>
 
         
-          <div className="w-full max-w-[252px] rounded-xl border border-[#EBE9E8] bg-white overflow-hidden">
+          <div className="group w-full max-w-[252px] rounded-xl border border-[#EBE9E8] bg-white overflow-hidden">
             <div className="h-[146px] flex items-center justify-center bg-[#FFF7ED]">
-              <img src={PaperIcon} alt="Paper" className="w-12 h-12" />
+              <img src={PaperIcon} alt="Paper" className="w-12 h-12 transition-all duration-200 group-hover:-translate-y-1 group-hover:scale-105" />
             </div>
 
             <div className="p-4">
@@ -68,9 +68,9 @@ function KnowledgeHub() {
           </div>
 
         
-          <div className="w-full max-w-[252px] rounded-xl border border-[#EBE9E8] bg-white overflow-hidden">
+          <div className="group w-full max-w-[252px] rounded-xl border border-[#EBE9E8] bg-white overflow-hidden">
             <div className="h-[146px] flex items-center justify-center bg-[#F0FFFB]">
-              <img src={GlassIcon} alt="Glass" className="w-12 h-12" />
+              <img src={GlassIcon} alt="Glass" className="w-12 h-12 transition-all duration-200 group-hover:-translate-y-1 group-hover:scale-105 " />
             </div>
 
             <div className="p-4">
@@ -84,9 +84,9 @@ function KnowledgeHub() {
           </div>
 
         
-          <div className="w-full max-w-[252px] rounded-xl border border-[#EBE9E8] bg-white overflow-hidden">
+          <div className="group w-full max-w-[252px] rounded-xl border border-[#EBE9E8] bg-white overflow-hidden">
             <div className="h-[146px] flex items-center justify-center bg-[#F5F3FF]">
-              <img src={EwasteIcon} alt="E-waste" className="w-12 h-12" />
+              <img src={EwasteIcon} alt="E-waste" className="w-12 h-12 transition-all duration-200 group-hover:-translate-y-1 group-hover:scale-105" />
             </div>
 
             <div className="p-4">

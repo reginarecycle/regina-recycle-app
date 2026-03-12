@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import logo from "../assets/logo.svg";
 import { Button } from "@/components/ui/button";
 
 function Navbar() {
   const [open, setOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
 
   const scrollToId =
     (id: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -13,10 +14,36 @@ function Navbar() {
       if (!el) return;
 
       el.scrollIntoView({ behavior: "smooth", block: "start" });
-
-      
       setOpen(false);
     };
+
+  useEffect(() => {
+    const sections = document.querySelectorAll("section[id]");
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      {
+        threshold: 0.6,
+      }
+    );
+
+    sections.forEach((section) => observer.observe(section));
+
+    return () => observer.disconnect();
+  }, []);
+
+  const navLinkClass = (id: string) =>
+    `text-base font-medium leading-6 transition-all duration-300 pb-1 border-b-2 ${
+      activeSection === id
+        ? "text-[#344E41] border-[#344E41]"
+        : "text-[#0C111D] border-transparent hover:text-[#618171]"
+    }`;
 
   return (
     <nav
@@ -37,33 +64,35 @@ function Navbar() {
           </h1>
         </div>
 
-        
-        <div className="hidden md:flex items-center gap-8 text-sm text-[#10131D]">
+        <div className="hidden md:flex items-center gap-8">
           <a
             href="#about"
             onClick={scrollToId("about")}
-            className="text-[#0C111D] text-base font-medium leading-6 transition hover:text-[#618171]"
+            className={navLinkClass("about")}
           >
             About
           </a>
+
           <a
             href="#benefit"
             onClick={scrollToId("benefit")}
-            className="text-[#0C111D] text-base font-medium leading-6 transition hover:text-[#618171]"
+            className={navLinkClass("benefit")}
           >
             Benefit
           </a>
+
           <a
             href="#learn"
             onClick={scrollToId("learn")}
-            className="text-[#0C111D] text-base font-medium leading-6 transition hover:text-[#618171]"
+            className={navLinkClass("learn")}
           >
             Learn
           </a>
+
           <a
             href="#faqs"
             onClick={scrollToId("faqs")}
-            className="text-[#0C111D] text-base font-medium leading-6 transition hover:text-[#618171]"
+            className={navLinkClass("faqs")}
           >
             FAQs
           </a>
@@ -95,17 +124,14 @@ function Navbar() {
         </div>
       </div>
 
-      
-           {open && (
+      {open && (
         <>
-          
           <div
             className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm sm:hidden"
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
 
-         
           <div className="fixed top-20 left-0 right-0 z-50 sm:hidden border-t border-black/10 bg-white/95 backdrop-blur-[20px]">
             <div className="px-6 md:px-16 py-4 flex flex-col gap-4">
               <a
@@ -115,6 +141,7 @@ function Navbar() {
               >
                 About
               </a>
+
               <a
                 href="#benefit"
                 onClick={scrollToId("benefit")}
@@ -122,6 +149,7 @@ function Navbar() {
               >
                 Benefit
               </a>
+
               <a
                 href="#learn"
                 onClick={scrollToId("learn")}
@@ -129,6 +157,7 @@ function Navbar() {
               >
                 Learn
               </a>
+
               <a
                 href="#faqs"
                 onClick={scrollToId("faqs")}

@@ -14,17 +14,17 @@ const FAQS: FaqItem[] = [
   {
     question: "How do I earn rewards?",
     answer:
-      "You earn rewards by completing recycling activities and tracking your progress in the app. Rewards availability can vary by program and location.",
+      "Currently, we focus on household recyclables. For furniture, please check our 'Local Centers' map for specific drop-off points that accept bulk home",
   },
   {
     question: "How do I schedule a pickup?",
     answer:
-      "Go to the pickup section, choose your address and preferred time window, then confirm. You’ll get a notification when a collector accepts.",
+      "Currently, we focus on household recyclables. For furniture, please check our 'Local Centers' map for specific drop-off points that accept bulk home",
   },
   {
     question: "Do you accept large furniture?",
     answer:
-      "Some large items can be accepted depending on local rules and capacity. Check the item in the Knowledge Hub or contact support for guidance.",
+      "Currently, we focus on household recyclables. For furniture, please check our 'Local Centers' map for specific drop-off points that accept bulk home",
   },
 ];
 
@@ -62,7 +62,7 @@ function FAQ() {
                   overflow-hidden
                 "
               >
-                
+
                 <div
                   onClick={() => toggle(idx)}
                   role="button"
@@ -84,12 +84,19 @@ function FAQ() {
                   </span>
 
                   <span
-                    className={`transition-transform duration-200 ${
-                      isOpen ? "rotate-180" : ""
-                    }`}
-                    aria-hidden="true"
+                    className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""
+                      }`}
                   >
-                    ▾
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-5 h-5 text-[#10131D]"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M6 8l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
                   </span>
                 </div>
 

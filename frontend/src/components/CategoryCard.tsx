@@ -41,7 +41,7 @@ function CategoryCard({
         "
         style={{ backgroundColor: headerBg }}
       >
-        <img src={iconSrc} alt={`${title} icon`} className="w-[68px] h-[76px]" />
+        <img src={iconSrc} alt={`${title} icon`} className="w-[68px] h-[76px] transition-all duration-200 hover: -translate-y-1" />
       </div>
 
       
