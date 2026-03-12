@@ -203,8 +203,8 @@ return (
  <div className="min-h-screen bg-gray-100 p-6">
    {/* Row 1 — Stat Cards */}
    {/* Row 1 — Stat Cards */}
-  <div className="mb-6 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-4">
-     <div className="flex h-[141px] w-[272px] shrink-0 flex-col items-start gap-[12px] rounded-[8px] border border-[#E5E7EB] bg-white px-[12px] py-[16px]">
+  <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+     <div className="flex h-[141px] w-full flex-col items-start gap-[12px] rounded-[8px] border border-[#E5E7EB] bg-white px-[12px] py-[16px]">
 {/* Top row */}
 <div className="flex w-full items-start justify-between">
   <p className="text-[14px] font-medium text-[#4B5563]">Pending Requests</p>
@@ -232,7 +232,7 @@ return (
 </div>
 </div>
 
-     <div className="flex h-[141px] w-[272px] shrink-0 flex-col items-start gap-[12px] rounded-[8px] border border-[#E5E7EB] bg-white px-[12px] py-[16px]">
+     <div className="flex h-[141px] w-full flex-col items-start gap-[12px] rounded-[8px] border border-[#E5E7EB] bg-white px-[12px] py-[16px]">
 {/* Top row */}
 <div className="flex w-full items-start justify-between">
   <p className="text-[14px] font-medium text-[#4B5563]">Accepted Requests</p>
@@ -260,7 +260,7 @@ return (
 </div>
 </div>
 
-<div className="flex h-[141px] w-[272px] shrink-0 flex-col items-start gap-[12px] rounded-[8px] border border-[#E5E7EB] bg-white px-[12px] py-[16px]">
+<div className="flex h-[141px] w-full flex-col items-start gap-[12px] rounded-[8px] border border-[#E5E7EB] bg-white px-[12px] py-[16px]">
 {/* Top row */}
 <div className="flex w-full items-start justify-between">
   <p className="text-[14px] font-medium text-[#4B5563]">
@@ -295,7 +295,8 @@ return (
 </p>
 </div>
 </div>
-     <div className="flex h-[141px] w-[272px] shrink-0 flex-col items-start gap-[12px] rounded-[8px] border border-[#E5E7EB] bg-white px-[12px] py-[16px]">
+
+  <div className="flex h-[141px] w-full flex-col items-start gap-[12px] rounded-[8px] border border-[#E5E7EB] bg-white px-[12px] py-[16px]">
 {/* Top row */}
 <div className="flex w-full items-start justify-between">
   <p className="text-[14px] font-medium text-[#4B5563]">Pending Amount</p>
