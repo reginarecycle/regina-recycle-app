@@ -11,13 +11,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
-html, body, #root {
+/* html, body, #root {
   height: 100%;
-}
+} */
 html {
   scroll-behavior: smooth;
 }
-html, body {
+html {
   overflow-x: hidden;
 }
 
@@ -55,6 +55,7 @@ html, body {
   --ring: #CFCFCF;
   --light-green:#E2F2E1;
   --paragraph: #999CA0;
+  --paragraph2:#10131D;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -104,6 +105,7 @@ body {
   --color-destructive: var(--destructive);
   --color-light-green: var(--light-green);
   --color-paragraph: var(--paragraph);
+  --color-paragraph2: var(--paragraph2);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -143,7 +145,7 @@ body {
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
-
+  --paragraph2: oklch(0.985 0 0);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
