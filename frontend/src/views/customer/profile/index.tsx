@@ -28,7 +28,6 @@ import {
 } from "lucide-react";
 
 export default function ProfilePage() {
-  // My Details form
   const {
     register: registerDetails,
     handleSubmit: handleSubmitDetails,
@@ -197,6 +196,7 @@ export default function ProfilePage() {
                   error={detailsErrors.email?.message}
                   type="email"
                   placeholder="doe@gmail.com"
+                  disabled
                   required
                 />
               </div>
