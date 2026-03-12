@@ -11,7 +11,7 @@ export enum ErrorMessage {
     // Auth
     INVALID_USER_CREDENTIALS = 'Invalid email or password',
     TOKEN_INVALID = 'Invalid or malformed token',
-    TOKEN_EXPIRED_VERIFICATION = 'Verification link has expired',
+    TOKEN_EXPIRED_VERIFICATION = 'Verification code has expired. Please request a new one.',
     TOKEN_EXPIRED_RESET = 'Password reset link has expired',
     TOKEN_TYPE_INVALID = 'Invalid token type',
     

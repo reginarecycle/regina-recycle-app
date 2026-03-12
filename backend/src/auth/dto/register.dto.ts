@@ -17,6 +17,7 @@ import {
 import { Role } from '@prisma/client';
 import { AddressDto } from 'src/addresses/dto/address.dto';
 import { Type } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterDto {
   @IsString()
@@ -41,6 +42,7 @@ export class RegisterDto {
   @IsOptional()
   phoneNumber?: string;
 
+  @ApiProperty({ enum: Role, enumName: 'Role' })
   @IsEnum(Role)
   role: Role;
 

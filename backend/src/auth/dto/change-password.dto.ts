@@ -1,4 +1,5 @@
-import { IsString, MinLength, Matches } from 'class-validator';
+import { ApiSchema } from '@nestjs/swagger';
+import { IsString, MinLength, Matches, isString } from 'class-validator';
 
 export class ChangePasswordDto {
   @IsString()

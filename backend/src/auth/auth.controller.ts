@@ -6,9 +6,10 @@ import { VerifyEmailDto } from './dto/verify-email.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { JwtAuthGuard } from './guards/jwt.guard';
 import { CurrentUser } from './decorator/current-user.decorator';
 import type { User } from '@prisma/client';
+import { ResendOtpDto } from './dto/resend-otp.dto';
+import { Auth } from 'src/common/decorator/auth.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -31,7 +32,7 @@ export class AuthController {
   @Post('verify-email')
   @HttpCode(HttpStatus.OK)
   async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto) {
-    return this.authService.verifyEmail(verifyEmailDto.token);
+    return this.authService.verifyEmail(verifyEmailDto);
   }
 
   /**
@@ -40,8 +41,8 @@ export class AuthController {
    */
   @Post('resend-otp')
   @HttpCode(HttpStatus.OK)
-  async resendOTP(@Body() body: { email: string }) {
-       return this.authService.resendOTP(body.email);
+  async resendOTP(@Body() resendOTP: ResendOtpDto) {
+       return this.authService.resendOTP(resendOTP.email);
   }
 
   /**
@@ -61,7 +62,8 @@ export class AuthController {
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
-    return this.authService.resetPassword(resetPasswordDto.token, resetPasswordDto.newPassword);
+    return this.authService.resetPassword(resetPasswordDto.email
+      , resetPasswordDto.token, resetPasswordDto.newPassword);
   }
 
 
@@ -80,7 +82,7 @@ export class AuthController {
    * Get current user (requires JWT)
    */
     @Get('me')
-    @UseGuards(JwtAuthGuard)
+    @Auth()
     async getCurrentUser(@CurrentUser() user: User) {
       return this.authService.getCurrentUser(user.userId);
     }
@@ -89,16 +91,16 @@ export class AuthController {
    * Patch /api/auth/change-password
    * Change password for authenticated user (requires JWT)
    */
-    @Patch('change-password')
-    @UseGuards(JwtAuthGuard)
+  @Patch('change-password')
+  @Auth()
     async changePassword(
      @CurrentUser() user: User,
       @Body() changePasswordDto: ChangePasswordDto,
     ) {
       return this.authService.changePassword(
         user.userId,
-        changePasswordDto.newPassword,
         changePasswordDto.currentPassword,
+        changePasswordDto.newPassword,
       );
     }
 

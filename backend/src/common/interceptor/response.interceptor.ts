@@ -8,10 +8,12 @@ export class ResponseInterceptor implements NestInterceptor {
     const res = context.switchToHttp().getResponse();
 
     return next.handle().pipe(
-      map((data) => ({
+      map(({ message, ...data }) => ({
         success: true,
         statusCode: res.statusCode,
-        data,
+        message: message ?? 'Request successful',
+        data: Object.keys(data).length ? data : null,
+        timestamp: new Date().toISOString(),
       })),
     );
   }
