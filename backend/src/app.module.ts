@@ -12,8 +12,12 @@ import { WalletModule } from './wallet/wallet.module';
 import { AddressesModule } from './addresses/addresses.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { TipsModule } from './tips/tips.module';
+import { CommonModule } from './common/common-module';
+import { ConfigModule } from '@nestjs/config';
 @Module({
-  imports: [PrismaModule, AuthModule, UsersModule, CustomersModule, CollectorsModule, AddressesModule, PickupsModule, MaterialsModule, WalletModule, NotificationsModule, TipsModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }), 
+    PrismaModule, AuthModule, UsersModule, CustomersModule, CollectorsModule, AddressesModule, PickupsModule, MaterialsModule, WalletModule, NotificationsModule, TipsModule, CommonModule],
   controllers: [AppController],
   providers: [AppService],
 })

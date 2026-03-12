@@ -20,6 +20,7 @@ export  enum Routes {
     transactionhistory= "/app/wallet/history",
     collectorapp = "/app/collector",
     collectordashboard = "/app/collector/dashboard",
+    collectorsettings = "/app/collector/settings",
 
     //profile
     profile = "/app/profile",

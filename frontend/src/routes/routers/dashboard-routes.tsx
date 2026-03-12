@@ -7,7 +7,7 @@ const CollectorDashboard = lazy(() => import("@/views/collector/home"));
 const CustomerProfile = lazy(() => import("@/views/customer/profile"));
 const CustomerWallet = lazy(() => import("@/views/customer/wallet"));
 const TransactionHistory = lazy(() => import("@/views/customer/transactionhistory"));
-
+const CollectorSettingsPage = lazy(() => import("@/views/collector/settings"));
 
 export const dashboardRoutes = () => {
   return [
@@ -22,15 +22,19 @@ export const dashboardRoutes = () => {
           path: Routes.collectordashboard,
           element: <CollectorDashboard />,
         },
+        {
+          path: Routes.collectorsettings,
+          element: <CollectorSettingsPage />,
+        },
       ],
     },
     {
       path: Routes.wallet,
-      element: <CustomerWallet />
+      element: <CustomerWallet />,
     },
     {
       path: Routes.transactionhistory,
-      element: <TransactionHistory />
+      element: <TransactionHistory />,
     },
     {
       path: Routes.profile,
