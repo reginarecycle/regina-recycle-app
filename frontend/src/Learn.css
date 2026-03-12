@@ -199,7 +199,7 @@ input::placeholder {
 .card-title {
     /* Cans */
 
-    width: 53px;
+    width: fit-content;
     height: 18px;
 
     /* text-xs/Medium */
@@ -333,24 +333,9 @@ input::placeholder {
     padding: 8px 16px;
     gap: 8px;
 
-    position: relative;
-    width: 153px;
-    height: 44px;
-
-    /* White */
-    background: #FFFFFF;
     /* Primary/Default */
     border: 1px solid #344E41;
     border-radius: 20px;
 
-    font-family: Satoshi;
-    font-weight: 700;
-    font-style: Bold;
-    font-size: 16px;
-    line-height: 24px;
-    letter-spacing: 0%;
-    text-align: center;
-    vertical-align: middle;
-    color: #344E41;
 
 }

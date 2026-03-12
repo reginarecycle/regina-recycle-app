@@ -78,7 +78,7 @@ function LearnCard({
                 </div>
                 {/* breif description of the material */}
                 <div className="flex flex-col w-[247px] items-start gap-2.5 absolute top-[191px] left-3.5">
-                    <div className="flex flex-col w-[53px] items-start gap-[7px] relative flex-[0_0_auto]">
+                    <div className="flex flex-col w-fit items-start gap-[7px] relative flex-[0_0_auto]">
                         <h2 className="card-title">{title}</h2>
                         <p className="card-description">{description}</p>
                     </div>

@@ -3,10 +3,10 @@ import LearnCard from "./LearnCard"
 import Cans from "@/assets/cans-photo.svg"
 import Boxes from "@/assets/boxes-img.svg"
 import SearchBar from "@/components/learn/SearchBar"
+import { Button } from "@/components/ui/button"
 
 type Category = "Recyclable" | "Garbage" | "Compostable" | "Hazardous"
 
-//constant data for testing until we can pass actual data through
 const allItems: Array<{
     photo: string
     category: Category
@@ -23,21 +23,21 @@ const allItems: Array<{
         { photo: Cans, category: "Garbage", title: "Used Tissue", description: "general waste", subtext: "not recyclable" },
     ]
 
+const ITEMS_PER_LOAD = 6
+
 export function Main() {
     const [searchTerm, setSearchTerm] = useState("")
-    // Now using Category | string instead of a named union with "All"
     const [activeCategory, setActiveCategory] = useState<Category | string>("All")
+    const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD)
 
     const visibleItems = useMemo(() => {
         const term = searchTerm.toLowerCase().trim()
 
         return allItems.filter(item => {
-            // Category filter
             if (activeCategory !== "All" && item.category !== activeCategory) {
                 return false
             }
 
-            // Text search
             if (!term) return true
 
             return (
@@ -49,10 +49,11 @@ export function Main() {
         })
     }, [searchTerm, activeCategory])
 
+    const itemsToShow = visibleItems.slice(0, visibleCount)
+
     return (
         <>
             <div className="pt-4 md:pt-6">
-                {/* import the search bar */}
                 <SearchBar
                     searchTerm={searchTerm}
                     onSearchChange={setSearchTerm}
@@ -62,23 +63,21 @@ export function Main() {
             </div>
 
             <div className="w-full bg-gray-50/50 py-10 sm:py-10 lg:py-14 px-4">
-                {/* Page Container */}
                 <div className="w-full max-w-[897px] mx-auto">
-                    {/* Card Grid */}
+
                     <div
                         className="
-              grid
-              grid-cols-1
-              sm:grid-cols-2
-              lg:grid-cols-3
-              xl:grid-cols-3
-              gap-6
-              sm:gap-8
-              justify-items-center
-            "
+                        grid
+                        grid-cols-1
+                        sm:grid-cols-2
+                        lg:grid-cols-3
+                        xl:grid-cols-3
+                        gap-6
+                        sm:gap-8
+                        justify-items-center
+                        "
                     >
-                        {/* using the list of constant data create a bunch of cards */}
-                        {visibleItems.map((item, i) => (
+                        {itemsToShow.map((item, i) => (
                             <LearnCard
                                 key={i}
                                 photo={item.photo}
@@ -95,6 +94,19 @@ export function Main() {
                             No items found
                         </p>
                     )}
+
+                    {visibleCount < visibleItems.length && (
+                        <div className="flex justify-center mt-10" >
+                            <Button
+                                onClick={() => setVisibleCount(prev => prev + ITEMS_PER_LOAD)}
+                                className="load-more-btn items-center m-5 transition bg-white hover:bg-[#E8FFF2]"
+                                variant={"secondary"} size={'lg'}
+                            >
+                                Load More
+                            </Button>
+                        </div>
+                    )}
+
                 </div>
             </div>
         </>
