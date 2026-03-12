@@ -52,7 +52,7 @@ function SearchBar({
                     </Button>
 
                     <Button
-                        className="recyclables-button flex items-center gap-[11px] min-w-[116px]"
+                        className="recyclables-button flex items-center gap-[11px] min-w-[116px] hover:opacity-90"
                         size={'lg'}
                         variant={activeCategory === "Recyclable" ? "secondary" : "outline"}
                         onClick={() => onCategoryClick("Recyclable")}

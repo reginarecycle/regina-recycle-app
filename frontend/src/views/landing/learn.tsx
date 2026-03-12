@@ -10,7 +10,6 @@ function Learn() {
         <div>
           <Main />
         </div>
-
       </div>
     </div>
   )
