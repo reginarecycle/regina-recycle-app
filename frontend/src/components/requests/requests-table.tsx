@@ -6,12 +6,13 @@ import {
     TableHead,
     TableRow,
 } from "@/components/ui/table";
-
 import { Card, CardHeader, CardTitle } from "../ui/card";
 import { ListFilter, Search } from "lucide-react";
 import { TableEntry } from "./table-entry";
 import { RequestsFooter } from "./requests-footer";
 import { RequestsData } from "./requests-data";
+import DataTable, { type Column } from "@/components/ui/data-table";
+
 
 export function RequestsTable() {
 

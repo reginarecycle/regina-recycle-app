@@ -9,7 +9,7 @@ export type RequestRow = {
     Date: string;
     startTime: string;
     endTime: string;
-    Comparability: number;
+    Compatibility: number;
     status: "incoming" | "accepted" | "completed";
 };
 
@@ -21,7 +21,7 @@ export const RequestsData: RequestRow[] = [
         Date: "1,Jan 2026",
         startTime: "12pm",
         endTime: "2pm",
-        Comparability: 0,
+        Compatibility: 0,
         status: "accepted",
     },
     {
@@ -32,7 +32,7 @@ export const RequestsData: RequestRow[] = [
         Date: "1, Jan 2026",
         startTime: "12pm",
         endTime: "3pm",
-        Comparability: 100,
+        Compatibility: 100,
         status: "accepted",
     },
     {
@@ -44,7 +44,7 @@ export const RequestsData: RequestRow[] = [
         Date: "2, Feb 2026",
         startTime: "12pm",
         endTime: "3pm",
-        Comparability: 100,
+        Compatibility: 100,
         status: "accepted",
     },
     {
@@ -56,7 +56,7 @@ export const RequestsData: RequestRow[] = [
         Date: "2, Feb 2026",
         startTime: "12pm",
         endTime: "3pm",
-        Comparability: 100,
+        Compatibility: 100,
         status: "incoming",
     },
     {
@@ -68,7 +68,7 @@ export const RequestsData: RequestRow[] = [
         Date: "2, Feb 2026",
         startTime: "12pm",
         endTime: "3pm",
-        Comparability: 100,
+        Compatibility: 100,
         status: "accepted",
     },
     {
@@ -80,7 +80,7 @@ export const RequestsData: RequestRow[] = [
         Date: "2, Feb 2026",
         startTime: "12pm",
         endTime: "3pm",
-        Comparability: 100,
+        Compatibility: 100,
         status: "completed",
     },
     {
@@ -92,7 +92,7 @@ export const RequestsData: RequestRow[] = [
         Date: "2, Feb 2026",
         startTime: "12pm",
         endTime: "3pm",
-        Comparability: 100,
+        Compatibility: 100,
         status: "completed",
     },
     {
@@ -104,7 +104,7 @@ export const RequestsData: RequestRow[] = [
         Date: "2, Feb 2026",
         startTime: "12pm",
         endTime: "3pm",
-        Comparability: 100,
+        Compatibility: 100,
         status: "accepted",
     },
     {
@@ -116,7 +116,7 @@ export const RequestsData: RequestRow[] = [
         Date: "2, Feb 2026",
         startTime: "12pm",
         endTime: "3pm",
-        Comparability: 100,
+        Compatibility: 100,
         status: "accepted",
     },
     {
@@ -128,7 +128,7 @@ export const RequestsData: RequestRow[] = [
         Date: "2, Feb 2026",
         startTime: "12pm",
         endTime: "3pm",
-        Comparability: 100,
+        Compatibility: 100,
         status: "incoming",
     },
     {
@@ -139,7 +139,7 @@ export const RequestsData: RequestRow[] = [
         Date: "2, Feb 2026",
         startTime: "12pm",
         endTime: "3pm",
-        Comparability: 10,
+        Compatibility: 10,
         status: "incoming",
     },
 
