@@ -79,8 +79,8 @@ export function RequestDetailsModal({
 
                         <Badge
                             className={`rounded-full px-4 py-1 text-[13px] font-semibold ${isIncompatible
-                                    ? "bg-[#FEE2E2] text-[#991B1B] hover:bg-[#FEE2E2]"
-                                    : "bg-[#DDF5E4] text-[#2F6B4F] hover:bg-[#DDF5E4]"
+                                ? "bg-[#FEE2E2] text-[#991B1B] hover:bg-[#FEE2E2]"
+                                : "bg-[#DDF5E4] text-[#2F6B4F] hover:bg-[#DDF5E4]"
                                 }`}
                         >
                             {compatibilityStr}
@@ -137,8 +137,8 @@ export function RequestDetailsModal({
                                 <div
                                     key={item.material}
                                     className={`grid grid-cols-3 px-6 py-5 text-[16px] ${index !== orderSummary.length - 1
-                                            ? "border-b border-[#E5E7EB]"
-                                            : ""
+                                        ? "border-b border-[#E5E7EB]"
+                                        : ""
                                         }`}
                                 >
                                     <div className="font-medium text-[#344E41]">{item.material}</div>
@@ -196,8 +196,8 @@ export function RequestDetailsModal({
                     <div className="flex gap-4">
                         <Button
                             onClick={onReject ?? onClose}
-                            variant="outline"
-                            className="flex flex-1 items-center justify-center gap-2 rounded-xl border-red-300 py-4 text-red-600 hover:bg-red-50"
+                            variant="destructive"
+                            className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-red-400 text-[16px] font-semibold text-red-500 hover:bg-red-50 bg-white0"
                         >
                             <XCircle size={18} />
                             Reject

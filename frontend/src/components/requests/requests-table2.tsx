@@ -8,15 +8,18 @@ import { RequestsData } from "@/components/requests/requests-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RequestDetailsModal } from "./request-details-modal";
 import { RequestAcceptedModal } from "./request-accepted-modal";
+import { CompleteRequestModal } from "./complete-request-modal";
 
 type RequestRow = (typeof RequestsData)[number];
 const ROWS_PER_PAGE = 5;
 
-
 export default function RequestsTable2() {
     const [activeTab, setActiveTab] = useState<"incoming" | "accepted" | "completed">("incoming");
     const [selectedRequest, setSelectedRequest] = useState<RequestRow | null>(null);
+
     const [detailsOpen, setDetailsOpen] = useState(false);
+    const [completeOpen, setCompleteOpen] = useState(false);
+    const [completeNote, setCompleteNote] = useState("");
 
     // Independent page state per tab
     const [pageIncoming, setPageIncoming] = useState(1);
@@ -25,9 +28,12 @@ export default function RequestsTable2() {
 
     const getPageState = () => {
         switch (activeTab) {
-            case "incoming": return { page: pageIncoming, setPage: setPageIncoming };
-            case "accepted": return { page: pageAccepted, setPage: setPageAccepted };
-            case "completed": return { page: pageCompleted, setPage: setPageCompleted };
+            case "incoming":
+                return { page: pageIncoming, setPage: setPageIncoming };
+            case "accepted":
+                return { page: pageAccepted, setPage: setPageAccepted };
+            case "completed":
+                return { page: pageCompleted, setPage: setPageCompleted };
         }
     };
 
@@ -37,7 +43,6 @@ export default function RequestsTable2() {
     const acceptedData = RequestsData.filter((r) => r.status === "accepted");
     const completedData = RequestsData.filter((r) => r.status === "completed");
 
-    // Full column definition – nothing removed
     const createColumns = (
         showMaterials: boolean,
         showPayment: boolean,
@@ -108,13 +113,15 @@ export default function RequestsTable2() {
                     row.Compatibility === 100 ? (
                         <Badge
                             variant={"inactive"}
-                            className="bg-green-100 text-green-800 border-0 text-xs">
+                            className="bg-green-100 text-green-800 border-0 text-xs"
+                        >
                             COMPATIBLE
                         </Badge>
                     ) : (
                         <Badge
                             variant={"inactive"}
-                            className="bg-red-100 text-red-700 border-0 text-xs">
+                            className="bg-red-100 text-red-700 border-0 text-xs"
+                        >
                             INCOMPATIBLE
                         </Badge>
                     ),
@@ -138,6 +145,11 @@ export default function RequestsTable2() {
                 render: (row) =>
                     activeTab === "accepted" ? (
                         <button
+                            onClick={() => {
+                                setSelectedRequest(row);
+                                setCompleteNote("");
+                                setCompleteOpen(true);
+                            }}
                             className="border border-[#4D7C63] text-[#4D7C63] px-4 py-1 rounded-md font-medium hover:bg-[#4D7C63] hover:text-white transition"
                         >
                             Complete
@@ -156,7 +168,6 @@ export default function RequestsTable2() {
             },
         ];
 
-    // Pagination helper – calculates correct pages per dataset
     const paginate = (data: RequestRow[]) => {
         const totalRows = data.length;
         const totalPages = Math.max(1, Math.ceil(totalRows / ROWS_PER_PAGE));
@@ -172,9 +183,10 @@ export default function RequestsTable2() {
         return {
             paginatedData,
             totalPages,
-            showText: totalRows === 0
-                ? "No requests found"
-                : `Showing ${startItem} to ${endItem} of ${totalRows}`,
+            showText:
+                totalRows === 0
+                    ? "No requests found"
+                    : `Showing ${startItem} to ${endItem} of ${totalRows}`,
         };
     };
 
@@ -184,7 +196,7 @@ export default function RequestsTable2() {
                 value={activeTab}
                 onValueChange={(value) => {
                     setActiveTab(value as typeof activeTab);
-                    setCurrentPage(1); // reset to page 1 on tab change (recommended)
+                    setCurrentPage(1);
                 }}
                 className="w-full"
             >
@@ -240,8 +252,7 @@ export default function RequestsTable2() {
                         const { paginatedData, totalPages, showText } = paginate(incomingData);
                         return (
                             <DataTable
-                                className="[&>div]:border-0 [&>div]:rounded-none 
-                                "
+                                className="[&>div]:border-0 [&>div]:rounded-none"
                                 data={paginatedData}
                                 columns={createColumns(true, false, "")}
                                 keyExtractor={(row) => `incoming-${row.Username}-${row.Date}`}
@@ -298,7 +309,8 @@ export default function RequestsTable2() {
                     })()}
                 </TabsContent>
             </Tabs>
-            {/* modals */}
+
+            {/* Details modal */}
             {selectedRequest && (
                 <RequestDetailsModal
                     isOpen={detailsOpen}
@@ -308,9 +320,33 @@ export default function RequestsTable2() {
                     earnings={0}
                     estUnits={0}
                     compatibilityStr={
-                        selectedRequest.Compatibility === 100 ? "100% MATCH" : "INCOMPATIBLE"
+                        selectedRequest.Compatibility === 100
+                            ? "100% MATCH"
+                            : "INCOMPATIBLE"
                     }
                     username={selectedRequest.Username}
+                />
+            )}
+
+            {/* Complete request modal */}
+            {selectedRequest && (
+                <CompleteRequestModal
+                    isOpen={completeOpen}
+                    onClose={() => setCompleteOpen(false)}
+                    onComplete={() => {
+                        // add your complete-request logic here
+                        setCompleteOpen(false);
+                    }}
+                    requestId="REQ001"
+                    customer={selectedRequest.Username}
+                    location={selectedRequest.Location}
+                    dateTime={`${selectedRequest.Date}, ${selectedRequest.startTime} - ${selectedRequest.endTime}`}
+                    compatibility={
+                        selectedRequest.Compatibility === 100 ? "100%" : "0%"
+                    }
+                    balance={850}
+                    note={completeNote}
+                    setNote={setCompleteNote}
                 />
             )}
         </Card>
