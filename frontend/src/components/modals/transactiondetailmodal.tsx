@@ -15,13 +15,10 @@ export type TransactionDetails = {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between">
-      <div
-        className="text-[14px] font-medium leading-[20px]"
-        style={{ color: "rgba(17, 24, 39, 0.75)" }}
-      >
+      <div className="text-[14px] font-medium leading-[20px] text-foreground/75">
         {label}
       </div>
-      <div className="text-[14px] font-medium leading-[20px] text-[#0C111D]">
+      <div className="text-[14px] font-medium leading-[20px] text-foreground">
         {value}
       </div>
     </div>
@@ -46,7 +43,7 @@ export default function TransactionDetailsModal({
           badgeText: "#DC2626",
           summaryBg: "rgba(221, 30, 30, 0.06)",
           amountColor: "#DD1E1E",
-          amountCardBg: "rgba(221, 30, 30, 0.06)", 
+          amountCardBg: "rgba(221, 30, 30, 0.06)",
         }
       : details.status === "WITHDRAWAL"
       ? {
@@ -74,12 +71,11 @@ export default function TransactionDetailsModal({
       />
 
       <aside
-        className="absolute right-0 top-0 h-full bg-white border-l border-[#CFCFCF] shadow-xl flex flex-col"
+        className="absolute right-0 top-0 flex h-full flex-col border-l border-border bg-white shadow-xl"
         style={{ width: 470 }}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-[#E5E7EB]">
-          <div className="text-[18px] font-bold leading-[28px] text-black">
+        <div className="flex items-center justify-between border-b border-border px-6 py-5">
+          <div className="text-[18px] font-bold leading-[28px] text-foreground">
             Transaction Details
           </div>
 
@@ -87,12 +83,10 @@ export default function TransactionDetailsModal({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="flex items-center justify-center"
+            className="flex items-center justify-center rounded-full bg-[#F2F2F7]"
             style={{
               width: 30,
               height: 30,
-              borderRadius: 15,
-              background: "#F2F2F7",
               backdropFilter: "blur(27.182817459106445px)",
             }}
           >
@@ -113,9 +107,7 @@ export default function TransactionDetailsModal({
           </button>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-auto px-6 py-4 space-y-4">
-          {/* Summary */}
+        <div className="flex-1 space-y-4 overflow-auto px-6 py-4">
           <div
             style={{
               borderRadius: 14,
@@ -126,15 +118,12 @@ export default function TransactionDetailsModal({
             }}
           >
             <div className="flex items-center justify-between" style={{ height: 20 }}>
-              <div
-                className="text-[14px] font-medium leading-[20px]"
-                style={{ color: "rgba(17, 24, 39, 0.75)" }}
-              >
+              <div className="text-[14px] font-medium leading-[20px] text-foreground/75">
                 Summary
               </div>
 
               <div
-                className="flex items-center justify-center uppercase font-bold"
+                className="flex items-center justify-center font-bold uppercase"
                 style={{
                   width: 69,
                   height: 18,
@@ -151,15 +140,14 @@ export default function TransactionDetailsModal({
             </div>
 
             <div
-              className="mt-3 flex flex-col items-center justify-center"
+              className="mt-3 flex flex-col items-center justify-center border border-border"
               style={{
                 height: 191,
                 borderRadius: 14,
-                border: "1px solid #CFCFCF",
-                background: statusStyles.amountCardBg, 
+                background: statusStyles.amountCardBg,
               }}
             >
-              <div className="text-[14px] font-medium leading-[20px] text-black">
+              <div className="text-[14px] font-medium leading-[20px] text-foreground">
                 Amount
               </div>
 
@@ -190,20 +178,15 @@ export default function TransactionDetailsModal({
             </div>
           </div>
 
-          {/* History */}
           <div
+            className="border border-border bg-card"
             style={{
               borderRadius: 14,
-              border: "1px solid #CFCFCF",
-              background: "#F7F7F7",
               padding: "12px 17px",
             }}
           >
             <div style={{ height: 20 }}>
-              <div
-                className="text-[14px] font-medium leading-[20px]"
-                style={{ color: "rgba(17, 24, 39, 0.75)" }}
-              >
+              <div className="text-[14px] font-medium leading-[20px] text-foreground/75">
                 History
               </div>
             </div>
@@ -216,15 +199,12 @@ export default function TransactionDetailsModal({
               <Row label="Receiver" value={details.receiver} />
 
               <div className="flex items-center justify-between">
-                <div
-                  className="text-[14px] font-medium leading-[20px]"
-                  style={{ color: "rgba(17, 24, 39, 0.75)" }}
-                >
+                <div className="text-[14px] font-medium leading-[20px] text-foreground/75">
                   Transaction Reference
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <div className="text-[14px] font-medium leading-[20px] text-[#0C111D]">
+                  <div className="text-[14px] font-medium leading-[20px] text-foreground">
                     {details.reference}
                   </div>
 
@@ -232,8 +212,7 @@ export default function TransactionDetailsModal({
                     type="button"
                     aria-label="Copy reference"
                     onClick={() => navigator.clipboard?.writeText(details.reference)}
-                    className="flex items-center justify-center"
-                    style={{ width: 16, height: 16 }}
+                    className="flex h-4 w-4 items-center justify-center text-primary"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -244,14 +223,14 @@ export default function TransactionDetailsModal({
                     >
                       <path
                         d="M13.333 5.33301H6.66634C5.92996 5.33301 5.33301 5.92996 5.33301 6.66634V13.333C5.33301 14.0694 5.92996 14.6663 6.66634 14.6663H13.333C14.0694 14.6663 14.6663 14.0694 14.6663 13.333V6.66634C14.6663 5.92996 14.0694 5.33301 13.333 5.33301Z"
-                        stroke="#344E41"
+                        stroke="currentColor"
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
                       <path
                         d="M2.66634 10.6663C1.93301 10.6663 1.33301 10.0663 1.33301 9.33301V2.66634C1.33301 1.93301 1.93301 1.33301 2.66634 1.33301H9.33301C10.0663 1.33301 10.6663 1.93301 10.6663 2.66634"
-                        stroke="#344E41"
+                        stroke="currentColor"
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -264,14 +243,9 @@ export default function TransactionDetailsModal({
           </div>
         </div>
 
-        {/* footer */}
         <div
-          className="px-6 flex items-center justify-between gap-4"
-          style={{
-            height: 100,
-            borderTop: "1px solid #CFCFCF",
-            background: "#F7F7F7",
-          }}
+          className="flex items-center justify-between gap-4 border-t border-border bg-card px-6"
+          style={{ height: 100 }}
         >
           <button
             type="button"

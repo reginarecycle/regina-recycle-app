@@ -148,7 +148,9 @@ export default function TransactionHistory() {
       header: "Date",
       headerClassName: "w-[175px]",
       render: (item) => (
-        <span className="font-bold text-[14px]">{item.date}</span>
+        <span className="font-bold text-[14px] text-foreground">
+          {item.date}
+        </span>
       ),
     },
     {
@@ -168,7 +170,9 @@ export default function TransactionHistory() {
       key: "description",
       header: "Description",
       render: (item) => (
-        <span className="font-bold text-[14px]">{item.description}</span>
+        <span className="font-bold text-[14px] text-foreground">
+          {item.description}
+        </span>
       ),
     },
     {
@@ -191,7 +195,7 @@ export default function TransactionHistory() {
       render: (item) => (
         <button
           type="button"
-          className="font-bold text-[14px] cursor-pointer"
+          className="font-bold text-[14px] cursor-pointer text-foreground"
           onClick={(e) => {
             e.stopPropagation();
             handleViewMore(item);
@@ -204,14 +208,12 @@ export default function TransactionHistory() {
   ];
 
   return (
-    <div className="w-full bg-[#F7F7F7]">
+    <div className="w-full bg-card">
       <div className="mx-auto w-full max-w-[1512px] min-h-[1086px] px-6 py-6">
-
-        {/* Back */}
         <div className="mb-4">
           <div
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 text-[16px] font-bold text-[#0C111D] cursor-pointer"
+            className="inline-flex items-center gap-2 text-[16px] font-bold text-foreground cursor-pointer"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -222,7 +224,7 @@ export default function TransactionHistory() {
             >
               <path
                 d="M15 18L9 12L15 6"
-                stroke="black"
+                stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -232,19 +234,18 @@ export default function TransactionHistory() {
           </div>
         </div>
 
-        <section className="w-full max-w-[1208px] rounded-[8px] border border-[#CFCFCF] bg-white">
-
-          {/* Header */}
+        <section className="w-full max-w-[1208px] rounded-[8px] border border-border bg-white">
           <div className="flex items-center justify-between px-6 py-4">
-            <div className="text-[16px] font-bold">Transaction History</div>
+            <div className="text-[16px] font-bold text-foreground">
+              Transaction History
+            </div>
 
             <input
               placeholder="Search for transaction id.."
-              className="w-[300px] h-[36px] px-3 border border-[#CFCFCF] rounded-[8px]"
+              className="w-[300px] h-[36px] px-3 border border-border rounded-[8px]"
             />
           </div>
 
-          {/* DataTable */}
           <DataTable
             data={mockData}
             columns={columns}
@@ -256,10 +257,8 @@ export default function TransactionHistory() {
               showText: "Showing 1 to 8 of 8",
             }}
           />
-
         </section>
 
-        {/* Modal */}
         <TransactionDetailsModal
           open={openDetails}
           onClose={() => {
@@ -272,4 +271,3 @@ export default function TransactionHistory() {
     </div>
   );
 }
-

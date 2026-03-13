@@ -290,85 +290,85 @@ export default function CustomerWallet() {
             "
           >
             <Tabs defaultValue="monthly" className="w-full">
-  <div className="mb-2 flex items-center justify-between">
-    <div>
-      <h2 className="text-[18px] font-semibold leading-[28px] text-black">
-        Earnings Overview
-      </h2>
-      <p className="text-[14px] font-medium leading-[20px] text-[#999CA0]">
-        Monthly rewards income (2026)
-      </p>
-    </div>
+              <div className="mb-2 flex items-center justify-between">
+                <div>
+                  <h2 className="text-[18px] font-semibold leading-[28px] text-black">
+                    Earnings Overview
+                  </h2>
+                  <p className="text-[14px] font-medium leading-[20px] text-[#999CA0]">
+                    Monthly rewards income (2026)
+                  </p>
+                </div>
 
-    <TabsList className="w-auto border-none gap-2 rounded-[4px] bg-[rgba(52,78,65,0.08)] p-[4px] h-[32px]">
-      <TabsTrigger
-        value="monthly"
-        className="h-[24px] rounded-[4px] px-3 py-[5px] text-[14px] font-medium leading-[20px] data-[state=active]:bg-[#344E41] data-[state=active]:text-white data-[state=active]:border-b-0"
-      >
-        Monthly
-      </TabsTrigger>
+                <TabsList className="w-auto border-none gap-2 rounded-[4px] bg-[rgba(52,78,65,0.08)] p-[4px] h-[32px]">
+                  <TabsTrigger
+                    value="monthly"
+                    className="h-[24px] rounded-[4px] px-3 py-[5px] text-[14px] font-medium leading-[20px] data-[state=active]:bg-[#344E41] data-[state=active]:text-white data-[state=active]:border-b-0"
+                  >
+                    Monthly
+                  </TabsTrigger>
 
-      <TabsTrigger
-        value="yearly"
-        className="h-[24px] rounded-[4px] px-3 py-[5px] text-[14px] font-medium leading-[20px] text-black data-[state=active]:bg-[#344E41] data-[state=active]:text-white data-[state=active]:border-b-0"
-      >
-        Yearly
-      </TabsTrigger>
-    </TabsList>
-  </div>
+                  <TabsTrigger
+                    value="yearly"
+                    className="h-[24px] rounded-[4px] px-3 py-[5px] text-[14px] font-medium leading-[20px] text-black data-[state=active]:bg-[#344E41] data-[state=active]:text-white data-[state=active]:border-b-0"
+                  >
+                    Yearly
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
-  <TabsContent value="monthly" className="mt-3">
-    <div className="p-4">
-      <ChartContainer
-        config={earningsChartConfig}
-        className="h-[260px] w-full"
-      >
-        <BarChart data={earningsData}>
-          <CartesianGrid vertical={false} stroke="#CFCFCF" />
-          <XAxis
-            dataKey="month"
-            tickLine={false}
-            axisLine={false}
-            tickMargin={10}
-          />
-          <ChartTooltip content={<ChartTooltipContent />} />
-          <Bar
-            dataKey="earnings"
-            fill="var(--color-earnings)"
-            radius={4}
-            barSize={50}
-          />
-        </BarChart>
-      </ChartContainer>
-    </div>
-  </TabsContent>
+              <TabsContent value="monthly" className="mt-3">
+                <div className="p-4">
+                  <ChartContainer
+                    config={earningsChartConfig}
+                    className="h-[260px] w-full"
+                  >
+                    <BarChart data={earningsData}>
+                      <CartesianGrid vertical={false} stroke="#CFCFCF" />
+                      <XAxis
+                        dataKey="month"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={10}
+                      />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar
+                        dataKey="earnings"
+                        fill="var(--color-earnings)"
+                        radius={4}
+                        barSize={50}
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                </div>
+              </TabsContent>
 
-  <TabsContent value="yearly" className="mt-3">
-    <div className="p-4">
-      <ChartContainer
-        config={earningsChartConfig}
-        className="h-[260px] w-full"
-      >
-        <BarChart data={earningsData}>
-          <CartesianGrid vertical={false} stroke="#CFCFCF" />
-          <XAxis
-            dataKey="month"
-            tickLine={false}
-            axisLine={false}
-            tickMargin={10}
-          />
-          <ChartTooltip content={<ChartTooltipContent />} />
-          <Bar
-            dataKey="earnings"
-            fill="var(--color-earnings)"
-            radius={4}
-            barSize={50}
-          />
-        </BarChart>
-      </ChartContainer>
-    </div>
-  </TabsContent>
-</Tabs>
+              <TabsContent value="yearly" className="mt-3">
+                <div className="p-4">
+                  <ChartContainer
+                    config={earningsChartConfig}
+                    className="h-[260px] w-full"
+                  >
+                    <BarChart data={earningsData}>
+                      <CartesianGrid vertical={false} stroke="#CFCFCF" />
+                      <XAxis
+                        dataKey="month"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={10}
+                      />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar
+                        dataKey="earnings"
+                        fill="var(--color-earnings)"
+                        radius={4}
+                        barSize={50}
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                </div>
+              </TabsContent>
+            </Tabs>
           </section>
 
           {/* Recent Transaction */}
