@@ -100,11 +100,15 @@ export default function RequestsTable2() {
                 header: "Compatibility",
                 render: (row) =>
                     row.Compatibility === 100 ? (
-                        <Badge className="bg-green-100 text-green-800 border-0 text-xs">
+                        <Badge
+                            variant={"inactive"}
+                            className="bg-green-100 text-green-800 border-0 text-xs">
                             COMPATIBLE
                         </Badge>
                     ) : (
-                        <Badge className="bg-red-100 text-red-700 border-0 text-xs">
+                        <Badge
+                            variant={"inactive"}
+                            className="bg-red-100 text-red-700 border-0 text-xs">
                             INCOMPATIBLE
                         </Badge>
                     ),
