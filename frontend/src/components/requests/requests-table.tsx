@@ -7,7 +7,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Card, CardHeader, CardTitle } from "../ui/card";
-import { ListFilter, Search } from "lucide-react";
+import { ListFilter, Search } froxm "lucide-react";
 import { TableEntry } from "./table-entry";
 import { RequestsFooter } from "./requests-footer";
 import { RequestsData } from "./requests-data";

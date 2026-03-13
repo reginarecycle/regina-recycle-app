@@ -1,16 +1,22 @@
 import { useState } from "react";
+import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import DataTable, { type Column } from "@/components/ui/data-table";
 import { ChevronRight, ListFilter, Search } from "lucide-react";
 import { RequestsData } from "@/components/requests/requests-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RequestDetailsModal } from "./request-details-modal";
+import { RequestAcceptedModal } from "./request-accepted-modal";
 
 type RequestRow = (typeof RequestsData)[number];
 const ROWS_PER_PAGE = 5;
 
+
 export default function RequestsTable2() {
     const [activeTab, setActiveTab] = useState<"incoming" | "accepted" | "completed">("incoming");
+    const [selectedRequest, setSelectedRequest] = useState<RequestRow | null>(null);
+    const [detailsOpen, setDetailsOpen] = useState(false);
 
     // Independent page state per tab
     const [pageIncoming, setPageIncoming] = useState(1);
@@ -129,11 +135,24 @@ export default function RequestsTable2() {
             {
                 key: "action",
                 header: "Action",
-                render: () => (
-                    <div className="flex items-center gap-1 text-[14px] font-bold text-black cursor-pointer hover:underline">
-                        View Details <ChevronRight size={16} />
-                    </div>
-                ),
+                render: (row) =>
+                    activeTab === "accepted" ? (
+                        <button
+                            className="border border-[#4D7C63] text-[#4D7C63] px-4 py-1 rounded-md font-medium hover:bg-[#4D7C63] hover:text-white transition"
+                        >
+                            Complete
+                        </button>
+                    ) : (
+                        <div
+                            onClick={() => {
+                                setSelectedRequest(row);
+                                setDetailsOpen(true);
+                            }}
+                            className="flex items-center gap-1 text-[14px] font-bold text-black cursor-pointer hover:underline"
+                        >
+                            View Details <ChevronRight size={16} />
+                        </div>
+                    ),
             },
         ];
 
@@ -279,6 +298,21 @@ export default function RequestsTable2() {
                     })()}
                 </TabsContent>
             </Tabs>
+            {/* modals */}
+            {selectedRequest && (
+                <RequestDetailsModal
+                    isOpen={detailsOpen}
+                    request={selectedRequest}
+                    onClose={() => setDetailsOpen(false)}
+                    requestNum={"#REQ 000000"}
+                    earnings={0}
+                    estUnits={0}
+                    compatibilityStr={
+                        selectedRequest.Compatibility === 100 ? "100% MATCH" : "INCOMPATIBLE"
+                    }
+                    username={selectedRequest.Username}
+                />
+            )}
         </Card>
     );
 }

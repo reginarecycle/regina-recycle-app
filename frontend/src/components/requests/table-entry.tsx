@@ -5,8 +5,8 @@ import {
 import { Badge } from "../ui/badge";
 import { ChevronRight } from "lucide-react";
 import { useState } from "react";
-import { RequestAcceptedModal } from "@/components/requests/request-accepted";
-import { RequestDetailsModal } from "@/components/requests/request-details";
+import { RequestAcceptedModal } from "@/components/requests/request-accepted-modal";
+import { RequestDetailsModal } from "@/components/requests/request-details-modal";
 
 type Material = 'Plastic' | 'Glass' | 'Cardboard' | 'Carton' | 'Paper';
 
