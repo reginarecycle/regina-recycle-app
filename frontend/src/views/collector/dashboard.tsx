@@ -8,7 +8,16 @@ import graphIcon from "@/assets/mdi_graph-line-shimmer.svg";
 import cashIcon from "@/assets/mdi_cash-multiple.svg";
 import historyIcon from "@/assets/lucide_history.svg";
 import {useNavigate} from "react-router-dom";
-import { LineChart, Line, XAxis, CartesianGrid } from "recharts"
+import {
+ LineChart,
+ Line,
+ XAxis,
+ CartesianGrid,
+ PieChart,
+ Pie,
+ Cell,
+} from "recharts";
+
 import {
  ChartContainer,
  ChartTooltip,
@@ -36,6 +45,43 @@ const chartConfig = {
    color: "#999CA0",
  },
 }
+
+
+const materialChartConfig = {
+ plasticBlue: {
+   label: "Plastic",
+   color: "#001E62",
+ },
+ cartoon: {
+   label: "Cartoon",
+   color: "#0F6C74",
+ },
+ plasticGreen: {
+   label: "Plastic",
+   color: "#7AC70C",
+ },
+ plasticPurple: {
+   label: "Plastic",
+   color: "#5B136D",
+ },
+ plasticLilac: {
+   label: "Plastic",
+   color: "#DCD6F7",
+ },
+ plasticMint: {
+   label: "Plastic",
+   color: "#BFF3CE",
+ },
+};
+const materialChartData = [
+ { name: "plasticBlue", value: 95, fill: "#001E62" },
+ { name: "cartoon", value: 20, fill: "#0F6C74" },
+ { name: "plasticGreen", value: 25, fill: "#7AC70C" },
+ { name: "plasticPurple", value: 30, fill: "#5B136D" },
+ { name: "plasticLilac", value: 16, fill: "#DCD6F7" },
+ { name: "plasticMint", value: 30, fill: "#BFF3CE" },
+];
+
 
 const PriorityBadge = ({ type }: { type: string }) => {
 const styles = {
@@ -151,53 +197,7 @@ const goToAcceptedRequests = () => {
 const goToCompletedRequests = () => {
   navigate("/app/collector/requests?tab=completed");
 };
-  
-const donutSegments = [
- { label: "Plastic", color: "#001E62", value: 95 },
- { label: "Cartoon", color: "#0F6C74", value: 20 },
- { label: "Plastic", color: "#7AC70C", value: 25 },
- { label: "Plastic", color: "#5B136D", value: 30 },
- { label: "Plastic", color: "#DCD6F7", value: 16 },
- { label: "Plastic", color: "#BFF3CE ", value: 30 },
-];
 
-const polarToCartesian = (
- cx: number,
- cy: number,
- r: number,
- angleInDegrees: number,
-) => {
- const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
- return {
-   x: cx + r * Math.cos(angleInRadians),
-   y: cy + r * Math.sin(angleInRadians),
- };
-};
-
-const describeArc = (
- cx: number,
- cy: number,
- r: number,
- startAngle: number,
- endAngle: number,
-) => {
- const start = polarToCartesian(cx, cy, r, endAngle);
- const end = polarToCartesian(cx, cy, r, startAngle);
- const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
- return [
-   "M",
-   start.x,
-   start.y,
-   "A",
-   r,
-   r,
-   0,
-   largeArcFlag,
-   0,
-   end.x,
-   end.y,
- ].join(" ");
-};
 
 return (
  <div className="min-h-screen bg-gray-100 p-6">
@@ -518,68 +518,62 @@ return (
 
        {/* Donut chart */}
        <div className="flex flex-col items-center px-6 pt-8">
-         <div className="relative flex h-[220px] w-[220px] items-center justify-center">
-           <svg width="220" height="220" viewBox="0 0 220 220" fill="none">
-             <circle
-               cx="110"
-               cy="110"
-               r="70"
-               stroke="#F1F3F5"
-               strokeWidth="24"
-               fill="none"
-             />
+           <div className="relative flex h-[220px] w-[220px] items-center justify-center">
+             <ChartContainer
+               config={materialChartConfig}
+               className="h-[220px] w-[220px]"
+             >
+               <PieChart>
+                 <ChartTooltip
+                   cursor={false}
+                   content={<ChartTooltipContent hideLabel />}
+                   // isAnimationActive={false}
+                 />
+                 <Pie
+                   data={materialChartData}
+                   dataKey="value"
+                   nameKey="name"
+                   innerRadius={70}
+                   outerRadius={94}
+                   stroke="none"
+                   // isAnimationActive={false}
+                 >
+                   {materialChartData.map((entry, index) => (
+                     <Cell key={index} fill={entry.fill} />
+                   ))}
+                 </Pie>
+               </PieChart>
+             </ChartContainer>
 
-             {(() => {
-               const total = donutSegments.reduce(
-                 (sum, s) => sum + s.value,
-                 0,
-               );
-               let currentAngle = 0;
-               return donutSegments.map((segment, index) => {
-                 const angle = (segment.value / total) * 360;
-                 const gap = 0; // small white gap between slices
-                 const startAngle = currentAngle + gap / 2;
-                 const endAngle = currentAngle + angle - gap / 2;
-                 const path = describeArc(
-                   110,
-                   110,
-                   70,
-                   startAngle,
-                   endAngle,
-                 );
-                 currentAngle += angle;
-                 return (
-                   <path
-                     key={index}
-                     d={path}
-                     stroke={segment.color}
-                     strokeWidth="24"
-                     strokeLinecap="butt"
-                     fill="none"
-                   />
-                 );
-               });
-             })()}
-           </svg>
-           <div className="absolute text-center">
-             <p className="text-[32px] font-semibold text-[#111827]">
-               12.5k
-             </p>
-             <p className="text-[14px] text-[#3A3E44] font-medium">Items</p>
+
+             <div className="absolute text-center">
+               <p className="text-[32px] font-semibold text-[#111827]">
+                 12.5k
+               </p>
+               <p className="text-[14px] font-medium text-[#3A3E44]">Items</p>
+             </div>
+           </div>
+
+
+           <div className="mt-8 grid grid-cols-3 gap-x-8 gap-y-5 text-[14px] text-[#111827]">
+             {materialChartData.map((item, index) => (
+               <div key={index} className="flex items-center gap-2">
+                 <span
+                   className="h-6 w-6 aspect-square"
+                   style={{ backgroundColor: item.fill }}
+                 />
+                 <span>
+                   {
+                     materialChartConfig[
+                       item.name as keyof typeof materialChartConfig
+                     ].label
+                   }
+                 </span>
+               </div>
+             ))}
            </div>
          </div>
-         <div className="mt-8 grid grid-cols-3 gap-x-8 gap-y-5 text-[14px] text-[#111827]">
-           {donutSegments.map((item, index) => (
-             <div key={index} className="flex items-center gap-2">
-               <span
-                 className="h-6 w-6 aspect-square"
-                 style={{ backgroundColor: item.color }}
-               />
-               <span>{item.label}</span>
-             </div>
-           ))}
-         </div>
-       </div>
+
        {/* Bottom section */}
        <div className="mt-8 border-t border-[#E5E7EB] px-6 pt-6">
          <p className="text-[14px] font-medium text-[#999CA0]">
