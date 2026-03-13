@@ -7,16 +7,31 @@ import { RequestsData } from "@/components/requests/requests-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type RequestRow = (typeof RequestsData)[number];
-
+const ROWS_PER_PAGE = 5;
 
 export default function RequestsTable2() {
-    const [currentPage, setCurrentPage] = useState(1);
-    const [activeTab, setActiveTab] = useState("incoming");
+    const [activeTab, setActiveTab] = useState<"incoming" | "accepted" | "completed">("incoming");
+
+    // Independent page state per tab
+    const [pageIncoming, setPageIncoming] = useState(1);
+    const [pageAccepted, setPageAccepted] = useState(1);
+    const [pageCompleted, setPageCompleted] = useState(1);
+
+    const getPageState = () => {
+        switch (activeTab) {
+            case "incoming": return { page: pageIncoming, setPage: setPageIncoming };
+            case "accepted": return { page: pageAccepted, setPage: setPageAccepted };
+            case "completed": return { page: pageCompleted, setPage: setPageCompleted };
+        }
+    };
+
+    const { page: currentPage, setPage: setCurrentPage } = getPageState();
 
     const incomingData = RequestsData.filter((r) => r.status === "incoming");
     const acceptedData = RequestsData.filter((r) => r.status === "accepted");
     const completedData = RequestsData.filter((r) => r.status === "completed");
 
+    // Full column definition – nothing removed
     const createColumns = (
         showMaterials: boolean,
         showPayment: boolean,
@@ -118,14 +133,40 @@ export default function RequestsTable2() {
             },
         ];
 
+    // Pagination helper – calculates correct pages per dataset
+    const paginate = (data: RequestRow[]) => {
+        const totalRows = data.length;
+        const totalPages = Math.max(1, Math.ceil(totalRows / ROWS_PER_PAGE));
+
+        const start = (currentPage - 1) * ROWS_PER_PAGE;
+        const end = Math.min(start + ROWS_PER_PAGE, totalRows);
+
+        const paginatedData = data.slice(start, end);
+
+        const startItem = totalRows === 0 ? 0 : start + 1;
+        const endItem = end;
+
+        return {
+            paginatedData,
+            totalPages,
+            showText: totalRows === 0
+                ? "No requests found"
+                : `Showing ${startItem} to ${endItem} of ${totalRows}`,
+        };
+    };
+
     return (
-        <Card className="bg-white w-full gap-0">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-
-                {/* Tabs Header */}
-                <CardHeader className="border-b border-[#CFCFCF] px-6 py-0 h-[64px] flex items-center">
-                    <TabsList className="bg-transparent p-0 gap-8 border-0">
-
+        <Card className="bg-white w-full gap-0 py-3">
+            <Tabs
+                value={activeTab}
+                onValueChange={(value) => {
+                    setActiveTab(value as typeof activeTab);
+                    setCurrentPage(1); // reset to page 1 on tab change (recommended)
+                }}
+                className="w-full"
+            >
+                <CardHeader className="border-b border-[#CFCFCF] !py-0 h-[64px] flex items-center px-6">
+                    <TabsList className="bg-transparent p-0 gap-8 border-0 h-full flex items-center">
                         <TabsTrigger value="incoming" className="font-medium text-[15px] text-[#111827BF]">
                             Incoming Requests
                             {activeTab === "incoming" && (
@@ -152,11 +193,9 @@ export default function RequestsTable2() {
                                 </span>
                             )}
                         </TabsTrigger>
-
                     </TabsList>
                 </CardHeader>
 
-                {/* Search Header */}
                 <CardTitle className="flex items-center justify-between border-b border-[#CFCFCF] h-[64px] px-6">
                     <div className="flex items-center bg-gray-100 rounded-md px-2 h-[31px] w-[321px]">
                         <Search className="w-4 h-4 text-black mr-2" strokeWidth={2.5} />
@@ -172,57 +211,69 @@ export default function RequestsTable2() {
                     </div>
                 </CardTitle>
 
-                {/* Incoming */}
+                {/* Incoming Tab */}
                 <TabsContent value="incoming" className="m-0">
-                    <DataTable
-                        className="[&>div]:border-0 [&>div]:rounded-none"
-                        data={incomingData}
-                        columns={createColumns(true, false, "")}
-                        keyExtractor={(row) => `incoming-${row.Username}-${row.Date}`}
-                        pagination={{
-                            currentPage,
-                            totalPages: 5,
-                            onPageChange: setCurrentPage,
-                            showText:
-                                "Showing pickup requests available for ReginaRecycle collectors.",
-                        }}
-                    />
+                    {(() => {
+                        const { paginatedData, totalPages, showText } = paginate(incomingData);
+                        return (
+                            <DataTable
+                                className="[&>div]:border-0 [&>div]:rounded-none 
+                                "
+                                data={paginatedData}
+                                columns={createColumns(true, false, "")}
+                                keyExtractor={(row) => `incoming-${row.Username}-${row.Date}`}
+                                pagination={{
+                                    currentPage,
+                                    totalPages,
+                                    onPageChange: setCurrentPage,
+                                    showText,
+                                }}
+                            />
+                        );
+                    })()}
                 </TabsContent>
 
-                {/* Accepted */}
+                {/* Accepted Tab */}
                 <TabsContent value="accepted" className="m-0">
-                    <DataTable
-                        className="[&>div]:border-0 [&>div]:rounded-none"
-                        data={acceptedData}
-                        columns={createColumns(false, true, "Estimated Payment ($)")}
-                        keyExtractor={(row) => `accepted-${row.Username}-${row.Date}`}
-                        pagination={{
-                            currentPage,
-                            totalPages: 5,
-                            onPageChange: setCurrentPage,
-                            showText:
-                                "Showing pickup requests available for ReginaRecycle collectors.",
-                        }}
-                    />
+                    {(() => {
+                        const { paginatedData, totalPages, showText } = paginate(acceptedData);
+                        return (
+                            <DataTable
+                                className="[&>div]:border-0 [&>div]:rounded-none"
+                                data={paginatedData}
+                                columns={createColumns(false, true, "Estimated Payment ($)")}
+                                keyExtractor={(row) => `accepted-${row.Username}-${row.Date}`}
+                                pagination={{
+                                    currentPage,
+                                    totalPages,
+                                    onPageChange: setCurrentPage,
+                                    showText,
+                                }}
+                            />
+                        );
+                    })()}
                 </TabsContent>
 
-                {/* Completed */}
+                {/* Completed Tab */}
                 <TabsContent value="completed" className="m-0">
-                    <DataTable
-                        className="[&>div]:border-0 [&>div]:rounded-none"
-                        data={completedData}
-                        columns={createColumns(false, true, "Payout ($)")}
-                        keyExtractor={(row) => `completed-${row.Username}-${row.Date}`}
-                        pagination={{
-                            currentPage,
-                            totalPages: 5,
-                            onPageChange: setCurrentPage,
-                            showText:
-                                "Showing pickup requests available for ReginaRecycle collectors.",
-                        }}
-                    />
+                    {(() => {
+                        const { paginatedData, totalPages, showText } = paginate(completedData);
+                        return (
+                            <DataTable
+                                className="[&>div]:border-0 [&>div]:rounded-none"
+                                data={paginatedData}
+                                columns={createColumns(false, true, "Payout ($)")}
+                                keyExtractor={(row) => `completed-${row.Username}-${row.Date}`}
+                                pagination={{
+                                    currentPage,
+                                    totalPages,
+                                    onPageChange: setCurrentPage,
+                                    showText,
+                                }}
+                            />
+                        );
+                    })()}
                 </TabsContent>
-
             </Tabs>
         </Card>
     );
