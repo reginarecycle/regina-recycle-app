@@ -15,7 +15,7 @@ import {
   IsNumber,
 } from 'class-validator';
 import { Role } from '@prisma/client';
-import { AddressDto } from 'src/addresses/dto/address.dto';
+import { AddressDto } from '../../addresses/dto/address.dto';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
