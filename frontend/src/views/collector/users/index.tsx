@@ -42,7 +42,7 @@ const users: User[] = [
     avgRevenue: "$640",
     reward: "$200",
     tags: ["Frequent", "Metal Scraps", "Plastic"],
-    nextCollection: "Tue, Oct 22 2025",
+    nextCollection: "Sat, Oct 28, 2023",
   },
   {
     id: 2,
@@ -250,18 +250,13 @@ export default function CollectorUsersPage() {
         return (
           <button
             type="button"
-            disabled={!isDylan}
             onClick={() => {
               if (isDylan) {
                 setSelectedUser(user);
                 setIsModalOpen(true);
               }
             }}
-            className={`text-[11px] font-semibold ${
-              isDylan
-                ? "text-[#111827] hover:underline"
-                : "cursor-not-allowed text-[#9CA3AF]"
-            }`}
+            className="text-[11px] font-semibold text-[#111827]"
           >
             View More
           </button>
@@ -380,125 +375,125 @@ export default function CollectorUsersPage() {
         />
       </div>
 
-     {isModalOpen && selectedUser && (
-  <div className="fixed right-6 top-[190px] z-50 hidden xl:block">
-    <div className="w-[280px] overflow-hidden rounded-[10px] bg-white shadow-[0px_18px_40px_rgba(0,0,0,0.18)]">
-      <div className="bg-[linear-gradient(180deg,#6E8B76_0%,#587262_100%)] px-4 py-3 text-white">
-        <div className="flex items-start justify-between">
-          <div className="flex items-start gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-[10px] font-semibold">
-              {selectedUser.initials}
-            </div>
+      {isModalOpen && selectedUser && (
+        <div className="fixed right-6 top-[190px] z-50 hidden xl:block">
+          <div className="w-[248px] overflow-hidden rounded-[8px] bg-white shadow-[0px_14px_30px_rgba(0,0,0,0.18)]">
+            <div className="flex items-center justify-between bg-[linear-gradient(180deg,#64836D_0%,#4F6D59_100%)] px-3 py-3 text-white">
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-[10px] font-medium">
+                  {selectedUser.initials}
+                </div>
 
-            <div>
-              <p className="text-[12px] font-medium leading-[16px]">
-                {selectedUser.name}
-              </p>
-              <span className="mt-1 inline-flex rounded-full bg-[#DDFCE7] px-2 py-[2px] text-[8px] font-semibold uppercase leading-none text-[#16A34A]">
-                Active
-              </span>
-            </div>
-          </div>
+                <div className="flex flex-col">
+                  <p className="text-[11px] font-medium leading-[14px]">
+                    {selectedUser.name}
+                  </p>
+                  <span className="mt-1 inline-flex w-fit rounded-full bg-[#DDFCE7] px-1.5 py-[2px] text-[7px] font-semibold uppercase leading-none text-[#16A34A]">
+                    Active
+                  </span>
+                </div>
+              </div>
 
-          <button
-            type="button"
-            onClick={() => setIsModalOpen(false)}
-            className="text-[14px] leading-none text-white/85 hover:text-white"
-          >
-            ×
-          </button>
-        </div>
-      </div>
-
-      <div className="space-y-4 px-4 py-4">
-        <div>
-          <p className="mb-2 text-[9px] font-semibold uppercase tracking-[0.04em] text-[#A1A1AA]">
-            Contact Details
-          </p>
-
-          <div className="space-y-2 text-[11px] text-[#374151]">
-            <div className="flex items-center gap-2">
-              <Phone size={11} className="text-[#9CA3AF]" />
-              <span>{selectedUser.phone}</span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Mail size={11} className="text-[#9CA3AF]" />
-              <span>{selectedUser.email}</span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <MapPin size={11} className="text-[#9CA3AF]" />
-              <span>824 Albert Street, Downtown</span>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <p className="mb-2 text-[9px] font-semibold uppercase tracking-[0.04em] text-[#A1A1AA]">
-            Stats
-          </p>
-
-          <div className="grid grid-cols-3 gap-2">
-            <div className="rounded-[8px] bg-[#F7F7F8] px-2 py-3 text-center">
-              <p className="text-[7px] uppercase tracking-[0.03em] text-[#B0B0B0]">
-                Collections
-              </p>
-              <p className="mt-1 text-[16px] font-semibold leading-none text-[#111827]">
-                32
-              </p>
-            </div>
-
-            <div className="rounded-[8px] bg-[#F7F7F8] px-2 py-3 text-center">
-              <p className="text-[7px] uppercase tracking-[0.03em] text-[#B0B0B0]">
-                Revenue
-              </p>
-              <p className="mt-1 text-[16px] font-semibold leading-none text-[#22C55E]">
-                $640
-              </p>
-            </div>
-
-            <div className="rounded-[8px] bg-[#F7F7F8] px-2 py-3 text-center">
-              <p className="text-[7px] uppercase tracking-[0.03em] text-[#B0B0B0]">
-                Avg Order
-              </p>
-              <p className="mt-1 text-[16px] font-semibold leading-none text-[#F59E0B]">
-                $200
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <p className="mb-2 text-[9px] font-semibold uppercase tracking-[0.04em] text-[#A1A1AA]">
-            Collected Items
-          </p>
-
-          <div className="flex flex-wrap gap-1.5">
-            {["Electronics", "Metal Scraps", "Plastic"].map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full bg-[#EAF8EE] px-2 py-[3px] text-[8px] font-medium text-[#2E9B4B]"
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="text-[13px] leading-none text-white/90 hover:text-white"
               >
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
+                ×
+              </button>
+            </div>
 
-        <div className="rounded-[8px] border border-[#F0B95A] bg-[#FFF8EA] px-3 py-2.5">
-          <p className="text-[8px] font-semibold text-[#A16207]">
-            Next Collection
-          </p>
-          <div className="mt-1 flex items-center gap-1.5 text-[10px] text-[#D97706]">
-            <Calendar size={10} />
-            <span>Sat, Oct 28, 2023</span>
+            <div className="space-y-4 px-3 py-4">
+              <div>
+                <p className="mb-2 text-[8px] font-semibold uppercase tracking-[0.04em] text-[#B0B0B0]">
+                  Contact Details
+                </p>
+
+                <div className="space-y-1.5 text-[9px] text-[#0C111D]">
+                  <div className="flex items-center gap-1.5">
+                    <Phone size={10} className="text-[#7C7C7C]" />
+                    <span>+1 (306) 555-0125</span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <Mail size={10} className="text-[#7C7C7C]" />
+                    <span>dylan.white@email.com</span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <MapPin size={10} className="text-[#7C7C7C]" />
+                    <span>824 Albert Street, Downtown</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-2 text-[8px] font-semibold uppercase tracking-[0.04em] text-[#B0B0B0]">
+                  Stats
+                </p>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="rounded-[6px] bg-[#F7F7F8] px-2 py-2 text-center">
+                    <p className="text-[6px] uppercase text-[#B0B0B0]">
+                      Collections
+                    </p>
+                    <p className="mt-1 text-[16px] font-medium leading-none text-[#0C111D]">
+                      32
+                    </p>
+                  </div>
+
+                  <div className="rounded-[6px] bg-[#F7F7F8] px-2 py-2 text-center">
+                    <p className="text-[6px] uppercase text-[#B0B0B0]">Revenue</p>
+                    <p className="mt-1 text-[16px] font-medium leading-none text-[#22C55E]">
+                      $640
+                    </p>
+                  </div>
+
+                  <div className="rounded-[6px] bg-[#F7F7F8] px-2 py-2 text-center">
+                    <p className="text-[6px] uppercase text-[#B0B0B0]">
+                      Avg Order
+                    </p>
+                    <p className="mt-1 text-[16px] font-medium leading-none text-[#F59E0B]">
+                      $200
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-2 text-[8px] font-semibold uppercase tracking-[0.04em] text-[#B0B0B0]">
+                  Collected Items
+                </p>
+
+                <div className="flex flex-wrap gap-1.5">
+                  <span className="rounded-full bg-[#EAF8EE] px-2 py-[3px] text-[7px] font-medium text-[#2E9B4B]">
+                    Electronics
+                  </span>
+                  <span className="rounded-full bg-[#EAF8EE] px-2 py-[3px] text-[7px] font-medium text-[#2E9B4B]">
+                    Metal Scraps
+                  </span>
+                  <span className="rounded-full bg-[#EAF8EE] px-2 py-[3px] text-[7px] font-medium text-[#2E9B4B]">
+                    Plastic
+                  </span>
+                </div>
+              </div>
+
+              <div className="rounded-[6px] border border-[#F0B95A] bg-[#FFF8EA] px-3 py-2">
+                <div className="flex items-center gap-1.5 text-[#0C111D]">
+                  <Calendar size={10} className="text-[#D97706]" />
+                  <p className="text-[13px] font-normal leading-[19.5px]">
+                    Next Collection
+                  </p>
+                </div>
+
+                <p className="mt-1 text-[10px] text-[#D97706]">
+                  Sat, Oct 28, 2023
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-)}
+      )}
     </div>
   );
 }
