@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RequestDetailsModal } from "./request-details-modal";
 import { RequestAcceptedModal } from "./request-accepted-modal";
 import { CompleteRequestModal } from "./complete-request-modal";
+import { RejectRequestModal } from "./reject-request-modal";
 
 type RequestRow = (typeof RequestsData)[number];
 const ROWS_PER_PAGE = 5;
@@ -21,6 +22,7 @@ export default function RequestsTable() {
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [completeOpen, setCompleteOpen] = useState(false);
     const [acceptedOpen, setAcceptedOpen] = useState(false);
+    const [rejectOpen, setRejectOpen] = useState(false);
     const [completeNote, setCompleteNote] = useState("");
 
     const [pageIncoming, setPageIncoming] = useState(1);
@@ -81,6 +83,23 @@ export default function RequestsTable() {
 
         setCompleteOpen(false);
         setActiveTab("completed");
+    };
+
+    const handleRejectRequest = (reason: string, comments: string) => {
+        if (!selectedRequest) return;
+
+        console.log("Rejected request:", {
+            request: selectedRequest,
+            reason,
+            comments,
+        });
+
+        // Example behavior: remove the request from the table entirely.
+        // If you want a separate "rejected" status instead, change this logic.
+        setRequests((prev) => prev.filter((request) => request !== selectedRequest));
+
+        setRejectOpen(false);
+        setSelectedRequest(null);
     };
 
     const createColumns = (
@@ -353,6 +372,10 @@ export default function RequestsTable() {
                     request={selectedRequest}
                     onClose={() => setDetailsOpen(false)}
                     onAccept={handleAcceptRequest}
+                    onReject={() => {
+                        setDetailsOpen(false);
+                        setRejectOpen(true);
+                    }}
                     requestNum={"#REQ 000000"}
                     earnings={0}
                     estUnits={0}
@@ -389,6 +412,14 @@ export default function RequestsTable() {
                 onViewActivePickups={() => {
                     setAcceptedOpen(false);
                     setActiveTab("incoming");
+                }}
+            />
+
+            <RejectRequestModal
+                isOpen={rejectOpen}
+                onClose={() => setRejectOpen(false)}
+                onConfirm={({ reason, comments }) => {
+                    handleRejectRequest(reason, comments);
                 }}
             />
         </Card>
