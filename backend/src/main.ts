@@ -1,11 +1,18 @@
-import 'tsconfig-paths/register';
+// import 'tsconfig-paths/register';
+import { register } from 'tsconfig-paths';
+import { resolve } from 'path';
+
+register({
+  baseUrl: resolve(__dirname, '..'),
+  paths: { 'src/*': ['./src/*'] },
+});
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptor/response.interceptor';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import * as fs from 'fs';
+// import * as fs from 'fs';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
