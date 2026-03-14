@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   Search,
-  CheckCircle,
   LayoutGrid,
   BadgeAlertIcon,
   AlertTriangle,
