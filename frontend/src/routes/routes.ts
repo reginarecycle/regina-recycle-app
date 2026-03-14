@@ -21,6 +21,7 @@ export  enum Routes {
     schedulePickupLoc = "/app/schedule/pickupLoc",
     collectorapp = "/app/collector",
     collectordashboard = "/app/collector/dashboard",
+    collectorsettings = "/app/collector/settings",
 
     //profile
     profile = "/app/profile",
