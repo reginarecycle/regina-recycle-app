@@ -11,7 +11,7 @@ export function WelcomeMessage({
     onSchedulePickup,
 }: Props) {
     return (
-        <div className="flex items-center justify-between flex-wrap gap-4 p-2">
+        <div className="flex justify-between flex-wrap gap-4 p-8">
             <h1 className="text-2xl font-bold">
                 Welcome, {name}
             </h1>
