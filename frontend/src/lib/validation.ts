@@ -86,3 +86,29 @@ export const changePasswordSchema = z
   });
 
 export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
+
+export const collectorProfileSchema = z.object({
+  businessName: z.string().min(1, "Business name is required"),
+  businessEmail: z.string().email("Invalid email address"),
+  businessPhone: z.string().min(1, "Phone number is required"),
+  registrationNumber: z.string().min(1, "Registration number is required"),
+  address: z.string().min(1, "Address is required"),
+  city: z.string().min(1, "City is required"),
+  provinceState: z.string().min(1, "Province/State is required"),
+  postalCode: z.string().min(1, "Postal code is required"),
+});
+
+export type CollectorProfileFormValues = z.infer<typeof collectorProfileSchema>;
+
+export const collectorSecuritySchema = z
+  .object({
+    currentPassword: z.string().min(6, "Password must be at least 6 characters"),
+    newPassword: z.string().min(6, "Password must be at least 6 characters"),
+    confirmPassword: z.string().min(6, "Confirm Password must be at least 6 characters"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export type CollectorSecurityFormValues = z.infer<typeof collectorSecuritySchema>;
