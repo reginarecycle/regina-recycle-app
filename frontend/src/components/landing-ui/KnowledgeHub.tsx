@@ -3,13 +3,7 @@ import PaperIcon from "@/assets/icons/paper.svg?react";
 import GlassIcon from "@/assets/icons/glass.svg?react";
 import EwasteIcon from "@/assets/icons/ewaste.svg?react";
 import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  BadgeCheckIcon,
-  BadgeXIcon,
-  CheckCircle,
-  XCircle,
-} from "lucide-react";
+import { ArrowRight, BadgeCheckIcon, BadgeXIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Routes } from "@/routes/routes";
