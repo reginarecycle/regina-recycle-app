@@ -73,7 +73,7 @@ export default function ProfilePage() {
   // Form submit handlers
   const onSubmitDetails = (data: ProfileDetailsFormValues) => {
     console.log("Profile details:", data);
-    // TODO: Call API to update profile
+    // TODO: Call API to update profile view
   };
 
   const onSubmitPassword = (data: ChangePasswordFormValues) => {
