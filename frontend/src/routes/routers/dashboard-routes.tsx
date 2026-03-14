@@ -6,6 +6,7 @@ const UserDashboard = lazy(() => import("@/views/customer/home"));
 const CollectorDashboard = lazy(() => import("@/views/collector/home"));
 const CustomerProfile = lazy(() => import("@/views/customer/profile"));
 const CollectorSettingsPage = lazy(() => import("@/views/collector/settings"));
+const NotificationsPage = lazy(() => import("@/views/notifications"));
 
 export const dashboardRoutes = () => {
   return [
@@ -21,14 +22,22 @@ export const dashboardRoutes = () => {
           element: <CollectorDashboard />,
         },
         {
-      path: Routes.collectorsettings,
-      element: <CollectorSettingsPage />,
-    },
+          path: Routes.collectorsettings,
+          element: <CollectorSettingsPage />,
+        },
+        {
+          path: Routes.collectornotifications,
+          element: <NotificationsPage userRole="collector" />,
+        },
       ],
     },
     {
       path: Routes.profile,
       element: <CustomerProfile />,
+    },
+    {
+      path: Routes.notifications,
+      element: <NotificationsPage userRole="customer" />,
     },
   ] as RouteObject[];
 };
