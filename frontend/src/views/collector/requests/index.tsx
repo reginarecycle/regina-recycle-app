@@ -1,5 +1,5 @@
 import { StatsCards } from "@/components/requests/stats-cards";
-import RequestsTable2 from "@/components/requests/requests-table2";
+import RequestsTable from "@/components/requests/requests-table";
 
 export function CollectorRequests() {
     return (
@@ -28,7 +28,7 @@ export function CollectorRequests() {
                 />
             </div>
             <div className="px-6 py-6">
-                <RequestsTable2 />
+                <RequestsTable />
             </div>
         </div>
     )
