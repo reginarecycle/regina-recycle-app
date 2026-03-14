@@ -1,112 +1,47 @@
-import { Card, CardFooter, CardContent } from "@/components/ui/card"
-import Verified from "@/assets/icons/verfied-icon.svg"
-import Warning from "@/assets/icons/warning-icon.png"
-import Compostable from "@/assets/icons/compostable-icon.png"
-import Garbage from "@/assets/icons/garbage-icon.svg"
-import WarningIcon from "@/assets/icons/grey-warning-icon.svg"
+import type { RecyclingItem } from "@/constants/interface";
+import { motion } from "framer-motion";
+import BadgeIcon from "../ui/badge-icon";
 
-type Category = 'Recyclable' | 'Garbage' | 'Compostable' | 'Hazardous';
-
-type props = {
-    photo: string;
-    category: Category;
-    title: string
-    description: string
-    subtext: string
+function LearnCard({ item }: { item: RecyclingItem }) {
+  return (
+    <motion.div
+      className="bg-white rounded-xl shadow-[0px_0px_4px_0px_rgba(0,0,0,0.25)] overflow-hidden flex flex-col"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: false, amount: 0.15 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+    >
+      <div className="relative h-40 w-full overflow-hidden">
+        <img
+          src={item.image}
+          alt={item.title}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/40" />
+        <div
+          className="absolute bottom-0 right-0 px-3 py-0.5 text-xs font-medium rounded-tl-md"
+          style={{
+            backgroundColor: item.labelColor,
+            color: item.labelTextColor,
+          }}
+        >
+          {item.label}
+        </div>
+        <BadgeIcon type={item.badgeIcon} color={item.badgeColor} />
+      </div>
+      <div className="p-3 flex flex-col gap-2">
+        <div>
+          <p className="text-sm font-bold text-black">{item.title}</p>
+          <p className="text-xs text-muted-foreground">{item.item}</p>
+        </div>
+        <div className="bg-card flex items-center gap-2 px-2 py-2 rounded-lg">
+          ♻️
+          {/* <AlertTriangle className="size-4 text-muted-foreground shrink-0" /> */}
+          <p className="text-xs text-black">{item.tip}</p>
+        </div>
+      </div>
+    </motion.div>
+  );
 }
 
-function LearnCard({
-    photo,
-    category = "Recyclable",
-    title = "Cans",
-    description = "This is a description",
-    subtext = "This is a warning label",
-}: props) {
-    // based on the category there is an icon assigned
-    const getIcon = () => {
-        switch (category) {
-            case "Recyclable": return Verified;
-            case "Garbage": return Garbage;
-            case "Compostable": return Compostable;
-            case "Hazardous": return Warning;
-            default: return Verified;
-        }
-    };
-
-    const iconSrc = getIcon();
-
-    // based on the category the label color for the category changes
-    const getBadgeBgColor = () => {
-        switch (category) {
-            case "Garbage": return "#999CA0";
-            case "Compostable": return "#CA8A05";
-            case "Hazardous": return "#FEE2E2";
-            case "Recyclable":
-            default: return "#618171";  // default is the green for recyclables
-        }
-    };
-
-    // text color only changes for the hazardous category
-    const badgeTextColor = category === "Hazardous" ? "#991B1B" : "white";
-
-    return (
-        <Card className="relative learn-card flex w-full max-w-[275.44px] overflow-hidden">
-            <CardContent className="!p-0">
-                <img
-                    className="absolute w-full h-43.25 top-0.5"
-                    alt="card-img"
-                    src={photo}
-                />
-            </CardContent>
-
-            <CardFooter>
-                {/* label color for category */}
-                <div className="absolute w-full h-[57.83%] top-0 left-0">
-                    <div className="w-[100%] h-[100%] top-0 bg-[#00000066] rounded-[12px_12px_0px_0px] rotate-[-0.15deg] absolute left-0" />
-
-                    <div
-                        className="flex w-[100px] h-[23px] items-center justify-center px-[17px] py-px absolute top-[152px] left-[173px] rounded-[4px_0px_0px_0px] right-[17px]"
-                        style={{ backgroundColor: getBadgeBgColor() }}
-                    >
-                        <span
-                            className="category-txt"
-                            style={{ color: badgeTextColor }}
-                        >
-                            {category}
-                        </span>
-                    </div>
-                </div>
-                {/* breif description of the material */}
-                <div className="flex flex-col w-[247px] items-start gap-2.5 absolute top-[191px] left-3.5">
-                    <div className="flex flex-col w-fit items-start gap-[7px] relative flex-[0_0_auto]">
-                        <h2 className="card-title">{title}</h2>
-                        <p className="card-description">{description}</p>
-                    </div>
-                    {/* another label used for warnings */}
-                    <div className="inline-flex items-center relative flex-[0_0_auto]">
-                        <div className="warning-label">
-                            <img src={WarningIcon} className="h-[24px] w-[24px]" alt="warning" />
-                            <p className="warning-label-txt">{subtext}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* the icon in the top rigt thats chosen based on the category */}
-                <div className="flex w-8 h-8 items-center justify-around gap-2.5 p-1 absolute top-[11px] left-[236px]">
-                    <div className="inline-flex items-center absolute top-0 left-0">
-                        <div className="relative w-8 h-8 rounded-2xl overflow-hidden">
-                            <div className="absolute inset-0 bg-[#49b972]" />
-                            <img
-                                className="absolute inset-0 w-full h-full object-cover"
-                                alt="card icon"
-                                src={iconSrc}
-                            />
-                        </div>
-                    </div>
-                </div>
-            </CardFooter>
-        </Card>
-    )
-}
-
-export default LearnCard
+export default LearnCard;
