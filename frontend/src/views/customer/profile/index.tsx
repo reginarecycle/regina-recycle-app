@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import NotificationSection from "@/components/ui/notificationSection";
+import { Switch } from "@/components/ui/switch";
 import InputField from "@/components/forms/input-field";
 import {
   profileDetailsSchema,
@@ -82,8 +82,8 @@ export default function ProfilePage() {
     resetPassword();
   };
 
-  const handleToggle = (id: string, checked: boolean) => {
-    setNotificationPrefs((prev) => ({ ...prev, [id]: checked }));
+  const handleToggle = (id: string) => {
+    setNotificationPrefs((prev) => ({ ...prev, [id]: !prev[id] }));
     setNotificationsChanged(true);
   };
 
@@ -92,70 +92,27 @@ export default function ProfilePage() {
     setNotificationsChanged(false);
   };
 
-  const emailRows = [
-    {
-      id: "email:pickup",
-      icon: <Clock className="h-6 w-6 text-gray-600" />,
-      title: "Pickup Reminders",
-      description: "Get notified 24 hours before your scheduled collection.",
-      checked: !!notificationPrefs["email:pickup"],
-    },
-    {
-      id: "email:activity",
-      icon: <Users className="h-6 w-6 text-gray-600" />,
-      title: "Account Activity",
-      description: "Security alert, password changes and login notifications.",
-      checked: !!notificationPrefs["email:activity"],
-    },
-    {
-      id: "email:marketing",
-      icon: <Volume2 className="h-6 w-6 text-gray-600" />,
-      title: "Marketing",
-      description: "Newsletter, impact reports, promotional offers",
-      checked: !!notificationPrefs["email:marketing"],
-    },
-  ];
-
-  const inAppRows = [
-    {
-      id: "inapp:pickup",
-      icon: <Truck className="h-6 w-6 text-gray-600" />,
-      title: "Pickup Reminders",
-      description: "Receive a text message 1 hour before pickup.",
-      checked: !!notificationPrefs["inapp:pickup"],
-    },
-    {
-      id: "inapp:alerts",
-      icon: <AlertTriangle className="h-6 w-6 text-gray-600" />,
-      title: "Important Alerts",
-      description: "Service disruption, weather delays, and urgent updates.",
-      checked: !!notificationPrefs["inapp:alerts"],
-    },
-  ];
-
   return (
     <div className="p-6 md:p-8">
       <Card className="p-0 bg-white border-0">
         {/* Profile Header */}
         <div className="p-6">
-          <div className="flex items-center gap-6">
-            <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-green-100">
+          <div className="flex items-start gap-4 sm:gap-6">
+            <Avatar className="h-20 w-20 sm:h-32 sm:w-32 border-4 border-green-100 shrink-0">
               <AvatarImage src="/avatar.png" alt="John Doe" />
-              <AvatarFallback className="bg-green-100 text-green-600 text-3xl font-semibold">
+              <AvatarFallback className="bg-green-100 text-green-600 text-2xl sm:text-3xl font-semibold">
                 JD
               </AvatarFallback>
             </Avatar>
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl sm:text-4xl font-bold">John Doe</h1>
-                <Badge
-                  variant="success"
-                  className="flex px-2 py-1 items-center rounded-[34px] border border-green-800 bg-green-100 text-[10px] sm:text-xs whitespace-nowrap"
-                >
-                  VERIFIED CUSTOMER
-                </Badge>
-              </div>
-              <p className="text-muted-foreground text-base">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl sm:text-4xl font-bold mb-2">John Doe</h1>
+              <Badge
+                variant="success"
+                className="inline-flex px-2 py-1 items-center rounded-[34px] border border-green-800 bg-green-100 text-[10px] sm:text-xs whitespace-nowrap mb-2"
+              >
+                VERIFIED CUSTOMER
+              </Badge>
+              <p className="text-muted-foreground text-sm sm:text-base">
                 Member since January 2026
               </p>
             </div>
@@ -164,8 +121,8 @@ export default function ProfilePage() {
 
         {/* Tabs */}
         <Tabs defaultValue="details" className="w-full">
-          <div className="px-8 pt-6">
-            <TabsList>
+          <div className="px-6 pb-0 border-b overflow-x-auto">
+            <TabsList className="w-full sm:w-auto inline-flex h-auto bg-transparent p-0">
               <TabsTrigger value="details">My Details</TabsTrigger>
               <TabsTrigger value="security">Security</TabsTrigger>
               <TabsTrigger value="notifications">Notifications</TabsTrigger>
@@ -232,11 +189,11 @@ export default function ProfilePage() {
                 />
               </div>
 
-              <div className="flex justify-center sm:justify-end gap-3 pt-6">
+              <div className="flex flex-col sm:flex-row justify-center sm:justify-end gap-3 pt-6">
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-[174px] h-11 min-w-0 border-[rgba(221,30,30,0.60)] text-red-500 hover:bg-red-50 disabled:opacity-60"
+                  className="w-full sm:w-[174px] h-11 min-w-0 border-[rgba(221,30,30,0.60)] text-red-500 hover:bg-red-50 disabled:opacity-60"
                   disabled={!detailsIsDirty}
                   onClick={() => resetDetails()}
                 >
@@ -244,7 +201,7 @@ export default function ProfilePage() {
                 </Button>
                 <Button
                   type="submit"
-                  className="w-[174px] h-11 min-w-0 bg-primary hover:bg-primary/90 disabled:opacity-60"
+                  className="w-full sm:w-[174px] h-11 min-w-0 bg-primary hover:bg-primary/90 disabled:opacity-60"
                   disabled={!detailsIsDirty}
                 >
                   Save Changes
@@ -294,11 +251,11 @@ export default function ProfilePage() {
                 />
               </div>
 
-              <div className="flex justify-center sm:justify-end gap-3 pt-6">
+              <div className="flex flex-col sm:flex-row justify-center sm:justify-end gap-3 pt-6">
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-[174px] h-11 min-w-0 border-[rgba(221,30,30,0.60)] text-red-500 hover:bg-red-50 disabled:opacity-60"
+                  className="w-full sm:w-[174px] h-11 min-w-0 border-[rgba(221,30,30,0.60)] text-red-500 hover:bg-red-50 disabled:opacity-60"
                   disabled={!passwordIsDirty}
                   onClick={() => resetPassword()}
                 >
@@ -306,7 +263,7 @@ export default function ProfilePage() {
                 </Button>
                 <Button
                   type="submit"
-                  className="w-[174px] h-11 min-w-0 bg-primary hover:bg-primary/90 disabled:opacity-60"
+                  className="w-full sm:w-[174px] h-11 min-w-0 bg-primary hover:bg-primary/90 disabled:opacity-60"
                   disabled={!passwordIsDirty}
                 >
                   Update Password
@@ -345,25 +302,128 @@ export default function ProfilePage() {
 
           {/* Notifications */}
           <TabsContent value="notifications" className="mt-0 p-8">
-            <div className="space-y-6">
-              <NotificationSection
-                title="Email Notification"
-                subtitle="Receive updates and alerts via your registered email address."
-                rows={emailRows}
-                onToggle={handleToggle}
-                onSave={handleSaveEmail}
-                saveLabel="Update Preferences"
-                saveDisabled={!notificationsChanged}
-              />
+            <div className="space-y-8">
+              {/* Email Notification Section */}
+              <div>
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+                  <div>
+                    <h2 className="text-xl font-semibold mb-1">Email Notification</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Receive updates and alerts via your registered email address.
+                    </p>
+                  </div>
+                  <Button
+                    className="w-full sm:w-[174px] h-11 min-w-0 bg-primary hover:bg-primary/90 disabled:opacity-60"
+                    onClick={handleSaveEmail}
+                    disabled={!notificationsChanged}
+                  >
+                    Update Preferences
+                  </Button>
+                </div>
 
-              <Separator className="my-8" />
+                {/* Email Notification Rows */}
+                <div className="space-y-3">
+                  <div className="px-4 py-3 rounded-xl bg-[#F7F7F7] flex items-center gap-3">
+                    <div className="w-[45px] h-[45px] p-2.5 rounded-lg bg-white flex items-center justify-center shrink-0">
+                      <Clock className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm mb-0.5">Pickup Reminders</h3>
+                      <p className="text-xs text-muted-foreground">
+                        Get notified 24 hours before your scheduled collection.
+                      </p>
+                    </div>
+                    <Switch
+                      className="shrink-0"
+                      checked={notificationPrefs["email:pickup"]}
+                      onCheckedChange={() => handleToggle("email:pickup")}
+                    />
+                  </div>
 
-              <NotificationSection
-                title="In-App Notification"
-                subtitle="Get instant update within the platform"
-                rows={inAppRows}
-                onToggle={handleToggle}
-              />
+                  <div className="px-4 py-3 rounded-xl bg-[#F7F7F7] flex items-center gap-3">
+                    <div className="w-[45px] h-[45px] p-2.5 rounded-lg bg-white flex items-center justify-center shrink-0">
+                      <Users className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm mb-0.5">Account Activity</h3>
+                      <p className="text-xs text-muted-foreground">
+                        Security alert, password changes and login notifications.
+                      </p>
+                    </div>
+                    <Switch
+                      className="shrink-0"
+                      checked={notificationPrefs["email:activity"]}
+                      onCheckedChange={() => handleToggle("email:activity")}
+                    />
+                  </div>
+
+                  <div className="px-4 py-3 rounded-xl bg-[#F7F7F7] flex items-center gap-3">
+                    <div className="w-[45px] h-[45px] p-2.5 rounded-lg bg-white flex items-center justify-center shrink-0">
+                      <Volume2 className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm mb-0.5">Marketing</h3>
+                      <p className="text-xs text-muted-foreground">
+                        Newsletter, impact reports, promotional offers
+                      </p>
+                    </div>
+                    <Switch
+                      className="shrink-0"
+                      checked={notificationPrefs["email:marketing"]}
+                      onCheckedChange={() => handleToggle("email:marketing")}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* In-App Notification Section */}
+              <div>
+                <div className="mb-6">
+                  <h2 className="text-xl font-semibold mb-1">In-App Notification</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Get instant update within the platform
+                  </p>
+                </div>
+
+                {/* In-App Notification Rows */}
+                <div className="space-y-3">
+                  <div className="px-4 py-3 rounded-xl bg-[#F7F7F7] flex items-center gap-3">
+                    <div className="w-[45px] h-[45px] p-2.5 rounded-lg bg-white flex items-center justify-center shrink-0">
+                      <Truck className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm mb-0.5">Pickup Reminders</h3>
+                      <p className="text-xs text-muted-foreground">
+                        Receive a text message 1 hour before pickup.
+                      </p>
+                    </div>
+                    <Switch
+                      className="shrink-0"
+                      checked={notificationPrefs["inapp:pickup"]}
+                      onCheckedChange={() => handleToggle("inapp:pickup")}
+                    />
+                  </div>
+
+                  <div className="px-4 py-3 rounded-xl bg-[#F7F7F7] flex items-center gap-3">
+                    <div className="w-[45px] h-[45px] p-2.5 rounded-lg bg-white flex items-center justify-center shrink-0">
+                      <AlertTriangle className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm mb-0.5">Important Alerts</h3>
+                      <p className="text-xs text-muted-foreground">
+                        Service disruption, weather delays, and urgent updates.
+                      </p>
+                    </div>
+                    <Switch
+                      className="shrink-0"
+                      checked={notificationPrefs["inapp:alerts"]}
+                      onCheckedChange={() => handleToggle("inapp:alerts")}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
