@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import DataTable from "@/components/ui/data-table";
 import { Card } from "../ui/card";
+import { useRouter } from "@/routes/hooks/use-router";
 
 type Material = "Plastic" | "Glass" | "Cardboard" | "Carton" | "Paper";
 type Status = "Approved" | "Pending" | "Not Started";
@@ -178,11 +179,18 @@ export function Schedule() {
         </div>
     );
 
+    const router = useRouter();
+
+    const handViewMore = () => {
+        router.push("/app/history"); // takes the user to the schedule pickup page
+    };
+
     return (
-        <Card className="bg-white pt-2 gap-0 pb-0">
+        <Card className="bg-white pt-3 gap-0 pb-0">
             <div className="flex flex-row justify-between px-4 pb-3 text-[16px] font-bold border-b-1">
                 <h1>Recent Schedule</h1>
-                <h2 className="text-[14px] text-[#344E41] hover:underline">
+                <h2 className="text-[14px] text-[#344E41] hover:underline"
+                    onClick={() => router.push("/history")}>
                     View More
                 </h2>
             </div>
