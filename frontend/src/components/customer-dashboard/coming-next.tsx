@@ -27,7 +27,7 @@ export function ComingNext({
     };
 
     return (
-        <Card className="w-full min-w-0 rounded-xl border border-[#CFCFCF] bg-white shadow-none overflow-hidden !py-1.5 max-w-[896px] min-h-[179px] ">
+        <Card className="w-full min-w-0 rounded-xl border border-[#CFCFCF] bg-white shadow-none overflow-hidden !py-1.5 min-h-[179px] ">
             <CardHeader className="border-b border-[#CFCFCF] px-6 !py-1">
                 <h2 className="text-[17px] leading-7 font-semibold text-black">
                     Coming up next
