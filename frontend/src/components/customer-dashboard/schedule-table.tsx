@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import DataTable from "@/components/ui/data-table";
 import { Card } from "../ui/card";
 import { useRouter } from "@/routes/hooks/use-router";
+import ViewDetailsModal from "./view-details-modal";
 
 type Material = "Plastic" | "Glass" | "Cardboard" | "Carton" | "Paper";
 type Status = "Approved" | "Pending" | "Not Started";
@@ -81,6 +83,20 @@ const getStatusClass = (status: Status) => {
 };
 
 export function Schedule() {
+    const router = useRouter();
+    const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+    const [selectedSchedule, setSelectedSchedule] = useState<ScheduleItem | null>(null);
+
+    const handleOpenDetails = (schedule: ScheduleItem) => {
+        setSelectedSchedule(schedule);
+        setIsDetailsOpen(true);
+    };
+
+    const handleCloseDetails = () => {
+        setIsDetailsOpen(false);
+        setSelectedSchedule(null);
+    };
+
     const scheduleColumns = [
         {
             key: "materials",
@@ -132,7 +148,10 @@ export function Schedule() {
             className: "w-[14%]",
             headerClassName: "w-[14%]",
             render: (schedule: ScheduleItem) => (
-                <button className="text-[14px] font-bold text-[#344E41] hover:underline">
+                <button
+                    onClick={() => handleOpenDetails(schedule)}
+                    className="text-[14px] font-bold text-[#344E41] hover:underline"
+                >
                     {schedule.action}
                 </button>
             ),
@@ -171,7 +190,10 @@ export function Schedule() {
             </div>
 
             <div className="mt-4">
-                <button className="flex items-center gap-1 text-[16px] font-medium text-[#344E41] hover:underline">
+                <button
+                    onClick={() => handleOpenDetails(schedule)}
+                    className="flex items-center gap-1 text-[16px] font-medium text-[#344E41] hover:underline"
+                >
                     {schedule.action}
                     <ChevronRight className="h-4 w-4" />
                 </button>
@@ -179,26 +201,49 @@ export function Schedule() {
         </div>
     );
 
-    const router = useRouter();
+    const modalStatus =
+        selectedSchedule?.status === "Approved"
+            ? "Approved"
+            : selectedSchedule?.status === "Pending"
+                ? "Pending"
+                : "Cancelled";
 
     return (
-        <Card className="bg-white pt-3 gap-0 pb-0">
-            <div className="flex flex-row justify-between px-4 pb-3 text-[16px] font-bold border-b-1">
-                <h1>Recent Schedule</h1>
-                <h2 className="text-[14px] text-[#344E41] hover:underline"
-                    onClick={() => router.push("/app/history")}>
-                    View More
-                </h2>
-            </div>
+        <>
+            <Card className="bg-white pt-3 gap-0 pb-0">
+                <div className="flex flex-row justify-between px-4 pb-3 text-[16px] font-bold border-b-1">
+                    <h1>Recent Schedule</h1>
+                    <h2
+                        className="text-[14px] text-[#344E41] hover:underline cursor-pointer"
+                        onClick={() => router.push("/app/history")}
+                    >
+                        View More
+                    </h2>
+                </div>
 
-            <DataTable
-                data={schedules}
-                columns={scheduleColumns}
-                keyExtractor={(schedule) => schedule.id}
-                mobileRender={renderMobileSchedule}
-                className="[&_div]:border-none [&_.rounded-md]:border-none [&_thead]:bg-white"
+                <DataTable
+                    data={schedules}
+                    columns={scheduleColumns}
+                    keyExtractor={(schedule) => schedule.id}
+                    mobileRender={renderMobileSchedule}
+                    className="[&_div]:border-none [&_.rounded-md]:border-none [&_thead]:bg-white"
+                />
+            </Card>
+
+            <ViewDetailsModal
+                isOpen={isDetailsOpen}
+                onClose={handleCloseDetails}
+                referenceNumber={`REF-2023-00${selectedSchedule?.id ?? "1234"}`}
+                status={modalStatus}
+                collectorName="Michael Johnson"
+                collectorId="COL-789"
+                requestDate={selectedSchedule ? format(selectedSchedule.date, "dd, MMM yyyy") : ""}
+                scheduledPickupDate={selectedSchedule ? format(selectedSchedule.date, "dd, MMM yyyy") : ""}
+                pickupLocation="123 Lane, Str. Downtown District"
+                materials={selectedSchedule?.materials ?? []}
+                onDownloadReport={() => console.log("download report")}
             />
-        </Card>
+        </>
     );
 }
 
