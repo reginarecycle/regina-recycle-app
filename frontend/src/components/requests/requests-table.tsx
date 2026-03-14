@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import DataTable, { type Column } from "@/components/ui/data-table";
 import { ChevronRight, ListFilter, Search } from "lucide-react";
@@ -94,10 +95,7 @@ export default function RequestsTable() {
             comments,
         });
 
-        // Example behavior: remove the request from the table entirely.
-        // If you want a separate "rejected" status instead, change this logic.
         setRequests((prev) => prev.filter((request) => request !== selectedRequest));
-
         setRejectOpen(false);
         setSelectedRequest(null);
     };
@@ -249,6 +247,155 @@ export default function RequestsTable() {
         };
     };
 
+    const renderMobileCards = (
+        data: RequestRow[],
+        showMaterials: boolean,
+        showPayment: boolean,
+        payoutLabel: string
+    ) => {
+        const { paginatedData, totalPages, showText } = paginate(data);
+
+        return (
+            <div className="md:hidden">
+                <div className="space-y-3 p-4">
+                    {paginatedData.length === 0 ? (
+                        <div className="rounded-xl border border-[#E5E7EB] bg-white p-4 text-sm text-gray-500">
+                            No requests found
+                        </div>
+                    ) : (
+                        paginatedData.map((row) => {
+                            const materials = [row.material1, row.material2, row.material3].filter(Boolean);
+
+                            return (
+                                <div
+                                    key={`${row.Username}-${row.Date}-${row.startTime}`}
+                                    className="rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-sm"
+                                >
+                                    <div className="mb-3 flex items-start justify-between gap-3">
+                                        <div>
+                                            <div className="text-[15px] font-bold text-black">
+                                                {row.Username}
+                                            </div>
+                                            <div className="mt-1 text-[13px] text-gray-600">
+                                                {row.Location}
+                                            </div>
+                                        </div>
+
+                                        {row.Compatibility === 100 ? (
+                                            <Badge
+                                                variant={"inactive"}
+                                                className="bg-green-100 text-green-800 border-0 text-xs"
+                                            >
+                                                COMPATIBLE
+                                            </Badge>
+                                        ) : (
+                                            <Badge
+                                                variant={"inactive"}
+                                                className="bg-red-100 text-red-700 border-0 text-xs"
+                                            >
+                                                INCOMPATIBLE
+                                            </Badge>
+                                        )}
+                                    </div>
+
+                                    <div className="mb-3 text-[13px] text-gray-700">
+                                        <div className="font-semibold text-black">Date & Time</div>
+                                        <div>
+                                            {row.Date}
+                                        </div>
+                                        <div>
+                                            {row.startTime} - {row.endTime}
+                                        </div>
+                                    </div>
+
+                                    {showMaterials && (
+                                        <div className="mb-3">
+                                            <div className="mb-2 text-[13px] font-semibold text-black">
+                                                Material
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {materials.map((m, i) => (
+                                                    <Badge
+                                                        key={i}
+                                                        className="bg-[#5f7f6e] text-white text-xs px-3 py-1 rounded-full font-bold"
+                                                    >
+                                                        {m}
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {showPayment && (
+                                        <div className="mb-3 text-[13px] text-gray-700">
+                                            <div className="font-semibold text-black">{payoutLabel}</div>
+                                            <div className="font-bold text-sm">$12.50</div>
+                                        </div>
+                                    )}
+
+                                    <div className="pt-2">
+                                        {activeTab === "accepted" ? (
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedRequest(row);
+                                                    setCompleteNote("");
+                                                    setCompleteOpen(true);
+                                                }}
+                                                className="w-full rounded-md border border-[#4D7C63] px-4 py-2 font-medium text-[#4D7C63] transition hover:bg-[#4D7C63] hover:text-white"
+                                            >
+                                                Complete
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedRequest(row);
+                                                    setDetailsOpen(true);
+                                                }}
+                                                className="flex w-full items-center justify-center gap-1 rounded-md bg-[#344E41] px-4 py-2 text-sm font-semibold text-white"
+                                            >
+                                                View Details <ChevronRight size={16} />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })
+                    )}
+                </div>
+
+                <div className="border-t border-[#E5E7EB] px-4 py-4">
+                    <div className="mb-3 text-center text-sm text-gray-500">
+                        {showText}
+                    </div>
+
+                    <div className="flex items-center justify-center gap-2 sm:gap-4 flex-wrap">
+                        <Button
+                            variant="outline"
+                            disabled={currentPage === 1}
+                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                            className="flex-1 sm:flex-none min-w-[80px] px-4 py-2 rounded-lg border border-gray-200 text-gray-700 font-medium hover:bg-gray-100 transition"
+                        >
+                            Prev
+                        </Button>
+
+                        <div className="rounded-md bg-[#344E41] px-4 py-2 text-sm font-semibold text-white">
+                            {currentPage}
+                        </div>
+
+                        <Button
+                            variant="outline"
+                            disabled={currentPage === totalPages}
+                            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                            className="flex-1 sm:flex-none min-w-[80px] px-4 py-2 rounded-lg border border-gray-200 text-gray-700 font-medium hover:bg-gray-100 transition"
+                        >
+                            Next
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <Card className="bg-white w-full gap-0 py-3">
             <Tabs
@@ -259,9 +406,9 @@ export default function RequestsTable() {
                 }}
                 className="w-full"
             >
-                <CardHeader className="border-b border-[#CFCFCF] !py-0 h-[64px] flex items-center px-6">
-                    <TabsList className="bg-transparent p-0 gap-8 border-0 h-full flex items-center">
-                        <TabsTrigger value="incoming" className="font-medium text-[15px] text-[#111827BF]">
+                <CardHeader className="border-b border-[#CFCFCF] !py-0 min-h-[64px] flex items-center px-4 md:px-6">
+                    <TabsList className="bg-transparent p-0 gap-4 md:gap-8 border-0 h-full flex items-center overflow-x-auto w-full">
+                        <TabsTrigger value="incoming" className="font-medium text-[15px] text-[#111827BF] whitespace-nowrap">
                             Incoming Requests
                             {activeTab === "incoming" && (
                                 <span className="ml-2 bg-gray-200 text-black text-[12px] px-2 py-[2px] rounded-full font-bold">
@@ -270,7 +417,7 @@ export default function RequestsTable() {
                             )}
                         </TabsTrigger>
 
-                        <TabsTrigger value="accepted" className="font-medium text-[15px] text-[#111827BF]">
+                        <TabsTrigger value="accepted" className="font-medium text-[15px] text-[#111827BF] whitespace-nowrap">
                             Accepted
                             {activeTab === "accepted" && (
                                 <span className="ml-2 bg-gray-200 text-black text-[12px] px-2 py-[2px] rounded-full font-bold">
@@ -279,7 +426,7 @@ export default function RequestsTable() {
                             )}
                         </TabsTrigger>
 
-                        <TabsTrigger value="completed" className="font-medium text-[15px] text-[#111827BF]">
+                        <TabsTrigger value="completed" className="font-medium text-[15px] text-[#111827BF] whitespace-nowrap">
                             Completed
                             {activeTab === "completed" && (
                                 <span className="ml-2 bg-gray-200 text-black text-[12px] px-2 py-[2px] rounded-full font-bold">
@@ -290,8 +437,8 @@ export default function RequestsTable() {
                     </TabsList>
                 </CardHeader>
 
-                <CardTitle className="flex items-center justify-between border-b border-[#CFCFCF] h-[64px] px-6">
-                    <div className="flex items-center bg-gray-100 rounded-md px-2 h-[31px] w-[321px]">
+                <CardTitle className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between border-b border-[#CFCFCF] px-4 py-4 md:h-[64px] md:px-6">
+                    <div className="flex items-center bg-gray-100 rounded-md px-2 h-[36px] w-full md:w-[321px]">
                         <Search className="w-4 h-4 text-black mr-2" strokeWidth={2.5} />
                         <input
                             type="text"
@@ -300,7 +447,7 @@ export default function RequestsTable() {
                         />
                     </div>
 
-                    <div className="p-2 rounded-full bg-[#f7f7f7] cursor-pointer hover:bg-gray-200">
+                    <div className="self-end md:self-auto p-2 rounded-full bg-[#f7f7f7] cursor-pointer hover:bg-gray-200">
                         <ListFilter size={18} strokeWidth={3} />
                     </div>
                 </CardTitle>
@@ -309,18 +456,24 @@ export default function RequestsTable() {
                     {(() => {
                         const { paginatedData, totalPages, showText } = paginate(incomingData);
                         return (
-                            <DataTable
-                                className="[&>div]:border-0 [&>div]:rounded-none"
-                                data={paginatedData}
-                                columns={createColumns(true, false, "")}
-                                keyExtractor={(row) => `incoming-${row.Username}-${row.Date}`}
-                                pagination={{
-                                    currentPage,
-                                    totalPages,
-                                    onPageChange: setCurrentPage,
-                                    showText,
-                                }}
-                            />
+                            <>
+                                <div className="hidden md:block">
+                                    <DataTable
+                                        className="[&>div]:border-0 [&>div]:rounded-none"
+                                        data={paginatedData}
+                                        columns={createColumns(true, false, "")}
+                                        keyExtractor={(row) => `incoming-${row.Username}-${row.Date}`}
+                                        pagination={{
+                                            currentPage,
+                                            totalPages,
+                                            onPageChange: setCurrentPage,
+                                            showText,
+                                        }}
+                                    />
+                                </div>
+
+                                {renderMobileCards(incomingData, true, false, "")}
+                            </>
                         );
                     })()}
                 </TabsContent>
@@ -329,18 +482,24 @@ export default function RequestsTable() {
                     {(() => {
                         const { paginatedData, totalPages, showText } = paginate(acceptedData);
                         return (
-                            <DataTable
-                                className="[&>div]:border-0 [&>div]:rounded-none"
-                                data={paginatedData}
-                                columns={createColumns(false, true, "Estimated Payment ($)")}
-                                keyExtractor={(row) => `accepted-${row.Username}-${row.Date}`}
-                                pagination={{
-                                    currentPage,
-                                    totalPages,
-                                    onPageChange: setCurrentPage,
-                                    showText,
-                                }}
-                            />
+                            <>
+                                <div className="hidden md:block">
+                                    <DataTable
+                                        className="[&>div]:border-0 [&>div]:rounded-none"
+                                        data={paginatedData}
+                                        columns={createColumns(false, true, "Estimated Payment ($)")}
+                                        keyExtractor={(row) => `accepted-${row.Username}-${row.Date}`}
+                                        pagination={{
+                                            currentPage,
+                                            totalPages,
+                                            onPageChange: setCurrentPage,
+                                            showText,
+                                        }}
+                                    />
+                                </div>
+
+                                {renderMobileCards(acceptedData, false, true, "Estimated Payment ($)")}
+                            </>
                         );
                     })()}
                 </TabsContent>
@@ -349,18 +508,24 @@ export default function RequestsTable() {
                     {(() => {
                         const { paginatedData, totalPages, showText } = paginate(completedData);
                         return (
-                            <DataTable
-                                className="[&>div]:border-0 [&>div]:rounded-none"
-                                data={paginatedData}
-                                columns={createColumns(false, true, "Payout ($)")}
-                                keyExtractor={(row) => `completed-${row.Username}-${row.Date}`}
-                                pagination={{
-                                    currentPage,
-                                    totalPages,
-                                    onPageChange: setCurrentPage,
-                                    showText,
-                                }}
-                            />
+                            <>
+                                <div className="hidden md:block">
+                                    <DataTable
+                                        className="[&>div]:border-0 [&>div]:rounded-none"
+                                        data={paginatedData}
+                                        columns={createColumns(false, true, "Payout ($)")}
+                                        keyExtractor={(row) => `completed-${row.Username}-${row.Date}`}
+                                        pagination={{
+                                            currentPage,
+                                            totalPages,
+                                            onPageChange: setCurrentPage,
+                                            showText,
+                                        }}
+                                    />
+                                </div>
+
+                                {renderMobileCards(completedData, false, true, "Payout ($)")}
+                            </>
                         );
                     })()}
                 </TabsContent>

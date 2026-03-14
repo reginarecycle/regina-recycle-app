@@ -162,8 +162,8 @@ export function CompleteRequestModal({
 
                                 <span
                                     className={`inline-flex rounded-full px-4 py-1 text-[14px] font-medium ${compatibility === "100%"
-                                            ? "bg-[#DCFCE7] text-[#22C55E]"
-                                            : "bg-[#FEE2E2] text-[#EF4444]"
+                                        ? "bg-[#DCFCE7] text-[#22C55E]"
+                                        : "bg-[#FEE2E2] text-[#EF4444]"
                                         }`}
                                 >
                                     {compatibility}
@@ -271,8 +271,8 @@ export function CompleteRequestModal({
 
                         <div
                             className={`rounded-[16px] border px-5 py-5 ${hasEnoughBalance
-                                    ? "border-[#22C55E] bg-[#DCFCE7]"
-                                    : "border-[#EF4444] bg-[#FEE2E2]"
+                                ? "border-[#22C55E] bg-[#DCFCE7]"
+                                : "border-[#EF4444] bg-[#FEE2E2]"
                                 }`}
                         >
                             <div className="flex items-start gap-3">
@@ -287,8 +287,8 @@ export function CompleteRequestModal({
                                 <div>
                                     <p
                                         className={`text-[16px] font-medium ${hasEnoughBalance
-                                                ? "text-[#22C55E]"
-                                                : "text-[#EF4444]"
+                                            ? "text-[#22C55E]"
+                                            : "text-[#EF4444]"
                                             }`}
                                     >
                                         {hasEnoughBalance
@@ -311,7 +311,7 @@ export function CompleteRequestModal({
                         <Button
                             onClick={onClose}
                             variant="destructive"
-                            className="h-[56px] rounded-[14px] border border-red-400 bg-white text-[16px] font-semibold text-red-500 hover:bg-red-50"
+                            className="min-w-[210px] h-[56px] rounded-[14px] border border-red-400 bg-white text-[16px] font-semibold text-red-500 hover:bg-red-50"
                         >
                             Cancel
                         </Button>
@@ -319,7 +319,7 @@ export function CompleteRequestModal({
                         <Button
                             onClick={handleCompleteRequest}
                             disabled={!hasEnoughBalance}
-                            className="h-[56px] rounded-[14px] bg-[#344E41] text-[16px] font-semibold text-white hover:bg-[#2B4035] disabled:cursor-not-allowed disabled:bg-[#A7B3AC]"
+                            className="min-w-[210px] h-[56px] rounded-[14px] bg-[#344E41] text-[16px] font-semibold text-white hover:bg-[#2B4035] disabled:cursor-not-allowed disabled:bg-[#A7B3AC]"
                         >
                             Complete Request
                         </Button>

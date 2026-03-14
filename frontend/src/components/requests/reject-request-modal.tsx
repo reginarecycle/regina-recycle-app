@@ -40,8 +40,24 @@ export function RejectRequestModal({
             <div className="w-full max-w-[660px] rounded-[28px] bg-white px-12 py-10 shadow-2xl">
                 {/* Icon */}
                 <div className="mb-8 flex justify-center">
-                    <div className="flex h-[96px] w-[96px] items-center justify-center rounded-full bg-[#FDE2E2]">
-                        <AlertTriangle className="h-10 w-10 fill-[#E52421] text-[#E52421]" strokeWidth={2.5} />
+                    <div className="mb-8 flex justify-center">
+                        <div className="flex h-[96px] w-[96px] items-center justify-center rounded-full bg-[#F8D7DA]">
+                            <svg
+                                width="44"
+                                height="44"
+                                viewBox="0 0 44 44"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    d="M22 6L40 37C40.7 38.2 39.83 39.75 38.44 39.75H5.56C4.17 39.75 3.3 38.2 4 37L22 6Z"
+                                    fill="#E52421"
+                                />
+                                <rect x="20.5" y="15" width="3" height="11" rx="1.5" fill="white" />
+                                <circle cx="22" cy="31" r="2" fill="white" />
+                            </svg>
+                        </div>
                     </div>
                 </div>
 
@@ -111,12 +127,12 @@ export function RejectRequestModal({
                 </div>
 
                 {/* Footer */}
-                <div className="mt-14 grid grid-cols-2 gap-7">
+                <div className="mt-14 grid grid-cols-2 gap-4 justify-between">
                     <Button
                         type="button"
                         onClick={onClose}
                         variant="destructive"
-                        className="h-[58px] rounded-[14px] border border-[#FF3B30] bg-white text-[18px] font-semibold text-[#FF3B30] hover:bg-red-50"
+                        className="min-w-[180px] rounded-[14px] border border-[#FF3B30] bg-white text-[14px] font-semibold text-[#FF3B30] hover:bg-red-50"
                     >
                         Cancel
                     </Button>
@@ -125,7 +141,7 @@ export function RejectRequestModal({
                         type="button"
                         onClick={handleConfirm}
                         disabled={!reason}
-                        className="h-[58px] rounded-[14px] bg-[#E57373] text-[18px] font-semibold text-white hover:bg-[#dc6666] disabled:cursor-not-allowed disabled:bg-[#F2A5A5]"
+                        className="min-w-[180px] rounded-[14px] bg-[#E57373] text-[18px] font-semibold text-white hover:bg-[#dc6666] disabled:cursor-not-allowed disabled:bg-[#F2A5A5]"
                     >
                         Confirm
                     </Button>
