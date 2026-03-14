@@ -98,10 +98,14 @@ export function CompleteRequestModal({
 
     const hasEnoughBalance = balance >= updatedTotalPayout;
 
+    const handleCompleteRequest = () => {
+        if (!hasEnoughBalance) return;
+        onComplete?.(editableItems);
+    };
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
             <div className="relative max-h-[90vh] w-full max-w-[820px] overflow-y-auto rounded-[24px] bg-white shadow-2xl">
-                {/* Header */}
                 <div className="relative border-b border-[#E5E7EB] px-6 py-6">
                     <button
                         onClick={onClose}
@@ -119,9 +123,7 @@ export function CompleteRequestModal({
                     </p>
                 </div>
 
-                {/* Body */}
                 <div className="space-y-6 px-6 py-6">
-                    {/* Top summary card */}
                     <div className="grid grid-cols-1 gap-y-6 rounded-[18px] bg-[#F7F7F7] px-5 py-5 md:grid-cols-2">
                         <div className="space-y-6">
                             <div>
@@ -159,8 +161,7 @@ export function CompleteRequestModal({
                                 </p>
 
                                 <span
-                                    className={`inline-flex rounded-full px-4 py-1 text-[14px] font-medium
-                                            ${compatibility === "100%"
+                                    className={`inline-flex rounded-full px-4 py-1 text-[14px] font-medium ${compatibility === "100%"
                                             ? "bg-[#DCFCE7] text-[#22C55E]"
                                             : "bg-[#FEE2E2] text-[#EF4444]"
                                         }`}
@@ -270,8 +271,8 @@ export function CompleteRequestModal({
 
                         <div
                             className={`rounded-[16px] border px-5 py-5 ${hasEnoughBalance
-                                ? "border-[#22C55E] bg-[#DCFCE7]"
-                                : "border-[#EF4444] bg-[#FEE2E2]"
+                                    ? "border-[#22C55E] bg-[#DCFCE7]"
+                                    : "border-[#EF4444] bg-[#FEE2E2]"
                                 }`}
                         >
                             <div className="flex items-start gap-3">
@@ -286,8 +287,8 @@ export function CompleteRequestModal({
                                 <div>
                                     <p
                                         className={`text-[16px] font-medium ${hasEnoughBalance
-                                            ? "text-[#22C55E]"
-                                            : "text-[#EF4444]"
+                                                ? "text-[#22C55E]"
+                                                : "text-[#EF4444]"
                                             }`}
                                     >
                                         {hasEnoughBalance
@@ -305,19 +306,18 @@ export function CompleteRequestModal({
                     </div>
                 </div>
 
-                {/* Footer */}
                 <div className="border-t border-[#E5E7EB] bg-white px-6 py-4">
                     <div className="grid grid-cols-2 gap-4">
                         <Button
                             onClick={onClose}
                             variant="destructive"
-                            className="h-[56px] rounded-[14px] border border-red-400 text-[16px] font-semibold text-red-500 hover:bg-red-50 bg-white"
+                            className="h-[56px] rounded-[14px] border border-red-400 bg-white text-[16px] font-semibold text-red-500 hover:bg-red-50"
                         >
                             Cancel
                         </Button>
 
                         <Button
-                            onClick={() => onComplete?.(editableItems)}
+                            onClick={handleCompleteRequest}
                             disabled={!hasEnoughBalance}
                             className="h-[56px] rounded-[14px] bg-[#344E41] text-[16px] font-semibold text-white hover:bg-[#2B4035] disabled:cursor-not-allowed disabled:bg-[#A7B3AC]"
                         >

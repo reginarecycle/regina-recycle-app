@@ -49,7 +49,10 @@ export function RequestAcceptedModal({
                         </button>
 
                         <button
-                            onClick={onViewActivePickups}
+                            onClick={() => {
+                                onViewActivePickups();
+                                onClose();
+                            }}
                             className="flex-1 rounded-lg bg-[#344E41] px-6 py-3.5 text-[16px] font-semibold
                              text-white hover:bg-[#265a42] transition-colors focus:outline-none focus:ring-2
                               focus:ring-[#2F6B4F] focus:ring-offset-2 !w-[212px]"

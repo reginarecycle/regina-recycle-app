@@ -14,14 +14,16 @@ type RequestRow = (typeof RequestsData)[number];
 const ROWS_PER_PAGE = 5;
 
 export default function RequestsTable2() {
+    const [requests, setRequests] = useState<RequestRow[]>(RequestsData);
+
     const [activeTab, setActiveTab] = useState<"incoming" | "accepted" | "completed">("incoming");
     const [selectedRequest, setSelectedRequest] = useState<RequestRow | null>(null);
 
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [completeOpen, setCompleteOpen] = useState(false);
+    const [acceptedOpen, setAcceptedOpen] = useState(false);
     const [completeNote, setCompleteNote] = useState("");
 
-    // Independent page state per tab
     const [pageIncoming, setPageIncoming] = useState(1);
     const [pageAccepted, setPageAccepted] = useState(1);
     const [pageCompleted, setPageCompleted] = useState(1);
@@ -39,9 +41,48 @@ export default function RequestsTable2() {
 
     const { page: currentPage, setPage: setCurrentPage } = getPageState();
 
-    const incomingData = RequestsData.filter((r) => r.status === "incoming");
-    const acceptedData = RequestsData.filter((r) => r.status === "accepted");
-    const completedData = RequestsData.filter((r) => r.status === "completed");
+    const incomingData = requests.filter((r) => r.status === "incoming");
+    const acceptedData = requests.filter((r) => r.status === "accepted");
+    const completedData = requests.filter((r) => r.status === "completed");
+
+    const handleAcceptRequest = () => {
+        if (!selectedRequest) return;
+
+        setRequests((prev) =>
+            prev.map((request) =>
+                request === selectedRequest
+                    ? { ...request, status: "accepted" }
+                    : request
+            )
+        );
+
+        setSelectedRequest((prev) =>
+            prev ? { ...prev, status: "accepted" } : prev
+        );
+
+        setDetailsOpen(false);
+        setAcceptedOpen(true);
+        setActiveTab("accepted");
+    };
+
+    const handleCompleteRequest = () => {
+        if (!selectedRequest) return;
+
+        setRequests((prev) =>
+            prev.map((request) =>
+                request === selectedRequest
+                    ? { ...request, status: "completed" }
+                    : request
+            )
+        );
+
+        setSelectedRequest((prev) =>
+            prev ? { ...prev, status: "completed" } : prev
+        );
+
+        setCompleteOpen(false);
+        setActiveTab("completed");
+    };
 
     const createColumns = (
         showMaterials: boolean,
@@ -246,7 +287,6 @@ export default function RequestsTable2() {
                     </div>
                 </CardTitle>
 
-                {/* Incoming Tab */}
                 <TabsContent value="incoming" className="m-0">
                     {(() => {
                         const { paginatedData, totalPages, showText } = paginate(incomingData);
@@ -267,7 +307,6 @@ export default function RequestsTable2() {
                     })()}
                 </TabsContent>
 
-                {/* Accepted Tab */}
                 <TabsContent value="accepted" className="m-0">
                     {(() => {
                         const { paginatedData, totalPages, showText } = paginate(acceptedData);
@@ -288,7 +327,6 @@ export default function RequestsTable2() {
                     })()}
                 </TabsContent>
 
-                {/* Completed Tab */}
                 <TabsContent value="completed" className="m-0">
                     {(() => {
                         const { paginatedData, totalPages, showText } = paginate(completedData);
@@ -310,12 +348,12 @@ export default function RequestsTable2() {
                 </TabsContent>
             </Tabs>
 
-            {/* Details modal */}
             {selectedRequest && (
                 <RequestDetailsModal
                     isOpen={detailsOpen}
                     request={selectedRequest}
                     onClose={() => setDetailsOpen(false)}
+                    onAccept={handleAcceptRequest}
                     requestNum={"#REQ 000000"}
                     earnings={0}
                     estUnits={0}
@@ -328,15 +366,11 @@ export default function RequestsTable2() {
                 />
             )}
 
-            {/* Complete request modal */}
             {selectedRequest && (
                 <CompleteRequestModal
                     isOpen={completeOpen}
                     onClose={() => setCompleteOpen(false)}
-                    onComplete={() => {
-                        // add your complete-request logic here
-                        setCompleteOpen(false);
-                    }}
+                    onComplete={handleCompleteRequest}
                     requestId="REQ001"
                     customer={selectedRequest.Username}
                     location={selectedRequest.Location}
@@ -349,6 +383,15 @@ export default function RequestsTable2() {
                     setNote={setCompleteNote}
                 />
             )}
+
+            <RequestAcceptedModal
+                isOpen={acceptedOpen}
+                onClose={() => setAcceptedOpen(false)}
+                onViewActivePickups={() => {
+                    setAcceptedOpen(false);
+                    setActiveTab("incoming");
+                }}
+            />
         </Card>
     );
 }
