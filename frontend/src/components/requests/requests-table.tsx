@@ -550,6 +550,7 @@ export default function RequestsTable() {
                             : "INCOMPATIBLE"
                     }
                     username={selectedRequest.Username}
+                    sourceTab={activeTab}
                 />
             )}
 

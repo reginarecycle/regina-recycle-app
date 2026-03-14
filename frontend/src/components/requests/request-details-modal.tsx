@@ -6,6 +6,7 @@ import { Button } from "../ui/button";
 import ProfilePhoto from "../shared/profile-photo";
 
 type RequestRow = (typeof RequestsData)[number];
+type RequestTab = "incoming" | "accepted" | "completed" | "rejected";
 
 interface RequestDetailsModalProps {
     isOpen: boolean;
@@ -18,6 +19,7 @@ interface RequestDetailsModalProps {
     estUnits: number;
     compatibilityStr: string;
     username: string;
+    sourceTab: RequestTab;
 }
 
 export function RequestDetailsModal({
@@ -31,10 +33,12 @@ export function RequestDetailsModal({
     estUnits,
     compatibilityStr,
     username,
+    sourceTab,
 }: RequestDetailsModalProps) {
     if (!isOpen || !request) return null;
 
     const isIncompatible = compatibilityStr.toLowerCase().includes("incompatible");
+    const showActionButtons = sourceTab === "incoming";
 
     const orderSummary = [
         { material: "Glass bottles", estimatedUnits: 44, price: 100.0 },
@@ -46,7 +50,6 @@ export function RequestDetailsModal({
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
             <div className="absolute inset-y-0 right-0 flex w-full justify-end">
                 <div className="h-full w-full max-w-[490px] overflow-y-auto bg-[#F8F8F8] shadow-2xl">
-                    {/* Header */}
                     <div className="relative border-b border-gray-200 bg-white px-6 pt-6 pb-5">
                         <button
                             onClick={onClose}
@@ -62,7 +65,6 @@ export function RequestDetailsModal({
                         </p>
                     </div>
 
-                    {/* Summary section */}
                     <div
                         className={`px-4 py-6 md:px-5 ${isIncompatible ? "bg-[#DC2626]" : "bg-[#344E41] top-[92px]"
                             }`}
@@ -74,8 +76,8 @@ export function RequestDetailsModal({
 
                             <Badge
                                 className={`rounded-full px-4 py-1 text-[13px] font-semibold ${isIncompatible
-                                    ? "bg-[#FEE2E2] text-[#991B1B] hover:bg-[#FEE2E2]"
-                                    : "bg-[#DDF5E4] text-[#2F6B4F] hover:bg-[#DDF5E4]"
+                                        ? "bg-[#FEE2E2] text-[#991B1B] hover:bg-[#FEE2E2]"
+                                        : "bg-[#DDF5E4] text-[#2F6B4F] hover:bg-[#DDF5E4]"
                                     }`}
                             >
                                 {compatibilityStr}
@@ -113,9 +115,7 @@ export function RequestDetailsModal({
                         </div>
                     </div>
 
-                    {/* Content */}
                     <div className="space-y-6 px-4 py-5 md:px-5">
-                        {/* Order Summary */}
                         <div>
                             <h3 className="mb-3 text-[14px] font-medium uppercase tracking-wide text-[#999CA0]">
                                 Order Summary
@@ -132,8 +132,8 @@ export function RequestDetailsModal({
                                     <div
                                         key={item.material}
                                         className={`grid grid-cols-3 px-6 pb-2 text-[14px] ${index !== orderSummary.length - 1
-                                            ? "border-b border-[#E5E7EB]"
-                                            : ""
+                                                ? "border-b border-[#E5E7EB]"
+                                                : ""
                                             }`}
                                     >
                                         <div className="font-medium text-[#344E41]">{item.material}</div>
@@ -148,7 +148,6 @@ export function RequestDetailsModal({
                             </Card>
                         </div>
 
-                        {/* User & Location */}
                         <Card className="rounded-2xl border border-[#D1D5DB] bg-white px-5 shadow-sm">
                             <h3 className="mb-3 text-[14px] font-medium uppercase tracking-wide text-[#4B5563] -mt-2">
                                 User & Location
@@ -173,7 +172,6 @@ export function RequestDetailsModal({
                             </div>
                         </Card>
 
-                        {/* Note */}
                         <div className="rounded-2xl border border-dashed border-[#D1D5DB] bg-white px-5 py-4">
                             <h3 className="mb-3 text-[14px] font-medium uppercase tracking-wide text-[#4B5563]">
                                 Note from User
@@ -186,27 +184,28 @@ export function RequestDetailsModal({
                         </div>
                     </div>
 
-                    {/* Footer */}
-                    <div className="border-t border-[#E5E7EB] bg-[#F8F8F8] p-5">
-                        <div className="flex w-full gap-4">
-                            <Button
-                                onClick={onReject ?? onClose}
-                                variant="destructive"
-                                className="min-w-[180px] flex-1 flex items-center justify-center gap-2 rounded-xl border border-red-400 bg-white text-[16px] font-semibold text-red-500 hover:bg-red-50 h-[48px]"
-                            >
-                                <XCircle size={18} />
-                                Reject
-                            </Button>
+                    {showActionButtons && (
+                        <div className="border-t border-[#E5E7EB] bg-[#F8F8F8] p-5">
+                            <div className="flex w-full gap-4">
+                                <Button
+                                    onClick={onReject ?? onClose}
+                                    variant="destructive"
+                                    className="min-w-[180px] flex-1 flex items-center justify-center gap-2 rounded-xl border border-red-400 bg-white text-[16px] font-semibold text-red-500 hover:bg-red-50 h-[48px]"
+                                >
+                                    <XCircle size={18} />
+                                    Reject
+                                </Button>
 
-                            <Button
-                                onClick={onAccept}
-                                className="min-w-[180px] flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#344E41] text-white hover:bg-[#2B4035] h-[48px]"
-                            >
-                                <CheckCircle2 size={18} />
-                                Accept
-                            </Button>
+                                <Button
+                                    onClick={onAccept}
+                                    className="min-w-[180px] flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#344E41] text-white hover:bg-[#2B4035] h-[48px]"
+                                >
+                                    <CheckCircle2 size={18} />
+                                    Accept
+                                </Button>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
         </div>
