@@ -1,3 +1,4 @@
+import 'tsconfig-paths/register';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
@@ -9,12 +10,10 @@ import * as fs from 'fs';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // ✅ Global pipes, filters, interceptors first
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalInterceptors(new ResponseInterceptor());
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  // ✅ Swagger setup
   const config = new DocumentBuilder()
     .setTitle('ReginaRecycle API')
     .setDescription('ReginaRecycle backend API documentation')
@@ -32,8 +31,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
 
-  // ✅ Export swagger.json inside bootstrap so document is accessible
-  fs.writeFileSync('./swagger.json', JSON.stringify(document, null, 2));
+  // fs.writeFileSync('./swagger.json', JSON.stringify(document, null, 2));
 
   await app.listen(process.env.PORT ?? 4000);
 }
