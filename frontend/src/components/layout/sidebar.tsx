@@ -10,6 +10,7 @@ interface SidebarProps {
   userName?: string;
   userRole?: string;
   userAvatar?: string;
+  activePath?: string; // Add this prop
 }
 
 export function Sidebar({
@@ -17,9 +18,13 @@ export function Sidebar({
   userName = "John Doe",
   userRole = "Verified User",
   userAvatar,
+  activePath, // Add this
 }: SidebarProps) {
   const location = useLocation();
   const navItems = isCollectorMode ? collectorNavItems : userNavItems;
+  
+  // Use activePath if provided, otherwise use current location
+  const currentPath = activePath || location.pathname;
 
   const getInitials = (name: string) => {
     return name
@@ -49,7 +54,7 @@ export function Sidebar({
         <div className=" pt-8 text-xs font-medium text-primary">MENU</div>
         <div className="flex flex-col gap-2">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.href;
+            const isActive = currentPath === item.href; // Use currentPath instead of location.pathname
             const Icon = item.icon;
 
             return (

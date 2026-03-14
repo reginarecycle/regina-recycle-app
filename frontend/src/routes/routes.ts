@@ -19,11 +19,11 @@ export  enum Routes {
     collectorapp = "/app/collector",
     collectordashboard = "/app/collector/dashboard",
     collectorsettings = "/app/collector/settings",
-    collectornotifications = "/app/collector/notifications",
+    collectornotifications = "/app/collector/notification",
 
     //profile
     profile = "/app/profile",
 
     //notifications
-    notifications = "/app/notifications",
+    notifications = "/app/notification",
 }

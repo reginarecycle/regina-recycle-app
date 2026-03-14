@@ -15,8 +15,6 @@ import {
     EyeOff,
     Users,
     Package,
-    Bell,
-    BellOff,
     CheckCheck,
 } from "lucide-react";
 import {
@@ -264,17 +262,14 @@ export default function NotificationsPage({
         const diffDays = Math.floor(diffMs / 86400000);
 
         if (diffMins < 1) return "Just now";
-        if (diffMins < 60)
-            return `${diffMins} minute${diffMins > 1 ? "s" : ""} ago`;
-        if (diffHours < 24)
-            return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+        if (diffMins < 60) return `${diffMins}m ago`;
+        if (diffHours < 24) return `${diffHours}h ago`;
         if (diffDays === 1) return "Yesterday";
-        if (diffDays < 7) return `${diffDays} days ago`;
+        if (diffDays < 7) return `${diffDays}d ago`;
 
         return date.toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
-            year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
         });
     };
 
@@ -379,115 +374,146 @@ export default function NotificationsPage({
     const unreadCount = notifications.filter((n) => !n.read).length;
 
     return (
-        <div className="p-6 md:p-8">
+        <div className="p-4 sm:p-6 md:p-8">
             <Card className="p-0 bg-white shadow-none border-0">
                 {/* Header */}
-                <div className="p-6">
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+                <div className="p-4 sm:p-6 border-b">
+                    <div className="flex items-center justify-between mb-6">
                         <div>
                             <h1 className="text-2xl sm:text-3xl font-bold">Notifications</h1>
                             <p className="text-sm text-muted-foreground mt-1">
                                 {unreadCount > 0
-                                    ? `You have ${unreadCount} unread notification${unreadCount > 1 ? "s" : ""
-                                    }`
+                                    ? `${unreadCount} unread notification${unreadCount > 1 ? "s" : ""}`
                                     : "You're all caught up!"}
                             </p>
                         </div>
 
-                        {/* Action Buttons - Right aligned */}
+                        {/* Actions - Desktop only */}
                         {notifications.length > 0 && (
-                            <div className="flex gap-2">
+                            <div className="hidden sm:flex gap-2">
                                 {unreadCount > 0 && (
                                     <Button
                                         variant="outline"
-                                        className="h-10 gap-2 min-w-0"
+                                        size="sm"
+                                        className="h-9 gap-2"
                                         onClick={handleMarkAllAsRead}
                                     >
                                         <CheckCheck className="h-4 w-4" />
-                                        <span className="hidden sm:inline">Mark all read</span>
+                                        Mark all read
                                     </Button>
                                 )}
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" className="h-10 gap-2 min-w-0">
+                                        <Button variant="outline" size="sm" className="h-9 w-9 p-0">
                                             <MoreVertical className="h-4 w-4" />
-                                            More
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuLabel>Bulk Actions</DropdownMenuLabel>
+                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem onClick={handleClearRead}>
                                             <Trash2 className="h-4 w-4 mr-2" />
-                                            Clear read notifications
+                                            Clear read
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
                                             className="text-red-600"
                                             onClick={handleClearAll}
                                         >
                                             <Trash2 className="h-4 w-4 mr-2" />
-                                            Clear all notifications
+                                            Clear all
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
                         )}
+
+                        {/* Mobile Actions */}
+                        {notifications.length > 0 && (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="h-9 w-9 p-0 sm:hidden">
+                                        <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    {unreadCount > 0 && (
+                                        <DropdownMenuItem onClick={handleMarkAllAsRead}>
+                                            <CheckCheck className="h-4 w-4 mr-2" />
+                                            Mark all read
+                                        </DropdownMenuItem>
+                                    )}
+                                    <DropdownMenuItem onClick={handleClearRead}>
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Clear read
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        className="text-red-600"
+                                        onClick={handleClearAll}
+                                    >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Clear all
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        )}
                     </div>
 
-                    {/* Unified Filter Bar */}
-                    <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-                        {/* Left: View Mode Filters */}
-                        <div className="flex gap-2">
-                            <Button
-                                variant={viewMode === "all" ? "default" : "outline"}
-                                size="sm"
-                                className="h-9"
-                                onClick={() => setViewMode("all")}
+                    {/* Filters - Clean single row */}
+                    {notifications.length > 0 && (
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            {/* View Mode Pills */}
+                            <div className="flex gap-1 p-1 bg-muted rounded-lg">
+                                <Button
+                                    variant={viewMode === "all" ? "default" : "ghost"}
+                                    size="sm"
+                                    className={`h-8 px-3 ${viewMode === "all" ? "shadow-sm" : ""}`}
+                                    onClick={() => setViewMode("all")}
+                                >
+                                    All
+                                </Button>
+                                <Button
+                                    variant={viewMode === "unread" ? "default" : "ghost"}
+                                    size="sm"
+                                    className={`h-8 px-3 gap-1.5 ${viewMode === "unread" ? "shadow-sm" : ""}`}
+                                    onClick={() => setViewMode("unread")}
+                                >
+                                    Unread
+                                    {unreadCount > 0 && viewMode !== "unread" && (
+                                        <Badge className="ml-1 h-5 px-1.5 bg-primary text-white border-0">
+                                            {unreadCount}
+                                        </Badge>
+                                    )}
+                                </Button>
+                                <Button
+                                    variant={viewMode === "read" ? "default" : "ghost"}
+                                    size="sm"
+                                    className={`h-8 px-3 ${viewMode === "read" ? "shadow-sm" : ""}`}
+                                    onClick={() => setViewMode("read")}
+                                >
+                                    Read
+                                </Button>
+                            </div>
+
+                            {/* Sort */}
+                            <Select
+                                value={sortBy}
+                                onValueChange={(value: any) => setSortBy(value)}
                             >
-                                All
-                            </Button>
-                            <Button
-                                variant={viewMode === "unread" ? "default" : "outline"}
-                                size="sm"
-                                className="h-9 gap-2"
-                                onClick={() => setViewMode("unread")}
-                            >
-                                <Bell className="h-4 w-4" />
-                                Unread
-                                {unreadCount > 0 && viewMode !== "unread" && (
-                                    <Badge className="ml-1 bg-white text-primary border-0 h-5 px-1.5">
-                                        {unreadCount}
-                                    </Badge>
-                                )}
-                            </Button>
-                            <Button
-                                variant={viewMode === "read" ? "default" : "outline"}
-                                size="sm"
-                                className="h-9 gap-2"
-                                onClick={() => setViewMode("read")}
-                            >
-                                <BellOff className="h-4 w-4" />
-                                Read
-                            </Button>
+                                <SelectTrigger className="w-full sm:w-[130px] h-8 text-sm">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="newest">Newest</SelectItem>
+                                    <SelectItem value="oldest">Oldest</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
-
-                        {/* Right: Sort */}
-                        <Select
-                            value={sortBy}
-                            onValueChange={(value: any) => setSortBy(value)}
-                        >
-                            <SelectTrigger className="w-[140px] h-9">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="newest">Newest first</SelectItem>
-                                <SelectItem value="oldest">Oldest first</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
+                    )}
                 </div>
 
-                {/* Tabs - Simplified */}
+                {/* Tabs - Clean minimal design */}
                 <Tabs
                     value={activeTab}
                     onValueChange={(value) =>
@@ -495,33 +521,35 @@ export default function NotificationsPage({
                     }
                     className="w-full"
                 >
-                    <div className="px-4">
-                        <TabsList className="h-9">
-                            {tabs.map((tab) => {
-                                const tabUnreadCount = notifications.filter(
-                                    (n) =>
-                                        !n.read && (tab.value === "all" || n.category === tab.value)
-                                ).length;
-                                return (
-                                    <TabsTrigger
-                                        key={tab.value}
-                                        value={tab.value}
-                                        className="gap-2"
-                                    >
-                                        {tab.label}
-                                        {tabUnreadCount > 0 && (
-                                            <Badge className="bg-primary text-white border-0 h-5 min-w-5 px-1.5">
-                                                {tabUnreadCount}
-                                            </Badge>
-                                        )}
-                                    </TabsTrigger>
-                                );
-                            })}
-                        </TabsList>
+                    <div className="border-b">
+                        <div className="px-4 sm:px-6 overflow-x-auto">
+                            <TabsList className="w-full sm:w-auto inline-flex h-12 bg-transparent border-b-0 p-0">
+                                {tabs.map((tab) => {
+                                    const tabUnreadCount = notifications.filter(
+                                        (n) =>
+                                            !n.read && (tab.value === "all" || n.category === tab.value)
+                                    ).length;
+                                    return (
+                                        <TabsTrigger
+                                            key={tab.value}
+                                            value={tab.value}
+                                            className="relative data-[state=active]:bg-transparent data-[state=active]:shadow-none border-b-2 border-transparent data-[state=active]:border-primary rounded-none px-4 gap-2 shrink-0"
+                                        >
+                                            {tab.label}
+                                            {tabUnreadCount > 0 && (
+                                                <Badge className="bg-primary text-white border-0 h-5 min-w-5 px-1.5 text-xs">
+                                                    {tabUnreadCount}
+                                                </Badge>
+                                            )}
+                                        </TabsTrigger>
+                                    );
+                                })}
+                            </TabsList>
+                        </div>
                     </div>
 
                     <TabsContent value={activeTab} className="mt-0">
-                        <div className="p-6">
+                        <div className="p-4 sm:p-6">
                             {processedNotifications.length === 0 ? (
                                 // Empty State
                                 <div className="flex flex-col items-center justify-center py-16 px-4">
@@ -533,18 +561,18 @@ export default function NotificationsPage({
                                     </h3>
                                     <p className="text-sm text-muted-foreground text-center max-w-sm">
                                         {activeTab === "all"
-                                            ? "You don't have any notifications yet. We'll notify you when something important happens."
-                                            : `No ${activeTab} notifications at the moment.`}
+                                            ? "You don't have any notifications yet."
+                                            : `No ${activeTab} notifications.`}
                                     </p>
                                 </div>
                             ) : (
                                 // Grouped Notifications
-                                <div className="space-y-8">
+                                <div className="space-y-6 sm:space-y-8">
                                     {Object.entries(groupedNotifications).map(
                                         ([group, notifs]) =>
                                             notifs.length > 0 && (
                                                 <div key={group}>
-                                                    <h3 className="text-sm font-semibold text-muted-foreground mb-4">
+                                                    <h3 className="text-sm font-semibold text-muted-foreground mb-3 sm:mb-4">
                                                         {group}
                                                     </h3>
                                                     <div className="space-y-3">
@@ -553,9 +581,9 @@ export default function NotificationsPage({
                                                             return (
                                                                 <div
                                                                     key={notification.id}
-                                                                    className={`relative flex items-start gap-4 p-4 rounded-xl border transition-colors ${notification.read
-                                                                            ? "bg-white border-gray-200"
-                                                                            : `${styles.bg} ${styles.border}`
+                                                                    className={`relative flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border transition-colors ${notification.read
+                                                                        ? "bg-white border-gray-200"
+                                                                        : `${styles.bg} ${styles.border}`
                                                                         } ${notification.link
                                                                             ? "cursor-pointer hover:shadow-sm"
                                                                             : ""
@@ -572,46 +600,46 @@ export default function NotificationsPage({
                                                                 >
                                                                     {/* Unread Indicator */}
                                                                     {!notification.read && (
-                                                                        <div className="absolute left-0 top-4 w-1 h-12 bg-primary rounded-r" />
+                                                                        <div className="absolute left-0 top-3 sm:top-4 w-1 h-10 sm:h-12 bg-primary rounded-r" />
                                                                     )}
 
-                                                                    {/* Icon */}
-                                                                    <div
-                                                                        className={`flex w-10 h-10 items-center justify-center rounded-lg shrink-0 ${notification.read
+                                                                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                                                                        {/* Icon */}
+                                                                        <div
+                                                                            className={`flex w-10 h-10 items-center justify-center rounded-lg shrink-0 ${notification.read
                                                                                 ? "bg-gray-100"
                                                                                 : styles.iconBg
-                                                                            }`}
-                                                                    >
-                                                                        <div
-                                                                            className={
-                                                                                notification.read
-                                                                                    ? "text-gray-600"
-                                                                                    : styles.iconColor
-                                                                            }
+                                                                                }`}
                                                                         >
-                                                                            {notification.icon}
+                                                                            <div
+                                                                                className={
+                                                                                    notification.read
+                                                                                        ? "text-gray-600"
+                                                                                        : styles.iconColor
+                                                                                }
+                                                                            >
+                                                                                {notification.icon}
+                                                                            </div>
                                                                         </div>
-                                                                    </div>
 
-                                                                    {/* Content */}
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <div className="flex items-start justify-between gap-2 mb-1">
-                                                                            <h4 className="font-semibold text-sm text-foreground">
+                                                                        {/* Content */}
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <h4 className="font-semibold text-sm text-foreground mb-1">
                                                                                 {notification.title}
                                                                             </h4>
+                                                                            <p className="text-sm text-muted-foreground line-clamp-2">
+                                                                                {notification.message}
+                                                                            </p>
                                                                         </div>
-                                                                        <p className="text-sm text-muted-foreground">
-                                                                            {notification.message}
-                                                                        </p>
                                                                     </div>
 
-                                                                    {/* Timestamp and Actions Row */}
-                                                                    <div className="flex items-center gap-3 shrink-0">
+                                                                    {/* Actions Row */}
+                                                                    <div className="flex items-center justify-between sm:justify-end gap-3 sm:shrink-0 pl-13 sm:pl-0">
                                                                         <span className="text-xs text-muted-foreground whitespace-nowrap">
                                                                             {formatTimestamp(notification.timestamp)}
                                                                         </span>
 
-                                                                        {/* Simplified Actions - Only Delete or Mark as Unread */}
+                                                                        {/* Actions */}
                                                                         {notification.read ? (
                                                                             <DropdownMenu>
                                                                                 <DropdownMenuTrigger asChild>
@@ -632,7 +660,7 @@ export default function NotificationsPage({
                                                                                         }}
                                                                                     >
                                                                                         <EyeOff className="h-4 w-4 mr-2" />
-                                                                                        Mark as unread
+                                                                                        Mark unread
                                                                                     </DropdownMenuItem>
                                                                                     <DropdownMenuSeparator />
                                                                                     <DropdownMenuItem
@@ -648,7 +676,6 @@ export default function NotificationsPage({
                                                                                 </DropdownMenuContent>
                                                                             </DropdownMenu>
                                                                         ) : (
-                                                                            // For unread notifications, just show delete button
                                                                             <Button
                                                                                 variant="ghost"
                                                                                 size="sm"
@@ -663,7 +690,6 @@ export default function NotificationsPage({
                                                                         )}
                                                                     </div>
                                                                 </div>
-
                                                             );
                                                         })}
                                                     </div>

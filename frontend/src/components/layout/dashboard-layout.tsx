@@ -1,15 +1,57 @@
 // components/layout/DashboardLayout.tsx
-import { useState } from "react";
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Routes } from "@/routes/routes";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Toolbar } from "@/components/layout/toolbar";
-import { getPageTitle } from "@/constants/data";
 
 export default function DashboardLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentLocation, setCurrentLocation] = useState("123-lane");
+  const [pageTitle, setPageTitle] = useState("Dashboard");
+  
+  // Track the last non-notification page for sidebar highlighting
+  const lastMainPage = useRef(location.pathname);
+
+  // Update last main page if we're not on notifications
+  useEffect(() => {
+    if (!location.pathname.includes('/notification')) { // Changed from /notifications to /notification
+      lastMainPage.current = location.pathname;
+    }
+  }, [location.pathname]);
+
+  // Update page title when location changes
+  useEffect(() => {
+    const pathname = location.pathname;
+
+    if (pathname.includes('/notification')) { // Changed from /notifications to /notification
+      setPageTitle('Notifications');
+    } else if (pathname === '/app' || pathname === '/app/dashboard') {
+      setPageTitle('Dashboard');
+    } else if (pathname === '/app/schedule') {
+      setPageTitle('Schedule Pickup');
+    } else if (pathname === '/app/wallet') {
+      setPageTitle('My Wallet');
+    } else if (pathname === '/app/history') {
+      setPageTitle('History');
+    } else if (pathname === '/app/profile') {
+      setPageTitle('Profile');
+    } else if (pathname === '/app/collector/dashboard') {
+      setPageTitle('Dashboard');
+    } else if (pathname === '/app/collector/requests') {
+      setPageTitle('Collection Requests');
+    } else if (pathname === '/app/collector/wallet') {
+      setPageTitle('Wallet');
+    } else if (pathname === '/app/collector/users') {
+      setPageTitle('Users');
+    } else if (pathname === '/app/collector/settings') {
+      setPageTitle('Settings');
+    } else {
+      setPageTitle('Dashboard');
+    }
+  }, [location.pathname]);
 
   // Redirect from /app root to user dashboard
   if (location.pathname === Routes.app) {
@@ -27,7 +69,25 @@ export default function DashboardLayout() {
   // Mock user data - replace with actual auth context
   const userName = "John Doe";
   const userRole = "Verified User";
-  const userAvatar = undefined; // Add user avatar URL from auth
+  const userAvatar = undefined;
+
+  // Get notifications route based on current user type
+  const getNotificationsRoute = () => {
+    if (isCollectorRoute) {
+      return Routes.collectornotifications;
+    }
+    return Routes.notifications;
+  };
+
+  // Handle notification bell click
+  const handleNotificationClick = () => {
+    navigate(getNotificationsRoute());
+  };
+
+  // Get the active path for sidebar (use last main page if on notifications)
+  const sidebarActivePath = location.pathname.includes('/notification') // Changed from /notifications to /notification
+    ? lastMainPage.current 
+    : location.pathname;
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -38,6 +98,7 @@ export default function DashboardLayout() {
           userName={userName}
           userRole={userRole}
           userAvatar={userAvatar}
+          activePath={sidebarActivePath}
         />
       </div>
 
@@ -54,6 +115,7 @@ export default function DashboardLayout() {
               userName={userName}
               userRole={userRole}
               userAvatar={userAvatar}
+              activePath={sidebarActivePath}
             />
           </div>
         </>
@@ -61,14 +123,14 @@ export default function DashboardLayout() {
 
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col min-w-0">
-
         {/* Toolbar */}
         <Toolbar
           currentLocation={currentLocation}
           onLocationChange={setCurrentLocation}
           notificationCount={3}
-          pageTitle={getPageTitle()}
+          pageTitle={pageTitle}
           onMenuClick={() => setMobileMenuOpen(true)}
+          onNotificationClick={handleNotificationClick}
         />
 
         {/* Page Content */}
