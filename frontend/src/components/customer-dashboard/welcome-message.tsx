@@ -1,18 +1,23 @@
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
-type props = {
-    name: string;
-}
+type Props = {
+    name?: string;
+    onSchedulePickup?: () => void;
+};
 
 export function WelcomeMessage({
     name = "John Doe",
-}: props) {
+    onSchedulePickup,
+}: Props) {
     return (
-        <div className="welcome-wrapper">
-            <h1 className="welcome-message">Welcome, {name}</h1>
+        <div className="flex items-center justify-between flex-wrap gap-4 p-2">
+            <h1 className="text-2xl font-bold">
+                Welcome, {name}
+            </h1>
 
             <Button
+                onClick={onSchedulePickup}
                 className="group border-[#344E41] text-[#344E41] hover:bg-[#618171] hover:border-[#618171] hover:text-white transition-colors duration-200"
                 variant="outline"
                 size="lg"
