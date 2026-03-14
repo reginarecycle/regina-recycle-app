@@ -1,1 +1,6 @@
-export class CreatePickupDto {}
+export class CreatePickupDto {
+  materialName: string;
+  quantity: number;
+  pickupDate: string;
+  address: string;
+}
