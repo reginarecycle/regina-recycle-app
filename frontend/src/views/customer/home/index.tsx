@@ -7,7 +7,7 @@ import Schedule from "@/components/customer-dashboard/schedule-table";
 
 const UserHome = () => {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 overflow-scroll mb-8">
       <WelcomeMessage />
 
       <div className="px-4 sm:px-6 lg:px-8">

@@ -1,8 +1,6 @@
-import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-// npm install date-fns --save
 import DataTable from "@/components/ui/data-table";
 import { Card } from "../ui/card";
 
@@ -82,12 +80,12 @@ const getStatusClass = (status: Status) => {
 };
 
 export function Schedule() {
-    const [currentPage, setCurrentPage] = useState(1);
-
     const scheduleColumns = [
         {
             key: "materials",
             header: "Material",
+            className: "w-[40%]",
+            headerClassName: "w-[40%]",
             render: (schedule: ScheduleItem) => (
                 <div className="flex flex-wrap gap-2">
                     {schedule.materials.map((material, idx) => (
@@ -104,8 +102,10 @@ export function Schedule() {
         {
             key: "date",
             header: "Schedule Date",
+            className: "w-[28%]",
+            headerClassName: "w-[28%]",
             render: (schedule: ScheduleItem) => (
-                <span className="text-[16px] font-medium text-[#111827]">
+                <span className="text-[14px] font-bold text-[#111827]">
                     {format(schedule.date, "dd, MMM yyyy")}
                 </span>
             ),
@@ -113,6 +113,8 @@ export function Schedule() {
         {
             key: "status",
             header: "Status",
+            className: "w-[18%]",
+            headerClassName: "w-[18%]",
             render: (schedule: ScheduleItem) => (
                 <Badge
                     className={`rounded-full px-3 py-1 text-[12px] font-semibold ${getStatusClass(
@@ -126,8 +128,10 @@ export function Schedule() {
         {
             key: "action",
             header: "Action",
+            className: "w-[14%]",
+            headerClassName: "w-[14%]",
             render: (schedule: ScheduleItem) => (
-                <button className="text-[16px] font-medium text-[#344E41] hover:underline">
+                <button className="text-[14px] font-bold text-[#344E41] hover:underline">
                     {schedule.action}
                 </button>
             ),
@@ -176,9 +180,12 @@ export function Schedule() {
 
     return (
         <Card className="bg-white pt-2 gap-0 pb-0">
-            <h1 className="px-4 pb-3 text-[16px] font-bold border-b-1">
-                Recent Schedule
-            </h1>
+            <div className="flex flex-row justify-between px-4 pb-3 text-[16px] font-bold border-b-1">
+                <h1>Recent Schedule</h1>
+                <h2 className="text-[14px] text-[#344E41] hover:underline">
+                    View More
+                </h2>
+            </div>
 
             <DataTable
                 data={schedules}
