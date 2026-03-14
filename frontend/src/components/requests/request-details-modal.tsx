@@ -36,12 +36,6 @@ export function RequestDetailsModal({
 
     const isIncompatible = compatibilityStr.toLowerCase().includes("incompatible");
 
-    const materials = [
-        request.material1,
-        request.material2,
-        request.material3,
-    ].filter(Boolean);
-
     const orderSummary = [
         { material: "Glass bottles", estimatedUnits: 44, price: 100.0 },
         { material: "Tins/Cans", estimatedUnits: 24, price: 10.0 },
