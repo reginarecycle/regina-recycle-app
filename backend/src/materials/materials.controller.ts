@@ -19,16 +19,16 @@ export class MaterialsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.materialsService.findOne(+id);
+    return this.materialsService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateMaterialDto: UpdateMaterialDto) {
-    return this.materialsService.update(+id, updateMaterialDto);
+    return this.materialsService.update(id, updateMaterialDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.materialsService.remove(+id);
+    return this.materialsService.remove(id);
   }
 }

@@ -987,14 +987,7 @@
         },
         "responses": {
           "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": ""
           }
         },
         "tags": [
@@ -1358,7 +1351,27 @@
       },
       "CreateMaterialDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "photoUrl": {
+            "type": "string"
+          },
+          "co2Saved": {
+            "type": "number"
+          },
+          "waterSaved": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "type"
+        ]
       },
       "UpdateMaterialDto": {
         "type": "object",
