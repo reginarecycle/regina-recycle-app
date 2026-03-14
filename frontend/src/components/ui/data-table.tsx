@@ -12,6 +12,7 @@ export interface Column<T> {
 export interface TableHeader {
   title: string;
   subtitle?: string;
+  action?: ReactNode;
 }
 
 export interface TablePagination {
@@ -41,28 +42,31 @@ export default function DataTable<T>({
   className = "",
 }: DataTableProps<T>) {
   return (
-    <div className={`space-y-8 ${className}`}>
-      {/* Header */}
-      {header && (
-        <div>
-          <h2 className="text-xl font-semibold mb-1">{header.title}</h2>
-          {header.subtitle && (
-            <p className="text-sm text-muted-foreground">{header.subtitle}</p>
-          )}
-        </div>
+    <div className={className}>
+      <div className="overflow-hidden rounded-[8px] border border-[#CFCFCF] bg-white">
+       {header && (
+  <div className="flex items-center justify-between border-b border-[#CFCFCF] px-[24px] py-[12px]">
+    <div>
+      <h2 className="text-[16px] font-bold leading-[24px] text-[#0C111D]">
+        {header.title}
+      </h2>
+      {header.subtitle && (
+        <p className="text-sm text-muted-foreground">{header.subtitle}</p>
       )}
+    </div>
 
-      {/* Table Container */}
-      <div className="border rounded-lg overflow-hidden bg-white">
-        {/* Desktop Table */}
-        <div className="hidden lg:block overflow-x-auto">
+    {header.action && <div>{header.action}</div>}
+  </div>
+)}
+
+        <div className="hidden overflow-x-auto lg:block">
           <table className="w-full">
             <thead className="bg-[#FAFAFA]">
-              <tr className="border-b">
+              <tr className="border-b border-[#CFCFCF]">
                 {columns.map((column) => (
                   <th
                     key={column.key}
-                    className={`text-left px-4 py-3 text-sm font-medium text-[#9CA3AF] ${
+                    className={`px-4 py-3 text-left text-sm font-medium text-[#9CA3AF] ${
                       column.headerClassName || ""
                     }`}
                   >
@@ -71,11 +75,14 @@ export default function DataTable<T>({
                 ))}
               </tr>
             </thead>
+
             <tbody>
               {data.map((item, index) => (
                 <tr
                   key={keyExtractor(item)}
-                  className={index !== data.length - 1 ? "border-b" : ""}
+                  className={
+                    index !== data.length - 1 ? "border-b border-[#CFCFCF]" : ""
+                  }
                 >
                   {columns.map((column) => (
                     <td
@@ -84,7 +91,7 @@ export default function DataTable<T>({
                     >
                       {column.render
                         ? column.render(item)
-                        : (item as any)[column.key]}
+                        : (item as Record<string, ReactNode>)[column.key]}
                     </td>
                   ))}
                 </tr>
@@ -93,9 +100,8 @@ export default function DataTable<T>({
           </table>
         </div>
 
-        {/* Mobile List */}
         {mobileRender && (
-          <div className="lg:hidden divide-y">
+          <div className="divide-y lg:hidden">
             {data.map((item) => (
               <div key={keyExtractor(item)} className="p-4">
                 {mobileRender(item)}
@@ -104,44 +110,49 @@ export default function DataTable<T>({
           </div>
         )}
 
-        {/* Pagination Footer */}
         {pagination && (
-          <div className="px-4 py-4 bg-white border-t flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col items-center justify-between gap-4 border-t border-[#CFCFCF] bg-white px-4 py-4 sm:flex-row">
             {pagination.showText && (
-              <p className="text-sm text-muted-foreground text-center sm:text-left">
+              <p className="text-center text-sm text-muted-foreground sm:text-left">
                 {pagination.showText}
               </p>
             )}
-            <div className="flex items-center gap-1 flex-wrap justify-center">
+
+            <div className="flex flex-wrap items-center justify-center gap-1">
               <Button
                 variant="outline"
-                className="h-10 px-3 min-w-0 text-sm"
+                className="h-10 min-w-0 px-3 text-sm"
                 disabled={pagination.currentPage === 1}
-                onClick={() => pagination.onPageChange(pagination.currentPage - 1)}
+                onClick={() =>
+                  pagination.onPageChange(pagination.currentPage - 1)
+                }
               >
                 ← Prev
               </Button>
-              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(
-                (page) => (
-                  <Button
-                    key={page}
-                    variant={page === pagination.currentPage ? "default" : "outline"}
-                    className={`h-10 w-10 p-0 min-w-0 ${
-                      page === pagination.currentPage
-                        ? "bg-primary text-white"
-                        : ""
-                    }`}
-                    onClick={() => pagination.onPageChange(page)}
-                  >
-                    {page}
-                  </Button>
-                )
-              )}
+
+              {Array.from(
+                { length: pagination.totalPages },
+                (_, i) => i + 1
+              ).map((page) => (
+                <Button
+                  key={page}
+                  variant={page === pagination.currentPage ? "default" : "outline"}
+                  className={`h-10 w-10 min-w-0 p-0 ${
+                    page === pagination.currentPage ? "bg-primary text-white" : ""
+                  }`}
+                  onClick={() => pagination.onPageChange(page)}
+                >
+                  {page}
+                </Button>
+              ))}
+
               <Button
                 variant="outline"
-                className="h-10 px-3 min-w-0 text-sm"
+                className="h-10 min-w-0 px-3 text-sm"
                 disabled={pagination.currentPage === pagination.totalPages}
-                onClick={() => pagination.onPageChange(pagination.currentPage + 1)}
+                onClick={() =>
+                  pagination.onPageChange(pagination.currentPage + 1)
+                }
               >
                 Next →
               </Button>

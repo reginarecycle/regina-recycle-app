@@ -214,7 +214,6 @@ export default function CustomerWallet() {
     <div className="w-full bg-[#F7F7F7]">
       <div className="mx-auto w-full max-w-[1512px] min-h-[1086px] px-6 py-6">
         <div className="flex flex-col gap-4">
-          {/* Account Balance Card */}
           <div
             className="
               w-full max-w-[1208px] min-h-[167px]
@@ -226,7 +225,7 @@ export default function CustomerWallet() {
             "
           >
             <div className="mb-2 flex items-center gap-2">
-              <span className="text-white text-[16px] font-bold leading-[24px]">
+              <span className="text-[16px] font-bold leading-[24px] text-white">
                 Available Balance
               </span>
 
@@ -237,13 +236,13 @@ export default function CustomerWallet() {
 
             <div className="mt-14 flex items-center justify-between">
               <div className="flex items-baseline gap-2">
-                <span className="text-white text-[36px] font-bold leading-[44px]">
+                <span className="text-[36px] font-bold leading-[44px] text-white">
                   ${balanceCad.toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}
                 </span>
-                <span className="text-white text-[14px] font-bold leading-[20px]">
+                <span className="text-[14px] font-bold leading-[20px] text-white">
                   CAD
                 </span>
               </div>
@@ -252,7 +251,7 @@ export default function CustomerWallet() {
                 type="button"
                 variant="outline"
                 className="
-                  w-[255px] h-[52px] min-w-0
+                  h-[52px] w-[255px] min-w-0
                   border-[#344E41] bg-white text-[#344E41]
                   hover:bg-gray-50
                 "
@@ -279,7 +278,6 @@ export default function CustomerWallet() {
             </div>
           </div>
 
-          {/* Earnings Overview */}
           <section
             className="
               w-full max-w-[1208px] min-h-[385px]
@@ -300,17 +298,17 @@ export default function CustomerWallet() {
                   </p>
                 </div>
 
-                <TabsList className="w-auto border-none gap-2 rounded-[4px] bg-[rgba(52,78,65,0.08)] p-[4px] h-[32px]">
+                <TabsList className="h-[32px] w-auto gap-2 rounded-[4px] border-none bg-[rgba(52,78,65,0.08)] p-[4px]">
                   <TabsTrigger
                     value="monthly"
-                    className="h-[24px] rounded-[4px] px-3 py-[5px] text-[14px] font-medium leading-[20px] data-[state=active]:bg-[#344E41] data-[state=active]:text-white data-[state=active]:border-b-0"
+                    className="h-[24px] rounded-[4px] px-3 py-[5px] text-[14px] font-medium leading-[20px] data-[state=active]:border-b-0 data-[state=active]:bg-[#344E41] data-[state=active]:text-white"
                   >
                     Monthly
                   </TabsTrigger>
 
                   <TabsTrigger
                     value="yearly"
-                    className="h-[24px] rounded-[4px] px-3 py-[5px] text-[14px] font-medium leading-[20px] text-black data-[state=active]:bg-[#344E41] data-[state=active]:text-white data-[state=active]:border-b-0"
+                    className="h-[24px] rounded-[4px] px-3 py-[5px] text-[14px] font-medium leading-[20px] text-black data-[state=active]:border-b-0 data-[state=active]:bg-[#344E41] data-[state=active]:text-white"
                   >
                     Yearly
                   </TabsTrigger>
@@ -371,54 +369,41 @@ export default function CustomerWallet() {
             </Tabs>
           </section>
 
-          {/* Recent Transaction */}
           <section className="w-full max-w-[1208px]">
-            <div
-              className="
-                flex items-center justify-between
-                rounded-t-[8px]
-                border-t border-l border-r border-b border-[#CFCFCF]
-                bg-white
-                px-[24px] py-[12px]
-              "
-            >
-              <h3 className="text-[16px] font-bold leading-[24px] text-[#0C111D]">
-                Recent Transaction
-              </h3>
-
-              <button
-                type="button"
-                className="inline-flex items-center gap-1 text-[14px] font-bold leading-[20px] text-[#618171]"
-                onClick={() => navigate(Routes.transactionhistory)}
-              >
-                View All
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                >
-                  <path
-                    d="M6 12L10 8L6 4"
-                    stroke="#618171"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            <div className="rounded-b-[8px] border border-[#CFCFCF] border-t-0 bg-white overflow-hidden">
-              <DataTable
-                data={RECENT_TX}
-                columns={recentTransactionColumns}
-                keyExtractor={(item) => item.id}
-                className="space-y-0"
-              />
-            </div>
-          </section>
+  <DataTable
+    data={RECENT_TX}
+    columns={recentTransactionColumns}
+    keyExtractor={(item) => item.id}
+    className="space-y-0"
+    header={{
+      title: "Recent Transaction",
+      action: (
+        <button
+          type="button"
+          className="inline-flex items-center gap-1 text-[14px] font-bold leading-[20px] text-[#618171]"
+          onClick={() => navigate(Routes.transactionhistory)}
+        >
+          View All
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+          >
+            <path
+              d="M6 12L10 8L6 4"
+              stroke="#618171"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      ),
+    }}
+  />
+</section>
         </div>
       </div>
 
