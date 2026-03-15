@@ -1,5 +1,8 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { CollectorsService } from './collectors.service';
+import { UpdateCollectorDto } from './dto/update-collector.dto';
+import { UpdateMaterialPricingDto } from './dto/update-material-pricing.dto';
+import { UpdateMaterialSettingsDto } from './dto/update-material-settings.dto';
 
 
 @Controller('collectors')
