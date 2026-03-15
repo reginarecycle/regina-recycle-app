@@ -30,7 +30,6 @@ export function ViewDetailsModal({
     scheduledPickupDate = "14, Jan 2023",
     pickupLocation = "123 Lane, Str. Downtown District",
     materials = ["Glass", "Plastic", "Carton"],
-    onDownloadReport,
 }: ViewDetailsProps) {
     if (!isOpen) return null;
 
@@ -164,7 +163,7 @@ export function ViewDetailsModal({
                         </Button>
 
                         <Button
-                            onClick={onDownloadReport}
+                            onClick={() => window.print()}
                             className="h-[44px] min-w-[182px] rounded-[12px] bg-[#6F8F7B] text-[16px] font-semibold text-white hover:bg-[#5F7F6B]"
                         >
                             Download Report

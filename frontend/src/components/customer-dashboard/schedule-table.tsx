@@ -241,7 +241,6 @@ export function Schedule() {
                 scheduledPickupDate={selectedSchedule ? format(selectedSchedule.date, "dd, MMM yyyy") : ""}
                 pickupLocation="123 Lane, Str. Downtown District"
                 materials={selectedSchedule?.materials ?? []}
-                onDownloadReport={() => console.log("download report")}
             />
         </>
     );
