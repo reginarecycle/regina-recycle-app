@@ -39,7 +39,7 @@ const users: User[] = [
     initials: "DW",
     address: "Downtown",
     totalCollections: 32,
-    avgRevenue: "$640",
+    avgRevenue: "$6400",
     reward: "$200",
     tags: ["Frequent", "Metal Scraps", "Plastic"],
     nextCollection: "Sat, Oct 28, 2023",
@@ -331,12 +331,12 @@ export default function CollectorUsersPage() {
           </div>
         </div>
       </div>
-
-      <div className="rounded-[8px] border border-[#E5E7EB] bg-white p-3">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <p className="text-[18px] font-semibold leading-[28px] text-[#0C111D]">
-            Customers
-          </p>
+<div className="rounded-[8px] border border-[#E5E7EB] bg-white">
+       
+<div className="px-6 pt-4 mb-3 pb-4 border-b border-[#E5E7EB] flex items-center justify-between gap-3">
+  <p className="text-[18px] font-semibold leading-[28px] text-[#0C111D]">
+    Customers
+  </p>
 
           <div className="flex items-center gap-2">
             <div className="relative w-[210px]">
@@ -360,7 +360,7 @@ export default function CollectorUsersPage() {
             </button>
           </div>
         </div>
-
+        <div className="px-6 pb-4">
         <DataTable
           data={filteredUsers}
           columns={columns}
@@ -370,130 +370,167 @@ export default function CollectorUsersPage() {
             totalPages: 10,
             onPageChange: setCurrentPage,
             showText: "Showing 1 to 8 of 1",
+            
           }}
-          className="space-y-0"
+          
         />
       </div>
+      </div>
 
-      {isModalOpen && selectedUser && (
-        <div className="fixed right-6 top-[190px] z-50 hidden xl:block">
-          <div className="w-[248px] overflow-hidden rounded-[8px] bg-white shadow-[0px_14px_30px_rgba(0,0,0,0.18)]">
-            <div className="flex items-center justify-between bg-[linear-gradient(180deg,#64836D_0%,#4F6D59_100%)] px-3 py-3 text-white">
-              <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-[10px] font-medium">
+     {isModalOpen && selectedUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/20"
+            onClick={() => setIsModalOpen(false)}
+          />
+
+          {/* Modal */}
+          <div className="relative w-[467px] overflow-hidden rounded-[8px] bg-white shadow-[0px_14px_30px_rgba(0,0,0,0.18)]">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between bg-[linear-gradient(180deg,#64836D_0%,#4F6D59_100%)] px-5 py-4 text-white">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-[12px] font-medium">
                   {selectedUser.initials}
                 </div>
-
                 <div className="flex flex-col">
-                  <p className="text-[11px] font-medium leading-[14px]">
+                  <p className="text-[16px] font-semibold leading-[24px]">
                     {selectedUser.name}
                   </p>
-                  <span className="mt-1 inline-flex w-fit rounded-full bg-[#DDFCE7] px-1.5 py-[2px] text-[7px] font-semibold uppercase leading-none text-[#16A34A]">
-                    Active
+                  <span className="mt-1 inline-flex w-fit rounded-full bg-[#DDFCE7] px-2 py-[2px] text-[10px] font-semibold uppercase leading-none text-[#16A34A]">
+                    {selectedUser.status}
                   </span>
                 </div>
               </div>
-
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-[13px] leading-none text-white/90 hover:text-white"
+                className="text-[18px] leading-none text-white/90 hover:text-white"
               >
                 ×
               </button>
             </div>
 
-            <div className="space-y-4 px-3 py-4">
+            {/* Body */}
+            <div
+              className="flex flex-col gap-4"
+              style={{ padding: "20px 20px 20px 20px" }}
+            >
+              {/* Contact Details */}
               <div>
-                <p className="mb-2 text-[8px] font-semibold uppercase tracking-[0.04em] text-[#B0B0B0]">
+                <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9CA3AF]">
                   Contact Details
                 </p>
-
-                <div className="space-y-1.5 text-[9px] text-[#0C111D]">
-                  <div className="flex items-center gap-1.5">
-                    <Phone size={10} className="text-[#7C7C7C]" />
-                    <span>+1 (306) 555-0125</span>
+                <div className="flex flex-col gap-2 text-[13px] text-[#0C111D]">
+                  <div className="flex items-center gap-2">
+                    <Phone size={16} className="text-[#7C7C7C]" />
+                    <span>{selectedUser.phone}</span>
                   </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <Mail size={10} className="text-[#7C7C7C]" />
-                    <span>dylan.white@email.com</span>
+                  <div className="flex items-center gap-2">
+                    <Mail size={16} className="text-[#7C7C7C]" />
+                    <span>{selectedUser.email}</span>
                   </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <MapPin size={10} className="text-[#7C7C7C]" />
-                    <span>824 Albert Street, Downtown</span>
+                  <div className="flex items-center gap-2">
+                    <MapPin size={16} className="text-[#7C7C7C]" />
+                    <span>824 Albert Street, {selectedUser.address}</span>
                   </div>
                 </div>
               </div>
 
+              {/* Stats */}
               <div>
-                <p className="mb-2 text-[8px] font-semibold uppercase tracking-[0.04em] text-[#B0B0B0]">
+                <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9CA3AF]">
                   Stats
                 </p>
-
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="rounded-[6px] bg-[#F7F7F8] px-2 py-2 text-center">
-                    <p className="text-[6px] uppercase text-[#B0B0B0]">
+                <div className="grid grid-cols-3 gap-3">
+                  <div
+                    className="rounded-[10px] border border-[#E5E7EB] px-3 py-3 text-center"
+                    style={{ padding: "13px" }}
+                  >
+                    <p className="text-[10px] uppercase text-[#9CA3AF]">
                       Collections
                     </p>
-                    <p className="mt-1 text-[16px] font-medium leading-none text-[#0C111D]">
-                      32
+                    <p className="mt-1 text-[20px] font-medium leading-none text-[#0C111D]">
+                      {selectedUser.totalCollections}
                     </p>
                   </div>
-
-                  <div className="rounded-[6px] bg-[#F7F7F8] px-2 py-2 text-center">
-                    <p className="text-[6px] uppercase text-[#B0B0B0]">Revenue</p>
-                    <p className="mt-1 text-[16px] font-medium leading-none text-[#22C55E]">
-                      $640
+                  <div
+                    className="rounded-[10px] border border-[#E5E7EB] text-center"
+                    style={{ padding: "13px" }}
+                  >
+                    <p className="text-[10px] uppercase text-[#9CA3AF]">
+                      Revenue
+                    </p>
+                    <p className="mt-1 text-[20px] font-medium leading-none text-[#22C55E]">
+                      {selectedUser.avgRevenue}
                     </p>
                   </div>
-
-                  <div className="rounded-[6px] bg-[#F7F7F8] px-2 py-2 text-center">
-                    <p className="text-[6px] uppercase text-[#B0B0B0]">
+                  <div
+                    className="rounded-[10px] border border-[#E5E7EB] text-center"
+                    style={{ padding: "13px" }}
+                  >
+                    <p className="text-[10px] uppercase text-[#9CA3AF]">
                       Avg Order
                     </p>
-                    <p className="mt-1 text-[16px] font-medium leading-none text-[#F59E0B]">
-                      $200
+                    <p className="mt-1 text-[20px] font-medium leading-none text-[#F59E0B]">
+                      {selectedUser.reward}
                     </p>
                   </div>
                 </div>
               </div>
 
+              {/* Collected Items */}
               <div>
-                <p className="mb-2 text-[8px] font-semibold uppercase tracking-[0.04em] text-[#B0B0B0]">
+                <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9CA3AF]">
                   Collected Items
                 </p>
-
-                <div className="flex flex-wrap gap-1.5">
-                  <span className="rounded-full bg-[#EAF8EE] px-2 py-[3px] text-[7px] font-medium text-[#2E9B4B]">
-                    Electronics
-                  </span>
-                  <span className="rounded-full bg-[#EAF8EE] px-2 py-[3px] text-[7px] font-medium text-[#2E9B4B]">
-                    Metal Scraps
-                  </span>
-                  <span className="rounded-full bg-[#EAF8EE] px-2 py-[3px] text-[7px] font-medium text-[#2E9B4B]">
-                    Plastic
-                  </span>
+                <div className="flex flex-wrap gap-2">
+                  {selectedUser.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-[#EAF8EE] px-3 py-[4px] text-[11px] font-medium text-[#2E9B4B]"
+                    >
+                      {tag}
+                    </span>
+                  ))}
                 </div>
               </div>
 
-              <div className="rounded-[6px] border border-[#F0B95A] bg-[#FFF8EA] px-3 py-2">
-                <div className="flex items-center gap-1.5 text-[#0C111D]">
-                  <Calendar size={10} className="text-[#D97706]" />
-                  <p className="text-[13px] font-normal leading-[19.5px]">
+              {/* Next Collection */}
+              <div
+                className="rounded-[10px] border border-[#F59E0B] bg-[#FFFBEB]"
+                style={{ padding: "13px" }}
+              >
+                <div className="flex items-center gap-2 text-[#0C111D]">
+                  <Calendar size={16} className="text-[#F59E0B]" />
+                  <p
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: 400,
+                      lineHeight: "19.5px",
+                      color: "#0C111D",
+                    }}
+                  >
                     Next Collection
                   </p>
                 </div>
-
-                <p className="mt-1 text-[10px] text-[#D97706]">
-                  Sat, Oct 28, 2023
+                <p
+                  className="mt-1"
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: 400,
+                    lineHeight: "21px",
+                    color: "#F59E0B",
+                  }}
+                >
+                  {selectedUser.nextCollection}
                 </p>
               </div>
             </div>
           </div>
         </div>
       )}
-    </div>
+      </div>
   );
 }

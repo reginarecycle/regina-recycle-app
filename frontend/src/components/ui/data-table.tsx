@@ -53,19 +53,21 @@ export default function DataTable<T>({
       )}
 
       {/* Table Container */}
-      <div className="border rounded-lg overflow-hidden bg-white">
-        {/* Desktop Table */}
-        <div className="hidden lg:block overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-[#FAFAFA]">
-              <tr className="border-b">
-                {columns.map((column) => (
-                  <th
-                    key={column.key}
-                    className={`text-left px-4 py-3 text-sm font-medium text-[#9CA3AF] ${
-                      column.headerClassName || ""
-                    }`}
-                  >
+<div className="overflow-hidden bg-white">
+  {/* Desktop Table */}
+  <div className="hidden lg:block overflow-x-auto">
+    <table className="w-full">
+   <thead>
+  <tr className="border-b border-[#E5E7EB]">
+    {columns.map((column) => (
+      <th
+        key={column.key}
+        // Change px-4 to px-6:
+className={`text-left px-6 py-3 text-sm font-medium text-[#9CA3AF] ${
+  column.headerClassName || ""
+}`}
+      >
+                  
                     {column.header}
                   </th>
                 ))}
@@ -80,7 +82,7 @@ export default function DataTable<T>({
                   {columns.map((column) => (
                     <td
                       key={column.key}
-                      className={`px-4 py-4 ${column.className || ""}`}
+                      className={`px-6 py-4 ${column.className || ""}`}
                     >
                       {column.render
                         ? column.render(item)
