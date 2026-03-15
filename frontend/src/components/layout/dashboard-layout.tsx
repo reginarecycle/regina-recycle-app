@@ -12,13 +12,29 @@ export default function DashboardLayout() {
   const [currentLocation, setCurrentLocation] = useState("123-lane");
   const [pageTitle, setPageTitle] = useState("Dashboard");
   
-  // Track the last non-notification page for sidebar highlighting
-  const lastMainPage = useRef(location.pathname);
+  // Determine if current path is collector route
+  const isCollectorRoute = location.pathname.includes("/collector");
+
+  // Initialize lastMainPage from localStorage or default to dashboard
+  const getInitialLastPage = () => {
+    if (location.pathname.includes('/notification')) {
+      // Try to get from localStorage
+      const stored = localStorage.getItem('lastMainPage');
+      if (stored) return stored;
+      // Fallback to dashboard
+      return isCollectorRoute ? Routes.collectordashboard : Routes.dashboard;
+    }
+    return location.pathname;
+  };
+
+  const lastMainPage = useRef(getInitialLastPage());
 
   // Update last main page if we're not on notifications
   useEffect(() => {
-    if (!location.pathname.includes('/notification')) { // Changed from /notifications to /notification
+    if (!location.pathname.includes('/notification')) {
       lastMainPage.current = location.pathname;
+      // Save to localStorage
+      localStorage.setItem('lastMainPage', location.pathname);
     }
   }, [location.pathname]);
 
@@ -26,7 +42,7 @@ export default function DashboardLayout() {
   useEffect(() => {
     const pathname = location.pathname;
 
-    if (pathname.includes('/notification')) { // Changed from /notifications to /notification
+    if (pathname.includes('/notification')) {
       setPageTitle('Notifications');
     } else if (pathname === '/app' || pathname === '/app/dashboard') {
       setPageTitle('Dashboard');
@@ -63,9 +79,6 @@ export default function DashboardLayout() {
     return <Navigate to={Routes.collectordashboard} replace />;
   }
 
-  // Determine if current path is collector route
-  const isCollectorRoute = location.pathname.includes("/collector");
-
   // Mock user data - replace with actual auth context
   const userName = "John Doe";
   const userRole = "Verified User";
@@ -85,7 +98,7 @@ export default function DashboardLayout() {
   };
 
   // Get the active path for sidebar (use last main page if on notifications)
-  const sidebarActivePath = location.pathname.includes('/notification') // Changed from /notifications to /notification
+  const sidebarActivePath = location.pathname.includes('/notification') 
     ? lastMainPage.current 
     : location.pathname;
 

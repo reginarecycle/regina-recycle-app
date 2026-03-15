@@ -5,6 +5,7 @@ import type { RouteObject } from "react-router-dom";
 const UserDashboard = lazy(() => import("@/views/customer/home"));
 const CollectorDashboard = lazy(() => import("@/views/collector/home"));
 const CustomerProfile = lazy(() => import("@/views/customer/profile"));
+const CollectorRequests = lazy(() => import("@/views/collector/requests"));
 const CollectorSettingsPage = lazy(() => import("@/views/collector/settings"));
 const NotificationsPage = lazy(() => import("@/views/notifications"));
 
@@ -38,6 +39,10 @@ export const dashboardRoutes = () => {
     {
       path: Routes.notifications,
       element: <NotificationsPage userRole="customer" />,
+    },
+    {
+      path: Routes.requests,
+      element: <CollectorRequests />,
     },
   ] as RouteObject[];
 };

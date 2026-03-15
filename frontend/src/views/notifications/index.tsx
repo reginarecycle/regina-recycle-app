@@ -521,8 +521,8 @@ export default function NotificationsPage({
                     }
                     className="w-full"
                 >
-                    <div className="border-b">
-                        <div className="px-4 sm:px-6 overflow-x-auto">
+                    <div className="border-b border-gray-200">
+                        <div className="px-4 sm:px-6 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                             <TabsList className="w-full sm:w-auto inline-flex h-12 bg-transparent border-b-0 p-0">
                                 {tabs.map((tab) => {
                                     const tabUnreadCount = notifications.filter(
@@ -533,7 +533,7 @@ export default function NotificationsPage({
                                         <TabsTrigger
                                             key={tab.value}
                                             value={tab.value}
-                                            className="relative data-[state=active]:bg-transparent data-[state=active]:shadow-none border-b-2 border-transparent data-[state=active]:border-primary rounded-none px-4 gap-2 shrink-0"
+                                            className="relative h-12 data-[state=active]:bg-transparent data-[state=active]:shadow-none border-b-2 border-transparent data-[state=active]:border-primary rounded-none px-4 gap-1 shrink-0 -mb-[1px]"
                                         >
                                             {tab.label}
                                             {tabUnreadCount > 0 && (
