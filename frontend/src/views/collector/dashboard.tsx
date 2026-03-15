@@ -715,4 +715,4 @@ const CollectorDashboard = () => {
     </div>
   );
 };
-export default CollectorDashboard;
+export default CollectorDashboard; // ends here 
