@@ -248,8 +248,20 @@ export default function CollectorSettingsPage() {
         <div className="p-6 md:p-8">
             <Card className="p-0 bg-white shadow-none border-0">
                 <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-                    {/* Profile Header - Only shows on Profile tab */}
-                    {currentTab === "profile" && (
+
+                    {/* TabsList always at the top */}
+                    <div className="px-6 border-b overflow-x-auto">
+                        <TabsList className="w-full sm:w-auto inline-flex h-auto bg-transparent p-0">
+                            <TabsTrigger value="profile">Profile</TabsTrigger>
+                            <TabsTrigger value="pricing">Pricing</TabsTrigger>
+                            <TabsTrigger value="security">Security</TabsTrigger>
+                            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+                        </TabsList>
+                    </div>
+
+                    {/* Profile Tab */}
+                    <TabsContent value="profile" className="mt-0">
+                        {/* Collector info header — inside the tab content so it only shows on Profile tab */}
                         <div className="p-6 pb-0">
                             <div className="flex items-start gap-4 sm:gap-6 mb-6">
                                 <Avatar className="h-20 w-20 sm:h-32 sm:w-32 border-4 border-green-100 shrink-0">
@@ -272,125 +284,116 @@ export default function CollectorSettingsPage() {
                                 </div>
                             </div>
                         </div>
-                    )}
 
-                    <div className="px-6 border-b overflow-x-auto">
-                        <TabsList className="w-full sm:w-auto inline-flex h-auto bg-transparent p-0">
-                            <TabsTrigger value="profile">Profile</TabsTrigger>
-                            <TabsTrigger value="pricing">Pricing</TabsTrigger>
-                            <TabsTrigger value="security">Security</TabsTrigger>
-                            <TabsTrigger value="notifications">Notifications</TabsTrigger>
-                        </TabsList>
-                    </div>
+                        <Separator />
 
-                    {/* Profile Tab */}
-                    <TabsContent value="profile" className="mt-0 p-8 pt-6">
-                        <form onSubmit={handleSubmitProfile(onSubmitProfile)} className="space-y-8">
-                            <div>
-                                <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                                    <span className="text-xl">🏢</span> Business Information
-                                </h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <InputField
-                                        label="Legal Business Name"
-                                        register={registerProfile("businessName")}
-                                        error={profileErrors.businessName?.message}
-                                        placeholder="John Doe"
-                                        required
-                                    />
-                                    <InputField
-                                        label="Business Email"
-                                        register={registerProfile("businessEmail")}
-                                        error={profileErrors.businessEmail?.message}
-                                        type="email"
-                                        placeholder="doe@gmail.com"
-                                        disabled
-                                        required
-                                    />
-                                    <InputField
-                                        label="Business Phone Number"
-                                        register={registerProfile("businessPhone")}
-                                        error={profileErrors.businessPhone?.message}
-                                        placeholder="1-(306)-0000"
-                                        required
-                                    />
-                                    <InputField
-                                        label="Registration Number"
-                                        register={registerProfile("registrationNumber")}
-                                        error={profileErrors.registrationNumber?.message}
-                                        placeholder="doe@gmail.com"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                                    <MapPin className="h-5 w-5" /> Business Address
-                                </h2>
-                                <div className="space-y-6">
-                                    <div className="relative">
+                        <div className="p-8 pt-8">
+                            <form onSubmit={handleSubmitProfile(onSubmitProfile)} className="space-y-8">
+                                <div>
+                                    <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                                        <span className="text-xl">🏢</span> Business Information
+                                    </h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <InputField
-                                            label="Address"
-                                            register={registerProfile("address")}
-                                            error={profileErrors.address?.message}
-                                            placeholder="123 Lane Str."
-                                            required
-                                            className="pl-10"
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        <InputField
-                                            label="City"
-                                            register={registerProfile("city")}
-                                            error={profileErrors.city?.message}
-                                            placeholder="Input"
+                                            label="Legal Business Name"
+                                            register={registerProfile("businessName")}
+                                            error={profileErrors.businessName?.message}
+                                            placeholder="John Doe"
                                             required
                                         />
                                         <InputField
-                                            label="Province/State"
-                                            register={registerProfile("provinceState")}
-                                            error={profileErrors.provinceState?.message}
-                                            placeholder="Input"
+                                            label="Business Email"
+                                            register={registerProfile("businessEmail")}
+                                            error={profileErrors.businessEmail?.message}
+                                            type="email"
+                                            placeholder="doe@gmail.com"
+                                            disabled
                                             required
                                         />
                                         <InputField
-                                            label="Postal Code"
-                                            register={registerProfile("postalCode")}
-                                            error={profileErrors.postalCode?.message}
-                                            placeholder="Input"
+                                            label="Business Phone Number"
+                                            register={registerProfile("businessPhone")}
+                                            error={profileErrors.businessPhone?.message}
+                                            placeholder="1-(306)-0000"
+                                            required
+                                        />
+                                        <InputField
+                                            label="Registration Number"
+                                            register={registerProfile("registrationNumber")}
+                                            error={profileErrors.registrationNumber?.message}
+                                            placeholder="doe@gmail.com"
                                             required
                                         />
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="flex flex-col sm:flex-row justify-center sm:justify-end gap-3 pt-6">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    className="w-full sm:w-[174px] h-11 min-w-0 border-[rgba(221,30,30,0.60)] text-red-500 hover:bg-red-50 disabled:opacity-60"
-                                    disabled={!profileIsDirty}
-                                    onClick={() => resetProfile()}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    className="w-full sm:w-[174px] h-11 min-w-0 bg-primary hover:bg-primary/90 disabled:opacity-60"
-                                    disabled={!profileIsDirty}
-                                >
-                                    Save Changes
-                                </Button>
-                            </div>
-                        </form>
+                                <div>
+                                    <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                                        <MapPin className="h-5 w-5" /> Business Address
+                                    </h2>
+                                    <div className="space-y-6">
+                                        <div className="relative">
+                                            <InputField
+                                                label="Address"
+                                                register={registerProfile("address")}
+                                                error={profileErrors.address?.message}
+                                                placeholder="123 Lane Str."
+                                                required
+                                                className="pl-10"
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            <InputField
+                                                label="City"
+                                                register={registerProfile("city")}
+                                                error={profileErrors.city?.message}
+                                                placeholder="Input"
+                                                required
+                                            />
+                                            <InputField
+                                                label="Province/State"
+                                                register={registerProfile("provinceState")}
+                                                error={profileErrors.provinceState?.message}
+                                                placeholder="Input"
+                                                required
+                                            />
+                                            <InputField
+                                                label="Postal Code"
+                                                register={registerProfile("postalCode")}
+                                                error={profileErrors.postalCode?.message}
+                                                placeholder="Input"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row justify-center sm:justify-end gap-3 pt-6">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="w-full sm:w-[174px] h-11 min-w-0 border-[rgba(221,30,30,0.60)] text-red-500 hover:bg-red-50 disabled:opacity-60"
+                                        disabled={!profileIsDirty}
+                                        onClick={() => resetProfile()}
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        type="submit"
+                                        className="w-full sm:w-[174px] h-11 min-w-0 bg-primary hover:bg-primary/90 disabled:opacity-60"
+                                        disabled={!profileIsDirty}
+                                    >
+                                        Save Changes
+                                    </Button>
+                                </div>
+                            </form>
+                        </div>
                     </TabsContent>
 
                     {/* Pricing Tab */}
                     <TabsContent value="pricing" className="mt-0 p-8">
                         <div className="space-y-8">
-                            {/* Materials Table using DataTable component */}
                             <DataTable
                                 data={materials}
                                 columns={materialColumns}
@@ -408,9 +411,7 @@ export default function CollectorSettingsPage() {
                                 mobileRender={renderMobileMaterial}
                             />
 
-                            {/* Service Fees and Bulk Strategy */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Service Fees */}
                                 <Card className="p-6 shadow-none border bg-white">
                                     <h3 className="font-semibold text-base mb-6 flex items-center gap-2">
                                         💳 Service Fees
@@ -443,7 +444,6 @@ export default function CollectorSettingsPage() {
                                     </div>
                                 </Card>
 
-                                {/* Bulk Incentive */}
                                 <Card className="p-6 shadow-none border bg-white">
                                     <h3 className="font-semibold text-base mb-2 flex items-center gap-2">
                                         📈 Bulk Incentive Strategy
@@ -542,7 +542,6 @@ export default function CollectorSettingsPage() {
 
                         <Separator className="my-8" />
 
-                        {/* Danger Zone */}
                         <div className="relative flex flex-col sm:flex-row justify-center items-center w-full max-w-269.5 p-6 sm:p-9 rounded-[14px] border border-red-600 bg-[rgba(221,30,30,0.06)] backdrop-blur-[20px] shrink-0">
                             <img
                                 src="/delete-account.png"
@@ -572,7 +571,6 @@ export default function CollectorSettingsPage() {
                     {/* Notifications Tab */}
                     <TabsContent value="notifications" className="mt-0 p-8">
                         <div className="space-y-8">
-                            {/* Email Notification Section */}
                             <div>
                                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
                                     <div className="flex-1 min-w-0">
@@ -590,7 +588,6 @@ export default function CollectorSettingsPage() {
                                     </Button>
                                 </div>
 
-                                {/* Email Notification Rows */}
                                 <div className="space-y-3">
                                     <div className="px-4 py-3 rounded-xl bg-[#F7F7F7] flex items-center gap-3">
                                         <div className="w-[45px] h-[45px] p-2.5 rounded-lg bg-white flex items-center justify-center shrink-0">
@@ -656,7 +653,6 @@ export default function CollectorSettingsPage() {
 
                             <Separator />
 
-                            {/* In-App Notification Section */}
                             <div>
                                 <div className="mb-6">
                                     <h2 className="text-xl font-semibold mb-1">In-App Notification</h2>
@@ -665,7 +661,6 @@ export default function CollectorSettingsPage() {
                                     </p>
                                 </div>
 
-                                {/* In-App Notification Rows */}
                                 <div className="space-y-3">
                                     <div className="px-4 py-3 rounded-xl bg-[#F7F7F7] flex items-center gap-3">
                                         <div className="w-[45px] h-[45px] p-2.5 rounded-lg bg-white flex items-center justify-center shrink-0">
