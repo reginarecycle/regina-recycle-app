@@ -6,4 +6,4 @@ import { WalletController } from './wallet.controller';
   controllers: [WalletController],
   providers: [WalletService],
 })
-export class WalletModule {}
+export class WalletModule { }
