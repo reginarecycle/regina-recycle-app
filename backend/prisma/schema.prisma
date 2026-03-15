@@ -361,7 +361,7 @@ model Notification {
 
 model Tip {
   tipId       String   @id @default(uuid())
-  content     String   @unique
+  content     String   
   startDate   DateTime?
   endDate     DateTime?
   active      Boolean  @default(true)
