@@ -10,8 +10,8 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { EmailService } from 'src/notifications/email/email.service';
-import { ErrorMessage } from 'src/common/error-message';
+import { EmailService } from '../notifications/email/email.service';
+import { ErrorMessage } from '../common/error-message';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 
 @Injectable()
