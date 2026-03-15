@@ -11,10 +11,9 @@ import {
 import { AddressesService } from './addresses.service';
 import { AddressDto } from './dto/address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { type User } from '@prisma/client/wasm';
-import { Auth } from 'src/common/decorator/auth.decorator';
-
+import { Auth } from '../common/decorator/auth.decorator';
+import { CurrentUser } from '../auth/decorator/current-user.decorator';
 @Controller('addresses')
 export class AddressesController {
   constructor(private readonly addressesService: AddressesService) {}

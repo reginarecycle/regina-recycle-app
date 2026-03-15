@@ -3,7 +3,7 @@ import Navbar from "../shared/navbar";
 
 const LandingLayout = () => {
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-[#FBFBFB] min-h-screen">
       <Navbar />
       <Outlet />
     </div>
