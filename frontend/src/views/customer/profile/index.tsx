@@ -121,7 +121,7 @@ export default function ProfilePage() {
 
         {/* Tabs */}
         <Tabs defaultValue="details" className="w-full">
-          <div className="px-6 pb-0 border-b overflow-x-auto">
+          <div className="px-6 pb-0 border-b overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <TabsList className="w-full sm:w-auto inline-flex h-auto bg-transparent p-0">
               <TabsTrigger value="details">My Details</TabsTrigger>
               <TabsTrigger value="security">Security</TabsTrigger>

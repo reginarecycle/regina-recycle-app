@@ -250,7 +250,7 @@ export default function CollectorSettingsPage() {
                 <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
 
                     {/* TabsList always at the top */}
-                    <div className="px-6 border-b overflow-x-auto">
+                    <div className="px-6 border-b overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                         <TabsList className="w-full sm:w-auto inline-flex h-auto bg-transparent p-0">
                             <TabsTrigger value="profile">Profile</TabsTrigger>
                             <TabsTrigger value="pricing">Pricing</TabsTrigger>
