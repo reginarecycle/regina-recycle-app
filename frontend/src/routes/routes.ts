@@ -1,17 +1,17 @@
-export  enum Routes {
+export enum Routes {
     base = "/",
     learn = "/learn",
     about = "/about",
-    
+
     //auth
     onboarding = "/auth",
     login = "/auth/login",
     forgot = "/auth/forgot",
     reset = "/auth/reset",
-    register= "auth/register",
+    register = "auth/register",
     verification = "/auth/verification",
     success = "/auth/success",
-    collectorRegister= "/auth/collector",
+    collectorRegister = "/auth/collector",
 
     //dashboard
     app = "/app",
@@ -21,7 +21,11 @@ export  enum Routes {
     schedulePickupLoc = "/app/schedule/pickupLoc",
     collectorapp = "/app/collector",
     collectordashboard = "/app/collector/dashboard",
+    collectorsettings = "/app/collector/settings",
 
     //profile
     profile = "/app/profile",
+
+    //collector requests
+    requests = "/app/collector/requests",
 }

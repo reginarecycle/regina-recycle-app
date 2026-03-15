@@ -8,6 +8,8 @@ const CustomerProfile = lazy(() => import("@/views/customer/profile"));
 const SchedulePickupView = lazy(() => import ("@/views/customer/schedule_pickup_view/index"));
 const SchedulePickupTime = lazy(() => import ("@/views/customer/schedule_pickup_time/index"));
 const SchedulePickupLoc = lazy (()=> import ("@/views/customer/schedule_pickup_location/index"));
+const CollectorRequests = lazy(() => import("@/views/collector/requests"));
+const CollectorSettingsPage = lazy(() => import("@/views/collector/settings"));
 
 export const dashboardRoutes = () => {
   return [
@@ -38,11 +40,19 @@ export const dashboardRoutes = () => {
           path: Routes.collectordashboard,
           element: <CollectorDashboard />,
         },
+        {
+          path: Routes.collectorsettings,
+          element: <CollectorSettingsPage />,
+        },
       ],
     },
     {
       path: Routes.profile,
       element: <CustomerProfile />,
+    },
+    {
+      path: Routes.requests,
+      element: <CollectorRequests />,
     },
   ] as RouteObject[];
 };
