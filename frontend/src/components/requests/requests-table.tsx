@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import DataTable, { type Column } from "@/components/ui/data-table";
 import { ChevronRight, ListFilter, Search } from "lucide-react";
@@ -12,7 +11,6 @@ import { CompleteRequestModal } from "./complete-request-modal";
 import { RejectRequestModal } from "./reject-request-modal";
 
 type RequestRow = (typeof RequestsData)[number];
-const ROWS_PER_PAGE = 5;
 
 export default function RequestsTable() {
     const [requests, setRequests] = useState<RequestRow[]>(RequestsData);
@@ -26,22 +24,7 @@ export default function RequestsTable() {
     const [rejectOpen, setRejectOpen] = useState(false);
     const [completeNote, setCompleteNote] = useState("");
 
-    const [pageIncoming, setPageIncoming] = useState(1);
-    const [pageAccepted, setPageAccepted] = useState(1);
-    const [pageCompleted, setPageCompleted] = useState(1);
-
-    const getPageState = () => {
-        switch (activeTab) {
-            case "incoming":
-                return { page: pageIncoming, setPage: setPageIncoming };
-            case "accepted":
-                return { page: pageAccepted, setPage: setPageAccepted };
-            case "completed":
-                return { page: pageCompleted, setPage: setPageCompleted };
-        }
-    };
-
-    const { page: currentPage, setPage: setCurrentPage } = getPageState();
+    const [currentPage, setCurrentPage] = useState(1);
 
     const incomingData = requests.filter((r) => r.status === "incoming");
     const acceptedData = requests.filter((r) => r.status === "accepted");
@@ -225,174 +208,101 @@ export default function RequestsTable() {
             },
         ];
 
-    const paginate = (data: RequestRow[]) => {
-        const totalRows = data.length;
-        const totalPages = Math.max(1, Math.ceil(totalRows / ROWS_PER_PAGE));
-
-        const start = (currentPage - 1) * ROWS_PER_PAGE;
-        const end = Math.min(start + ROWS_PER_PAGE, totalRows);
-
-        const paginatedData = data.slice(start, end);
-
-        const startItem = totalRows === 0 ? 0 : start + 1;
-        const endItem = end;
-
-        return {
-            paginatedData,
-            totalPages,
-            showText:
-                totalRows === 0
-                    ? "No requests found"
-                    : `Showing ${startItem} to ${endItem} of ${totalRows}`,
-        };
-    };
-
-    const renderMobileCards = (
-        data: RequestRow[],
+    const renderMobileRequest = (
+        row: RequestRow,
         showMaterials: boolean,
         showPayment: boolean,
         payoutLabel: string
     ) => {
-        const { paginatedData, totalPages, showText } = paginate(data);
+        const materials = [row.material1, row.material2, row.material3].filter(Boolean);
 
         return (
-            <div className="md:hidden">
-                <div className="space-y-3 p-4">
-                    {paginatedData.length === 0 ? (
-                        <div className="rounded-xl border border-[#E5E7EB] bg-white p-4 text-sm text-gray-500">
-                            No requests found
+            <>
+                <div className="mb-3 flex items-start justify-between gap-3">
+                    <div>
+                        <div className="text-[15px] font-bold text-black">
+                            {row.Username}
                         </div>
+                        <div className="mt-1 text-[13px] text-gray-600">
+                            {row.Location}
+                        </div>
+                    </div>
+
+                    {row.Compatibility === 100 ? (
+                        <Badge
+                            variant={"inactive"}
+                            className="bg-green-100 text-green-800 border-0 text-xs"
+                        >
+                            COMPATIBLE
+                        </Badge>
                     ) : (
-                        paginatedData.map((row) => {
-                            const materials = [row.material1, row.material2, row.material3].filter(Boolean);
-
-                            return (
-                                <div
-                                    key={`${row.Username}-${row.Date}-${row.startTime}`}
-                                    className="rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-sm"
-                                >
-                                    <div className="mb-3 flex items-start justify-between gap-3">
-                                        <div>
-                                            <div className="text-[15px] font-bold text-black">
-                                                {row.Username}
-                                            </div>
-                                            <div className="mt-1 text-[13px] text-gray-600">
-                                                {row.Location}
-                                            </div>
-                                        </div>
-
-                                        {row.Compatibility === 100 ? (
-                                            <Badge
-                                                variant={"inactive"}
-                                                className="bg-green-100 text-green-800 border-0 text-xs"
-                                            >
-                                                COMPATIBLE
-                                            </Badge>
-                                        ) : (
-                                            <Badge
-                                                variant={"inactive"}
-                                                className="bg-red-100 text-red-700 border-0 text-xs"
-                                            >
-                                                INCOMPATIBLE
-                                            </Badge>
-                                        )}
-                                    </div>
-
-                                    <div className="mb-3 text-[13px] text-gray-700">
-                                        <div className="font-semibold text-black">Date & Time</div>
-                                        <div>
-                                            {row.Date}
-                                        </div>
-                                        <div>
-                                            {row.startTime} - {row.endTime}
-                                        </div>
-                                    </div>
-
-                                    {showMaterials && (
-                                        <div className="mb-3">
-                                            <div className="mb-2 text-[13px] font-semibold text-black">
-                                                Material
-                                            </div>
-                                            <div className="flex flex-wrap gap-2">
-                                                {materials.map((m, i) => (
-                                                    <Badge
-                                                        key={i}
-                                                        className="bg-[#5f7f6e] text-white text-xs px-3 py-1 rounded-full font-bold"
-                                                    >
-                                                        {m}
-                                                    </Badge>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {showPayment && (
-                                        <div className="mb-3 text-[13px] text-gray-700">
-                                            <div className="font-semibold text-black">{payoutLabel}</div>
-                                            <div className="font-bold text-sm">$12.50</div>
-                                        </div>
-                                    )}
-
-                                    <div className="pt-2">
-                                        {activeTab === "accepted" ? (
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedRequest(row);
-                                                    setCompleteNote("");
-                                                    setCompleteOpen(true);
-                                                }}
-                                                className="w-full rounded-md border border-[#4D7C63] px-4 py-2 font-medium text-[#4D7C63] transition hover:bg-[#4D7C63] hover:text-white"
-                                            >
-                                                Complete
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedRequest(row);
-                                                    setDetailsOpen(true);
-                                                }}
-                                                className="flex w-full items-center justify-center gap-1 rounded-md bg-[#344E41] px-4 py-2 text-sm font-semibold text-white"
-                                            >
-                                                View Details <ChevronRight size={16} />
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })
+                        <Badge
+                            variant={"inactive"}
+                            className="bg-red-100 text-red-700 border-0 text-xs"
+                        >
+                            INCOMPATIBLE
+                        </Badge>
                     )}
                 </div>
 
-                <div className="border-t border-[#E5E7EB] px-4 py-4">
-                    <div className="mb-3 text-center text-sm text-gray-500">
-                        {showText}
-                    </div>
-
-                    <div className="flex items-center justify-center gap-2 sm:gap-4 flex-wrap">
-                        <Button
-                            variant="outline"
-                            disabled={currentPage === 1}
-                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                            className="flex-1 sm:flex-none min-w-[80px] px-4 py-2 rounded-lg border border-gray-200 text-gray-700 font-medium hover:bg-gray-100 transition"
-                        >
-                            Prev
-                        </Button>
-
-                        <div className="rounded-md bg-[#344E41] px-4 py-2 text-sm font-semibold text-white">
-                            {currentPage}
-                        </div>
-
-                        <Button
-                            variant="outline"
-                            disabled={currentPage === totalPages}
-                            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                            className="flex-1 sm:flex-none min-w-[80px] px-4 py-2 rounded-lg border border-gray-200 text-gray-700 font-medium hover:bg-gray-100 transition"
-                        >
-                            Next
-                        </Button>
+                <div className="mb-3 text-[13px] text-gray-700">
+                    <div className="font-semibold text-black">Date & Time</div>
+                    <div>{row.Date}</div>
+                    <div>
+                        {row.startTime} - {row.endTime}
                     </div>
                 </div>
-            </div>
+
+                {showMaterials && (
+                    <div className="mb-3">
+                        <div className="mb-2 text-[13px] font-semibold text-black">
+                            Material
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {materials.map((m, i) => (
+                                <Badge
+                                    key={i}
+                                    className="bg-[#5f7f6e] text-white text-xs px-3 py-1 rounded-full font-bold"
+                                >
+                                    {m}
+                                </Badge>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {showPayment && (
+                    <div className="mb-3 text-[13px] text-gray-700">
+                        <div className="font-semibold text-black">{payoutLabel}</div>
+                        <div className="font-bold text-sm">$12.50</div>
+                    </div>
+                )}
+
+                <div className="pt-2">
+                    {activeTab === "accepted" ? (
+                        <button
+                            onClick={() => {
+                                setSelectedRequest(row);
+                                setCompleteNote("");
+                                setCompleteOpen(true);
+                            }}
+                            className="w-full rounded-md border border-[#4D7C63] px-4 py-2 font-medium text-[#4D7C63] transition hover:bg-[#4D7C63] hover:text-white"
+                        >
+                            Complete
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => {
+                                setSelectedRequest(row);
+                                setDetailsOpen(true);
+                            }}
+                            className="flex w-full items-center justify-center gap-1 rounded-md bg-[#344E41] px-4 py-2 text-sm font-semibold text-white"
+                        >
+                            View Details <ChevronRight size={16} />
+                        </button>
+                    )}
+                </div>
+            </>
         );
     };
 
@@ -453,81 +363,55 @@ export default function RequestsTable() {
                 </CardTitle>
 
                 <TabsContent value="incoming" className="m-0">
-                    {(() => {
-                        const { paginatedData, totalPages, showText } = paginate(incomingData);
-                        return (
-                            <>
-                                <div className="hidden md:block">
-                                    <DataTable
-                                        className="[&>div]:border-0 [&>div]:rounded-none"
-                                        data={paginatedData}
-                                        columns={createColumns(true, false, "")}
-                                        keyExtractor={(row) => `incoming-${row.Username}-${row.Date}`}
-                                        pagination={{
-                                            currentPage,
-                                            totalPages,
-                                            onPageChange: setCurrentPage,
-                                            showText,
-                                        }}
-                                    />
-                                </div>
-
-                                {renderMobileCards(incomingData, true, false, "")}
-                            </>
-                        );
-                    })()}
+                    <DataTable
+                        className="[&>div]:border-0 [&>div]:rounded-none"
+                        data={incomingData}
+                        columns={createColumns(true, false, "")}
+                        keyExtractor={(row) => `incoming-${row.Username}-${row.Date}`}
+                        pagination={{
+                            currentPage: currentPage,
+                            totalPages: 5,
+                            onPageChange: setCurrentPage,
+                            showText: "Showing 4 to 12 materials available for ReginaRecycle Collectors.",
+                        }}
+                        mobileRender={(row) => renderMobileRequest(row, true, false, "")}
+                    />
                 </TabsContent>
 
                 <TabsContent value="accepted" className="m-0">
-                    {(() => {
-                        const { paginatedData, totalPages, showText } = paginate(acceptedData);
-                        return (
-                            <>
-                                <div className="hidden md:block">
-                                    <DataTable
-                                        className="[&>div]:border-0 [&>div]:rounded-none"
-                                        data={paginatedData}
-                                        columns={createColumns(false, true, "Estimated Payment ($)")}
-                                        keyExtractor={(row) => `accepted-${row.Username}-${row.Date}`}
-                                        pagination={{
-                                            currentPage,
-                                            totalPages,
-                                            onPageChange: setCurrentPage,
-                                            showText,
-                                        }}
-                                    />
-                                </div>
-
-                                {renderMobileCards(acceptedData, false, true, "Estimated Payment ($)")}
-                            </>
-                        );
-                    })()}
+                    <DataTable
+                        className="[&>div]:border-0 [&>div]:rounded-none"
+                        data={acceptedData}
+                        columns={createColumns(false, true, "Estimated Payment ($)")}
+                        keyExtractor={(row) => `accepted-${row.Username}-${row.Date}`}
+                        pagination={{
+                            currentPage: currentPage,
+                            totalPages: 5,
+                            onPageChange: setCurrentPage,
+                            showText: "Showing 4 to 12 materials available for ReginaRecycle Collectors.",
+                        }}
+                        mobileRender={(row) =>
+                            renderMobileRequest(row, false, true, "Estimated Payment ($)")
+                        }
+                    />
                 </TabsContent>
 
                 <TabsContent value="completed" className="m-0">
-                    {(() => {
-                        const { paginatedData, totalPages, showText } = paginate(completedData);
-                        return (
-                            <>
-                                <div className="hidden md:block">
-                                    <DataTable
-                                        className="[&>div]:border-0 [&>div]:rounded-none"
-                                        data={paginatedData}
-                                        columns={createColumns(false, true, "Payout ($)")}
-                                        keyExtractor={(row) => `completed-${row.Username}-${row.Date}`}
-                                        pagination={{
-                                            currentPage,
-                                            totalPages,
-                                            onPageChange: setCurrentPage,
-                                            showText,
-                                        }}
-                                    />
-                                </div>
-
-                                {renderMobileCards(completedData, false, true, "Payout ($)")}
-                            </>
-                        );
-                    })()}
+                    <DataTable
+                        className="[&>div]:border-0 [&>div]:rounded-none"
+                        data={completedData}
+                        columns={createColumns(false, true, "Payout ($)")}
+                        keyExtractor={(row) => `completed-${row.Username}-${row.Date}`}
+                        pagination={{
+                            currentPage: currentPage,
+                            totalPages: 5,
+                            onPageChange: setCurrentPage,
+                            showText: "Showing 4 to 12 materials available for ReginaRecycle Collectors.",
+                        }}
+                        mobileRender={(row) =>
+                            renderMobileRequest(row, false, true, "Payout ($)")
+                        }
+                    />
                 </TabsContent>
             </Tabs>
 

@@ -76,8 +76,8 @@ export function RequestDetailsModal({
 
                             <Badge
                                 className={`rounded-full px-4 py-1 text-[13px] font-semibold ${isIncompatible
-                                        ? "bg-[#FEE2E2] text-[#991B1B] hover:bg-[#FEE2E2]"
-                                        : "bg-[#DDF5E4] text-[#2F6B4F] hover:bg-[#DDF5E4]"
+                                    ? "bg-[#FEE2E2] text-[#991B1B] hover:bg-[#FEE2E2]"
+                                    : "bg-[#DDF5E4] text-[#2F6B4F] hover:bg-[#DDF5E4]"
                                     }`}
                             >
                                 {compatibilityStr}
@@ -132,8 +132,8 @@ export function RequestDetailsModal({
                                     <div
                                         key={item.material}
                                         className={`grid grid-cols-3 px-6 pb-2 text-[14px] ${index !== orderSummary.length - 1
-                                                ? "border-b border-[#E5E7EB]"
-                                                : ""
+                                            ? "border-b border-[#E5E7EB]"
+                                            : ""
                                             }`}
                                     >
                                         <div className="font-medium text-[#344E41]">{item.material}</div>

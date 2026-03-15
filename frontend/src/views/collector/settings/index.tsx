@@ -21,21 +21,21 @@ import {
     MapPin,
 } from "lucide-react";
 import {
-  collectorProfileSchema,
-  collectorSecuritySchema,
-  type CollectorProfileFormValues,
-  type CollectorSecurityFormValues,
+    collectorProfileSchema,
+    collectorSecuritySchema,
+    type CollectorProfileFormValues,
+    type CollectorSecurityFormValues,
 } from "@/lib/validation";
 
 // Material type definition
 type Material = {
-  id: number;
-  name: string;
-  desc: string;
-  basePrice: number;
-  bulkRate: number;
-  active: boolean;
-  icon: string;
+    id: number;
+    name: string;
+    desc: string;
+    basePrice: number;
+    bulkRate: number;
+    active: boolean;
+    icon: string;
 };
 
 export default function CollectorSettingsPage() {
@@ -179,11 +179,10 @@ export default function CollectorSettingsPage() {
             header: "Status",
             render: (material) => (
                 <Badge
-                    className={`uppercase text-xs font-semibold ${
-                        material.active
+                    className={`uppercase text-xs font-semibold ${material.active
                             ? "bg-green-100 text-green-800 border-0"
                             : "bg-gray-100 text-gray-600 border-0"
-                    }`}
+                        }`}
                 >
                     {material.active ? "ACTIVE" : "INACTIVE"}
                 </Badge>
@@ -234,11 +233,10 @@ export default function CollectorSettingsPage() {
                     </div>
                 </div>
                 <Badge
-                    className={`${
-                        material.active
+                    className={`${material.active
                             ? "bg-green-100 text-green-800"
                             : "bg-gray-100 text-gray-600"
-                    } text-xs`}
+                        } text-xs`}
                 >
                     {material.active ? "ACTIVE" : "INACTIVE"}
                 </Badge>
