@@ -1,37 +1,66 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query,Req  } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Request } from 'express';
 
+@UseGuards(JwtAuthGuard) // apply to all routes
 @Controller('users')
+
 export class UsersController {
+
   constructor(private readonly usersService: UsersService) {}
 
   @Get('profile')
-  @UseGuards() // Add your authentication guard here
-  getProfile() {
-    const userId = 'temp-user-id'; // Replace with actual user ID from the request context
+  getProfile(@Req() req: any) {
+    const userId = req.user.userId; // Replace with actual user ID from the request context
     return this.usersService.getProfile(userId);
   }
 
+  @Get('basic-info')
+  getBasicInfo(@Req() req: any) {
+    const userId = req.user.userId; // Replace with actual user ID from the request context
+    return this.usersService.getUserBasicInfo(userId);
+  }
+
+  @Get('addresses')
+  getUserAddresses(@Req() req: any) {
+    const userId = req.user.userId; // Replace with actual user ID from the request context
+    return this.usersService.getUserAddresses(userId);
+  }
+
+  
+  @Get('notifications')
+  getNotificationPreferences(@Req() req: any) {
+    const userId = req.user.userId; // Replace with actual user ID from the request context
+    return this.usersService.getNotificationPreferences(userId);
+  }
+
+
+  @Patch('notifications')
+  updateNotificationPreferences(@Req() req: any, @Body() data: any) {
+    const userId = req.user.userId; // Replace with actual user ID from the request context
+    return this.usersService.updateNotificationPreferences(userId, data);
+  }
+
+
+
   @Patch('profile')
-  @UseGuards() // Add your authentication guard here
-  updateProfile(@Body() updateUserDto: UpdateUserDto) {
-    const userId = 'temp-user-id'; // Replace with actual user ID from the request context
+  updateProfile(@Req() req: any, @Body() updateUserDto: UpdateUserDto) {
+    const userId = req.user.userId;// Replace with actual user ID from the request context
     return this.usersService.updateProfile(userId, updateUserDto);
   }
 
   @Patch('deactivate')
-  @UseGuards() // Add your authentication guard here
-  deactivateAccount() {
-    const userId = 'temp-user-id'; // Replace with actual user ID from the request context
+  deactivateAccount(@Req() req: any) {
+    const userId = req.user.userId; // Replace with actual user ID from the request context
     // Implement logic to deactivate the user's account
     return this.usersService.deactivateAccount(userId);
   }
 
   @Delete('delete')
-  @UseGuards() // Add your authentication guard here
-  deleteAccount() {
-    const userId = 'temp-user-id'; // Replace with actual user ID from the request context
+  deleteAccount(@Req() req: any) {
+    const userId = req.user.userId; // Replace with actual user ID from the request context
     // Implement logic to delete the user's account
     return this.usersService.deleteAccount(userId); 
   }
