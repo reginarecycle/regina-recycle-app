@@ -86,7 +86,9 @@ export const collectorNavItems: NavItem[] = [
 
   // Get page title from current route
 export const getPageTitle = () => {
-    const path = location.pathname.split("/").pop() || "";
+    const p = location.pathname;
+    if ( p.includes("/schedule")) return "Schedule";
+    const path = p.split("/").pop() || "";
     const titleMap: Record<string, string> = {
       dashboard: "Dashboard",
       schedule: "Schedule",
