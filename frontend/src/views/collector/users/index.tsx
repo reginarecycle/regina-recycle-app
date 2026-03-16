@@ -379,7 +379,7 @@ export default function CollectorUsersPage() {
 
      {isModalOpen && selectedUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          {/* Backdrop */}
+         
           <div
             className="absolute inset-0 bg-black/20"
             onClick={() => setIsModalOpen(false)}
@@ -480,7 +480,7 @@ export default function CollectorUsersPage() {
                 </div>
               </div>
 
-              {/* Collected Items */}
+            
               <div>
                 <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9CA3AF]">
                   Collected Items
@@ -497,7 +497,7 @@ export default function CollectorUsersPage() {
                 </div>
               </div>
 
-              {/* Next Collection */}
+             
               <div
                 className="rounded-[10px] border border-[#F59E0B] bg-[#FFFBEB]"
                 style={{ padding: "13px" }}
