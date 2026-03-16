@@ -1,16 +1,12 @@
 import { Outlet } from "react-router-dom";
-
-// type Props = {};
+import Navbar from "../shared/navbar";
 
 const LandingLayout = () => {
   return (
-    <main>
-      <>toolbar</>
-      <div className="min-h-svh lg:min-h-[767px] bg-card mt-20 pb-[184px]">
-        <Outlet />
-      </div>
-      <>footer</>
-    </main>
+    <div className="bg-[#FBFBFB] min-h-screen">
+      <Navbar />
+      <Outlet />
+    </div>
   );
 };
 

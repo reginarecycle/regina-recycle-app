@@ -38,7 +38,7 @@ Full-stack recycling app built with NestJS, React (Vite), Prisma, and PostgreSQL
 ### 1. Clone Repository
 
 ```bash
-git clone hhttps://github.com/reginarecycle/regina-recycle-app.git
+git clone https://github.com/reginarecycle/regina-recycle-app.git
 cd regina-recycle-app
 ```
 
@@ -50,12 +50,19 @@ npm install
 cp .env.example .env
 ```
 
-**Edit `backend/.env` - Get DATABASE_URL from team lead:**
+**Edit `backend/.env` - Get Values from team lead:**
 
 ```env
 DATABASE_URL="postgresql://user:password@localhost:5432/regina_recycle_dev?schema=public"
 PORT=4000
 NODE_ENV=development
+JWT_SECRET=get-from-team-lead
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=get-from-team-lead
+SMTP_PASS=get-from-team-lead
+SMTP_FROM=get-from-team-lead
+FRONTEND_URL=http://localhost:5173
 ```
 
 **For local PostgreSQL:**
@@ -141,6 +148,38 @@ cd backend && npm run start:dev
 ```bash
 cd frontend && npm run dev
 ```
+
+---
+
+## API Documentation
+
+Swagger UI is available once the backend is running.
+
+### Local
+
+Navigate to: [http://localhost:4000/docs](http://localhost:4000/docs)
+
+### Staging for test
+
+Navigate to: [https://regina-recycle-app-backend-staging.vercel.app/docs](https://regina-recycle-app-backend-staging.vercel.app/docs)
+
+### Production for go live
+
+## Navigate to: [https://your-actual-production-url.vercel.app/docs](https://your-actual-production-url.vercel.app/docs)
+
+---
+
+### Testing protected endpoints
+
+Protected endpoints require a JWT token:
+
+**In Swagger:**
+
+1. Call `POST /auth/login` and copy the `token` from the response
+2. Click **Authorize** (top right)
+3. Paste the token (without `Bearer`) into the `JWT-auth` field
+4. Click **Authorize** → **Close**
+5. All endpoints with a 🔒 lock icon are now authenticated
 
 ---
 
@@ -298,4 +337,5 @@ VITE_API_URL=http://localhost:4000/api
 
 ---
 
-**Last Updated:** 10th February 2026
+**Created At:** 10th February 2026
+**Last Updated:** 12th March 2026

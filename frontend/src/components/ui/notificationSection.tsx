@@ -41,7 +41,7 @@ export default function NotificationSection({
 
         {onSave && saveLabel && (
           <Button
-            className="w-[174px] h-[44px] bg-primary hover:bg-primary/90 text-white disabled:opacity-60 shrink-0"
+            className="w-[174px] h-11 min-w-0 bg-primary hover:bg-primary/90 text-white disabled:opacity-60 shrink-0"
             disabled={saveDisabled}
             onClick={onSave}
           >
@@ -65,3 +65,4 @@ export default function NotificationSection({
     </section>
   );
 }
+
