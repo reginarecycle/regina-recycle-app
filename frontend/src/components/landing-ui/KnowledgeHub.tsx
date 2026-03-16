@@ -3,7 +3,7 @@ import PaperIcon from "@/assets/icons/paper.svg?react";
 import GlassIcon from "@/assets/icons/glass.svg?react";
 import EwasteIcon from "@/assets/icons/ewaste.svg?react";
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle, XCircle } from "lucide-react";
+import { ArrowRight, BadgeCheckIcon, BadgeXIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Routes } from "@/routes/routes";
@@ -107,13 +107,13 @@ function KnowledgeHubSection() {
                 </h3>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="size-5 text-green-500 shrink-0" />
+                    <BadgeCheckIcon className="size-5 text-green-500 shrink-0" />
                     <span className="text-sm text-green-500">
                       {category.accepted}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <XCircle className="size-5 text-red-500 shrink-0" />
+                    <BadgeXIcon className="size-5 text-red-500 shrink-0" />
                     <span className="text-sm text-red-500">
                       {category.rejected}
                     </span>

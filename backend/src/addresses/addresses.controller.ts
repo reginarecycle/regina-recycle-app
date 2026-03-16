@@ -6,52 +6,82 @@ import {
   Patch,
   Param,
   Delete,
-  UseGuards,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AddressesService } from './addresses.service';
-import { CreateAddressDto } from './dto/create-address.dto';
+import { AddressDto } from './dto/address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
-
+import { type User } from '@prisma/client/wasm';
+import { Auth } from '../common/decorator/auth.decorator';
+import { CurrentUser } from '../auth/decorator/current-user.decorator';
 @Controller('addresses')
 export class AddressesController {
   constructor(private readonly addressesService: AddressesService) {}
 
   @Post()
-  // No auth guard - open for registration
-  create(@Body() createAddressDto: CreateAddressDto) {
-    // userId passed in DTO from registration
-    return this.addressesService.create(createAddressDto);
+  @Auth()
+  create (@CurrentUser() user: User, @Body() addressDto: AddressDto) {
+    return this.addressesService.create(user.userId, addressDto);
   }
 
   @Get()
-  @UseGuards()  // TODO: Uncomment when JWT ready
-  async findAll(/* @CurrentUser() user: User */) {
-    const userId = 'temp-user-id';  // TODO: Remove placeholder
+  @Auth()
+  async findAll(@CurrentUser('id') userId: string) {
     return this.addressesService.findAll(userId);
   }
 
+  @Get('default')
+  @Auth()
+  async getDefault(@CurrentUser('id') userId: string) {
+    return this.addressesService.getDefaultAddress(userId);
+  }
+
   @Get(':id')
-  @UseGuards()  // TODO: Protected
-  findOne(@Param('id') id: string) {
+  @Auth()
+  async findOne(
+    @Param('id') id: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    const isOwner = await this.addressesService.validateOwnership(id, userId);
+    if (!isOwner) {
+      throw new UnauthorizedException('You do not have access to this address');
+    }
     return this.addressesService.findOne(id);
   }
 
   @Patch(':id')
-  // @UseGuards(JwtAuthGuard)  // TODO: Protected
-  update(@Param('id') id: string, @Body() updateAddressDto: UpdateAddressDto) {
+  @Auth()
+  async update(
+    @Param('id') id: string,
+    @Body() updateAddressDto: UpdateAddressDto,
+    @CurrentUser('id') userId: string,
+  ) {
+    const isOwner = await this.addressesService.validateOwnership(id, userId);
+    if (!isOwner) {
+      throw new UnauthorizedException('You do not have access to this address');
+    }
     return this.addressesService.update(id, updateAddressDto);
   }
 
   @Delete(':id')
-  // @UseGuards(JwtAuthGuard)  // TODO: Protected
-  remove(@Param('id') id: string) {
+  @Auth()
+  async remove(
+    @Param('id') id: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    const isOwner = await this.addressesService.validateOwnership(id, userId);
+    if (!isOwner) {
+      throw new UnauthorizedException('You do not have access to this address');
+    }
     return this.addressesService.remove(id);
   }
 
   @Patch(':id/set-default')
-  // @UseGuards(JwtAuthGuard)  // TODO: Protected
-  setDefault(@Param('id') id: string) {
-    const userId = 'temp-user-id'; // TODO: Get from token
+  @Auth()
+  async setDefault(
+    @Param('id') id: string,
+    @CurrentUser('id') userId: string,
+  ) {
     return this.addressesService.setDefault(userId, id);
   }
 }
