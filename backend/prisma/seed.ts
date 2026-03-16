@@ -26,10 +26,9 @@ const tips = [
 ];
 
 async function main() {
-  console.log('🌱 Seeding tips...');
+  console.log('Seeding tips...');
 
   for (const content of tips) {
-    // Check if tip already exists before creating
     const existing = await prisma.tip.findFirst({ where: { content } });
     if (!existing) {
       await prisma.tip.create({
@@ -41,12 +40,12 @@ async function main() {
     }
   }
 
-  console.log(`✅ Successfully seeded ${tips.length} tips`);
+  console.log(`Successfully seeded ${tips.length} tips`);
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Seeding failed:', e);
+    console.error('Seeding failed:', e);
     process.exit(1);
   })
   .finally(async () => {
