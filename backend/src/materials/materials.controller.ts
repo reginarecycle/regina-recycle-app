@@ -1,34 +1,46 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { MaterialsService } from './materials.service';
 import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
+import { Auth } from '../common/decorator/auth.decorator';
 
 @Controller('materials')
 export class MaterialsController {
   constructor(private readonly materialsService: MaterialsService) {}
 
   @Post()
-  create(@Body() createMaterialDto: CreateMaterialDto) {
-    return this.materialsService.create(createMaterialDto);
+  @Auth()
+  createMaterial(@Body() createMaterialDto: CreateMaterialDto) {
+    return this.materialsService.createMaterial(createMaterialDto);
   }
 
   @Get()
-  findAll() {
-    return this.materialsService.findAll();
+  getAllMaterials(
+   @Query('limit') limit?: string,
+   @Query('offset') offset?: string,
+   @Query('search') search?: string,
+ ) {
+    return this.materialsService.getAllMetarials (
+     Number(limit) || 10,
+     Number(offset) || 0,
+     search,
+);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.materialsService.findOne(id);
+  getMaterialById(@Param('id') id: string) {
+    return this.materialsService.getMaterialById(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMaterialDto: UpdateMaterialDto) {
-    return this.materialsService.update(id, updateMaterialDto);
+  @Auth()
+  updateMaterial(@Param('id') id: string, @Body() updateMaterialDto: UpdateMaterialDto) {
+    return this.materialsService.updateMaterial(id, updateMaterialDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.materialsService.remove(id);
+  @Auth()
+  removeMaterial(@Param('id') id: string) {
+    return this.materialsService.removeMaterial(id);
   }
 }

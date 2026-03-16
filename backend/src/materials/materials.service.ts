@@ -8,7 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class MaterialsService {
    constructor(private readonly prisma: PrismaService) {} 
 
-  async create(createMaterialDto: CreateMaterialDto) {  // creates a new materal 
+  async createMaterial(createMaterialDto: CreateMaterialDto) {  
     return this.prisma.material.create({
       data: {
         name: createMaterialDto.name,
@@ -21,16 +21,24 @@ export class MaterialsService {
   }
  
 
-  async findAll() {    // returns all material 
+  async getAllMetarials(limit = 10, offset = 0, search?: string) {
   return this.prisma.material.findMany({
-    orderBy: {
-      createdAt: 'desc',
-    },
-  });
+    where: search
+       ? {
+          name: { contains: search, mode: 'insensitive' },
+         }
+       : {},
+     orderBy: {
+       createdAt: 'desc',
+     },
+     take: limit,
+     skip: offset,
+   });
+
 }   
   
 
-  async findOne(id: string) {  // return one material 
+  async getMaterialById(id: string) {  
    const material = await this.prisma.material.findUnique({
       where: { materialId: id },
     });
@@ -42,8 +50,8 @@ export class MaterialsService {
     return material;
   }
 
-  async update(id: string, updateMaterialDto: UpdateMaterialDto) { // this function update one material 
-    await this.findOne(id);
+  async updateMaterial(id: string, updateMaterialDto: UpdateMaterialDto) { 
+    await this.getMaterialById(id);
     return this.prisma.material.update({
       where: { materialId: id },
       data: {
@@ -56,8 +64,8 @@ export class MaterialsService {
     }); 
   }
 
-  async remove(id: string) {  // this function deletes material 
-    return await this.findOne(id);
+  async removeMaterial(id: string) {  
+   await this.getMaterialById(id);
 
     return this.prisma.material.delete({
       where: { materialId: id },

@@ -1,7 +1,28 @@
+import { Type } from 'class-transformer';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
+
 export class CreateMaterialDto {
-  name: string;
-  type: string;
-  photoUrl?: string;
-  co2Saved?: number;
-  waterSaved?: number;
+ @IsString()
+ name: string;
+
+ @IsString()
+ type: string;
+
+
+ @IsOptional()
+ @IsString()
+ photoUrl?: string;
+
+
+ @IsOptional()
+ @Type(() => Number)
+ @IsNumber()
+ co2Saved?: number;
+
+
+ @IsOptional()
+ @Type(() => Number)
+ @IsNumber()
+ waterSaved?: number;
+
 }
