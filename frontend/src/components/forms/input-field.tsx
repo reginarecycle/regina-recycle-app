@@ -34,7 +34,12 @@ const InputField: FC<InputFieldProps> = ({
 
   return (
     <Field data-invalid={!!error} className="relative">
-      <FieldLabel htmlFor={fieldId}>{label}</FieldLabel>
+      <FieldLabel htmlFor={fieldId}>
+  {label}
+  {inputProps.required && (
+    <span className="text-destructive ml-0.5">*</span>
+  )}
+</FieldLabel>
       <div className="relative">
         <Input
           {...register}

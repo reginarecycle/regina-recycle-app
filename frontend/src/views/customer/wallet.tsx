@@ -2,27 +2,23 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Routes } from "@/routes/routes";
 import WithdrawModal from "@/components/modals/withdrawmodal";
-
 import TransactionDetailsModal from "@/components/modals/transactiondetailmodal";
 import type { TransactionDetails } from "@/components/modals/transactiondetailmodal";
-
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
-
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import type { ChartConfig } from "@/components/ui/chart";
-
 import DataTable, { type Column } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
-
 import { Eye } from "lucide-react";
-
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { StatusBadge, getAmountColor } from "@/components/ui/status-badge";
 
 const balanceCad = 3000500;
+
 
 type RecentTxStatus = "CREDIT" | "WITHDRAWAL" | "FAILED";
 
@@ -32,9 +28,7 @@ type RecentTx = {
   status: RecentTxStatus;
   desc: string;
   amount: string;
-  amountColor: string;
-  badgeBg: string;
-  badgeText: string;
+  
 };
 
 const RECENT_TX: RecentTx[] = [
@@ -44,9 +38,6 @@ const RECENT_TX: RecentTx[] = [
     status: "CREDIT",
     desc: "Payment for plastic recyclables",
     amount: "CAD 1,558",
-    amountColor: "#166534",
-    badgeBg: "#DCFCE7",
-    badgeText: "#166534",
   },
   {
     id: "WALLET-TX-2",
@@ -54,9 +45,6 @@ const RECENT_TX: RecentTx[] = [
     status: "WITHDRAWAL",
     desc: "Withdraw via Interac",
     amount: "CAD 1,558",
-    amountColor: "#DD1E1E",
-    badgeBg: "#EAF2FF",
-    badgeText: "#2563EB",
   },
   {
     id: "WALLET-TX-3",
@@ -64,9 +52,6 @@ const RECENT_TX: RecentTx[] = [
     status: "CREDIT",
     desc: "Payment for tins",
     amount: "CAD 1,558",
-    amountColor: "#166534",
-    badgeBg: "#DCFCE7",
-    badgeText: "#166534",
   },
   {
     id: "WALLET-TX-4",
@@ -74,9 +59,6 @@ const RECENT_TX: RecentTx[] = [
     status: "WITHDRAWAL",
     desc: "Withdraw via Interac",
     amount: "CAD 1,558",
-    amountColor: "#DD1E1E",
-    badgeBg: "#EAF2FF",
-    badgeText: "#2563EB",
   },
   {
     id: "WALLET-TX-5",
@@ -84,9 +66,6 @@ const RECENT_TX: RecentTx[] = [
     status: "CREDIT",
     desc: "Payment for tins",
     amount: "CAD 1,558",
-    amountColor: "#166534",
-    badgeBg: "#DCFCE7",
-    badgeText: "#166534",
   },
 ];
 
@@ -101,6 +80,17 @@ const DETAILS_BY_ID: Record<string, TransactionDetails> = {
     receiver: "Jane Doe",
     fees: "0.00CAD",
     reference: "20005487594",
+  },
+  "WALLET-TX-2": {
+    amount: "$200.00",
+    currency: "CAD",
+    status: "WITHDRAWAL",
+    date: "01-12-2026",
+    time: "11:00am",
+    sender: "Jane Doe",
+    receiver: "Interac",
+    fees: "0.00CAD",
+    reference: "20005487595",
   },
 };
 
@@ -137,7 +127,6 @@ export default function CustomerWallet() {
   const handleWalletViewMore = (tx: RecentTx) => {
     const details = DETAILS_BY_ID[tx.id];
     if (!details) return;
-
     setSelectedDetails(details);
     setOpenDetails(true);
   };
@@ -157,19 +146,8 @@ export default function CustomerWallet() {
       key: "status",
       header: "Status",
       headerClassName: "w-[136px]",
-      render: (item) => (
-        <span
-          className="inline-flex items-center justify-center rounded-[34px] px-[8px] py-[0px]"
-          style={{ background: item.badgeBg }}
-        >
-          <span
-            className="text-[10px] font-bold leading-[18px] uppercase"
-            style={{ color: item.badgeText }}
-          >
-            {item.status}
-          </span>
-        </span>
-      ),
+      
+      render: (item) => <StatusBadge status={item.status} />,
     },
     {
       key: "desc",
@@ -185,10 +163,11 @@ export default function CustomerWallet() {
       key: "amount",
       header: "Amount (CAD)",
       headerClassName: "w-[181px]",
+      
       render: (item) => (
         <span
           className="text-[14px] font-bold leading-[20px]"
-          style={{ color: item.amountColor }}
+          style={{ color: getAmountColor(item.status) }}
         >
           {item.amount}
         </span>
@@ -214,6 +193,7 @@ export default function CustomerWallet() {
     <div className="w-full bg-[#F7F7F7]">
       <div className="mx-auto w-full max-w-[1512px] min-h-[1086px] px-6 py-6">
         <div className="flex flex-col gap-4">
+          {/* Balance Card */}
           <div
             className="
               w-full max-w-[1208px] min-h-[167px]
@@ -228,7 +208,6 @@ export default function CustomerWallet() {
               <span className="text-[16px] font-bold leading-[24px] text-white">
                 Available Balance
               </span>
-
               <span className="inline-flex h-6 w-6 items-center justify-center">
                 <Eye className="h-6 w-6 text-white" />
               </span>
@@ -278,6 +257,7 @@ export default function CustomerWallet() {
             </div>
           </div>
 
+          {/* Earnings Chart */}
           <section
             className="
               w-full max-w-[1208px] min-h-[385px]
@@ -305,7 +285,6 @@ export default function CustomerWallet() {
                   >
                     Monthly
                   </TabsTrigger>
-
                   <TabsTrigger
                     value="yearly"
                     className="h-[24px] rounded-[4px] px-3 py-[5px] text-[14px] font-medium leading-[20px] text-black data-[state=active]:border-b-0 data-[state=active]:bg-[#344E41] data-[state=active]:text-white"
@@ -316,94 +295,92 @@ export default function CustomerWallet() {
               </div>
 
               <TabsContent value="monthly" className="mt-3">
-                <div className="p-4">
-                  <ChartContainer
-                    config={earningsChartConfig}
-                    className="h-[260px] w-full"
-                  >
-                    <BarChart data={earningsData}>
-                      <CartesianGrid vertical={false} stroke="#CFCFCF" />
-                      <XAxis
-                        dataKey="month"
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={10}
-                      />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar
-                        dataKey="earnings"
-                        fill="var(--color-earnings)"
-                        radius={4}
-                        barSize={50}
-                      />
-                    </BarChart>
-                  </ChartContainer>
-                </div>
+                <ChartContainer
+                  config={earningsChartConfig}
+                  className="h-[260px] w-full"
+                >
+                  <BarChart data={earningsData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                    <CartesianGrid vertical={false} stroke="#CFCFCF" />
+                    <XAxis
+                      dataKey="month"
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={10}
+                      tick={{ fontSize: 11 }}
+                    />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar
+                      dataKey="earnings"
+                      fill="var(--color-earnings)"
+                      radius={4}
+                      barSize={30}
+                    />
+                  </BarChart>
+                </ChartContainer>
               </TabsContent>
 
               <TabsContent value="yearly" className="mt-3">
-                <div className="p-4">
-                  <ChartContainer
-                    config={earningsChartConfig}
-                    className="h-[260px] w-full"
-                  >
-                    <BarChart data={earningsData}>
-                      <CartesianGrid vertical={false} stroke="#CFCFCF" />
-                      <XAxis
-                        dataKey="month"
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={10}
-                      />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar
-                        dataKey="earnings"
-                        fill="var(--color-earnings)"
-                        radius={4}
-                        barSize={50}
-                      />
-                    </BarChart>
-                  </ChartContainer>
-                </div>
+                <ChartContainer
+                  config={earningsChartConfig}
+                  className="h-[260px] w-full"
+                >
+                  <BarChart data={earningsData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                    <CartesianGrid vertical={false} stroke="#CFCFCF" />
+                    <XAxis
+                      dataKey="month"
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={10}
+                      tick={{ fontSize: 11 }}
+                    />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar
+                      dataKey="earnings"
+                      fill="var(--color-earnings)"
+                      radius={4}
+                      barSize={30}
+                    />
+                  </BarChart>
+                </ChartContainer>
               </TabsContent>
             </Tabs>
           </section>
 
+          {/* Recent Transactions Table */}
           <section className="w-full max-w-[1208px]">
-  <DataTable
-    data={RECENT_TX}
-    columns={recentTransactionColumns}
-    keyExtractor={(item) => item.id}
-    className="space-y-0"
-    header={{
-      title: "Recent Transaction",
-      action: (
-        <button
-          type="button"
-          className="inline-flex items-center gap-1 text-[14px] font-bold leading-[20px] text-[#618171]"
-          onClick={() => navigate(Routes.transactionhistory)}
-        >
-          View All
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-          >
-            <path
-              d="M6 12L10 8L6 4"
-              stroke="#618171"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+            <DataTable
+              data={RECENT_TX}
+              columns={recentTransactionColumns}
+              keyExtractor={(item) => item.id}
+              header={{
+                title: "Recent Transaction",
+                action: (
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1 text-[14px] font-bold leading-[20px] text-[#618171]"
+                    onClick={() => navigate(Routes.transactionhistory)}
+                  >
+                    View All
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                    >
+                      <path
+                        d="M6 12L10 8L6 4"
+                        stroke="#618171"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                ),
+              }}
             />
-          </svg>
-        </button>
-      ),
-    }}
-  />
-</section>
+          </section>
         </div>
       </div>
 
