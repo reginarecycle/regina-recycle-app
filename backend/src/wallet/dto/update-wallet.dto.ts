@@ -1,0 +1,13 @@
+import { ApiPropertyOptional } from "@nestjs/swagger";
+import { IsNumber, IsOptional } from "class-validator";
+import { Type } from "class-transformer";
+
+export class UpdateWalletDto {
+
+    @ApiPropertyOptional({ example: 100.00 })
+    @Type(() => Number)
+    @IsNumber({ maxDecimalPlaces: 2 })
+    @IsOptional()
+    balance?: number;
+
+}
