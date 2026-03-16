@@ -10,4 +10,13 @@ export class UpdateWalletDto {
     @IsOptional()
     balance?: number;
 
+    // funds added
+
+
+    //payment method (deboit or credit or mobile payment)
+
+    //status
+
+    //wallet id
+
 }
