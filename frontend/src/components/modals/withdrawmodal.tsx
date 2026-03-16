@@ -137,6 +137,19 @@ export default function WithdrawModal({
                   if (errors.amount) {
                     setErrors((prev) => ({ ...prev, amount: undefined }));
                   }
+
+                }}
+                onBlur={() => {
+                  const trimmed = amount.trim();
+                  if (!trimmed) {
+                    setErrors(prev => ({ ...prev, amount: "Amount is required." }));
+                  } else if (isNaN(Number(trimmed))) {
+                    setErrors(prev => ({ ...prev, amount: "Enter a valid amount." }));
+                  } else if (Number(trimmed) <= 0) {
+                    setErrors(prev => ({ ...prev, amount: "Amount must be greater than 0." }));
+                  } else if (Number(trimmed) > AVAILABLE_BALANCE) {
+                    setErrors(prev => ({ ...prev, amount: "Amount cannot exceed available balance." }));
+                  }
                 }}
                 className={`
                   h-[48px]
@@ -177,6 +190,15 @@ export default function WithdrawModal({
                       recipientEmail: undefined,
                     }));
                   }
+
+                }}
+                onBlur={() => {
+                  const trimmed = recipientEmail.trim();
+                  if (!trimmed) {
+                    setErrors(prev => ({ ...prev, recipientEmail: "Recipient email is required." }));
+                  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+                    setErrors(prev => ({ ...prev, recipientEmail: "Enter a valid email address." }));
+                  }
                 }}
                 className={`
                   h-[48px]
@@ -187,8 +209,7 @@ export default function WithdrawModal({
                   text-[14px]
                   outline-none
                   focus:border-primary
-                  ${
-                    errors.recipientEmail ? "border-red-500" : "border-border"
+                  ${errors.recipientEmail ? "border-red-500" : "border-border"
                   }
                 `}
               />
