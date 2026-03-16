@@ -28,4 +28,8 @@ export class WalletTransactionDTO {
     @IsString()
     @IsOptional()
     referenceType?: string;
+
+    //search
+
+    //status
 }

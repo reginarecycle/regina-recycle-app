@@ -6,3 +6,10 @@ export class WalletDto {
     @IsNumber({ maxDecimalPlaces: 2 })
     balance: number;
 }
+
+// add a payment method dto
+// add withdraw request dto
+// wallet id
+// user id
+// total payout this month
+// username
