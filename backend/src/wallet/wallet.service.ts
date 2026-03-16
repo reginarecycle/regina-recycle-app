@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { WithdrawDto } from '../common/dto/withdraw.dto';
+import { WithdrawDto } from 'src/common/dto/withdraw.dto';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()

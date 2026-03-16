@@ -1,6 +1,6 @@
 import { WalletService } from './wallet.service';
 import { Controller, Get, Param, Post, Body, Query } from '@nestjs/common';
-import { WithdrawDto } from '../common/dto/withdraw.dto';
+import { WithdrawDto } from 'src/common/dto/withdraw.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Controller('wallet')
