@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { WithdrawDto } from 'src/common/dto/withdraw.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { CollectorWalletDto } from './dto/collectorWallet.dto';
+import { CustomerWalletDto } from './dto/customerWallet.dto';
 
 @Injectable()
 export class WalletService {
@@ -8,7 +10,7 @@ export class WalletService {
     constructor(private prisma: PrismaService) { }
 
     private balance = 3000;
-
+    // get the wallet balance
     getWalletBalance() {
         return {
             balance: this.balance,
