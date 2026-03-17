@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
 import DataTable from "@/components/ui/data-table";
 import { Card } from "../ui/card";
 import { useRouter } from "@/routes/hooks/use-router";
@@ -13,7 +12,7 @@ type Status = "Approved" | "Pending" | "Not Started";
 export type ScheduleItem = {
     id: string;
     materials: Material[];
-    date: Date;
+    date: string;
     status: Status;
     action: string;
 };
@@ -22,49 +21,49 @@ const schedules: ScheduleItem[] = [
     {
         id: "1",
         materials: ["Glass"],
-        date: new Date("2026-01-01"),
+        date: "2026-01-01",
         status: "Pending",
         action: "View",
     },
     {
         id: "2",
         materials: ["Cardboard", "Glass"],
-        date: new Date(),
+        date: "2026-01-01",
         status: "Approved",
         action: "View",
     },
     {
         id: "3",
         materials: ["Cardboard", "Glass", "Plastic"],
-        date: new Date("2026-01-02"),
+        date: "2026-01-02",
         status: "Not Started",
         action: "View",
     },
     {
         id: "4",
         materials: ["Cardboard", "Glass", "Plastic"],
-        date: new Date(),
+        date: "2026-01-01",
         status: "Approved",
         action: "View",
     },
     {
         id: "5",
         materials: ["Cardboard", "Glass", "Plastic"],
-        date: new Date(),
+        date: "2026-01-01",
         status: "Pending",
         action: "View",
     },
     {
         id: "6",
         materials: ["Cardboard", "Glass", "Plastic"],
-        date: new Date("2022-03-01"),
+        date: "2022-03-01",
         status: "Pending",
         action: "View",
     },
     {
         id: "7",
         materials: ["Cardboard", "Glass", "Plastic"],
-        date: new Date(),
+        date: "2022-03-01",
         status: "Approved",
         action: "View",
     },
@@ -123,7 +122,7 @@ export function Schedule() {
             headerClassName: "w-[28%]",
             render: (schedule: ScheduleItem) => (
                 <span className="text-[14px] font-bold text-[#111827]">
-                    {format(schedule.date, "dd, MMM yyyy")}
+                    {schedule.date}
                 </span>
             ),
         },
@@ -175,7 +174,7 @@ export function Schedule() {
                 Schedule Date
             </div>
             <div className="text-[16px] font-medium text-[#111827]">
-                {format(schedule.date, "dd, MMM yyyy")}
+                {schedule.date}
             </div>
 
             <div className="mt-3 text-[14px] text-[#6B7280]">Status</div>
@@ -237,8 +236,8 @@ export function Schedule() {
                 status={modalStatus}
                 collectorName="Michael Johnson"
                 collectorId="COL-789"
-                requestDate={selectedSchedule ? format(selectedSchedule.date, "dd, MMM yyyy") : ""}
-                scheduledPickupDate={selectedSchedule ? format(selectedSchedule.date, "dd, MMM yyyy") : ""}
+                requestDate={selectedSchedule?.date ?? ""}
+                scheduledPickupDate={selectedSchedule?.date ?? ""}
                 pickupLocation="123 Lane, Str. Downtown District"
                 materials={selectedSchedule?.materials ?? []}
             />
