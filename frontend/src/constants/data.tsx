@@ -22,7 +22,7 @@ import imgPaper from "@/assets/map.png";
 import imgGlass from "@/assets/RecyclePhones.png";
 import type { RecyclingItem } from "./interface";
 import type { NotificationSection, Notification, NotificationTab } from "@/types/notification";
-
+import { Routes } from "@/routes/routes";
 
 // Export locations
 export const locations = [
@@ -42,28 +42,28 @@ interface NavItem {
 export const userNavItems: NavItem[] = [
   {
     title: "Dashboard",
-    href: "/app/dashboard",
+    href: Routes.dashboard,
     icon: LayoutDashboard,
   },
   {
     title: "Schedule",
-    href: "/app/schedule",
+    href: Routes.schedulePickup,
     icon: Calendar,
     //hasSubmenu: true,
   },
   {
     title: "Wallet",
-    href: "/app/wallet",
+    href: Routes.wallet,
     icon: Wallet,
   },
   {
     title: "History",
-    href: "/app/history",
+    href: Routes.history,
     icon: History,
   },
   {
     title: "Profile",
-    href: "/app/profile",
+    href: Routes.profile,
     icon: User,
   },
 ];
@@ -72,27 +72,27 @@ export const userNavItems: NavItem[] = [
 export const collectorNavItems: NavItem[] = [
   {
     title: "Dashboard",
-    href: "/app/collector",
+    href: Routes.collectordashboard,
     icon: LayoutDashboard,
   },
   {
     title: "Requests",
-    href: "/app/collector/requests",
+    href: Routes.requests,
     icon: ClipboardList,
   },
   {
     title: "Wallet Management",
-    href: "/app/collector/wallet",
+    href: Routes.collectorwallet,
     icon: Wallet,
   },
   {
     title: "Users",
-    href: "/app/collector/users",
+    href: Routes.collectorusers,
     icon: Users,
   },
   {
     title: "Settings",
-    href: "/app/collector/settings",
+    href: Routes.collectorsettings,
     icon: Settings,
   },
 ];

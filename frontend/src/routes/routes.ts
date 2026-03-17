@@ -20,10 +20,12 @@ export enum Routes {
     schedulePickupTime = "/app/schedule/pickupTime",
     schedulePickupLoc = "/app/schedule/pickupLoc",
     collectorapp = "/app/collector",
-    //collectordashboard = "/app/collector/dashboard",
     collectordashboard = "/app/collector/dashboard",
     collectorsettings = "/app/collector/settings",
     collectornotifications = "/app/collector/notification",
+    collectorwallet = "/app/collector/wallet",
+    collectorusers = "/app/collector/users",
+    requests = "/app/collector/requests",
 
     //profile
     profile = "/app/profile",
@@ -33,5 +35,6 @@ export enum Routes {
     notifications = "/app/notification",
     
     //collector requests
-    requests = "/app/collector/requests",
+    history = "/app/history",
+    wallet = "/app/wallet",
 }

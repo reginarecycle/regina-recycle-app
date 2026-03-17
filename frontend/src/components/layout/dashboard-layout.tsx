@@ -18,10 +18,8 @@ export default function DashboardLayout() {
   // Initialize lastMainPage from localStorage or default to dashboard
   const getInitialLastPage = () => {
     if (location.pathname.includes('/notification')) {
-      // Try to get from localStorage
       const stored = localStorage.getItem('lastMainPage');
       if (stored) return stored;
-      // Fallback to dashboard
       return isCollectorRoute ? Routes.collectordashboard : Routes.dashboard;
     }
     return location.pathname;
@@ -33,7 +31,6 @@ export default function DashboardLayout() {
   useEffect(() => {
     if (!location.pathname.includes('/notification')) {
       lastMainPage.current = location.pathname;
-      // Save to localStorage
       localStorage.setItem('lastMainPage', location.pathname);
     }
   }, [location.pathname]);
@@ -73,7 +70,11 @@ export default function DashboardLayout() {
   if (location.pathname === Routes.app) {
     return <Navigate to={Routes.dashboard} replace />;
   }
-  
+
+  // Redirect from /app/collector root to collector dashboard
+  if (location.pathname === Routes.collectorapp) {
+    return <Navigate to={Routes.collectordashboard} replace />;
+  }
 
   // Mock user data - replace with actual auth context
   const userName = "John Doe";

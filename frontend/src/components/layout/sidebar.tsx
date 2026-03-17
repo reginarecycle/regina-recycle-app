@@ -10,7 +10,7 @@ interface SidebarProps {
   userName?: string;
   userRole?: string;
   userAvatar?: string;
-  activePath?: string; // Add this prop
+  activePath?: string;
 }
 
 export function Sidebar({
@@ -18,11 +18,11 @@ export function Sidebar({
   userName = "John Doe",
   userRole = "Verified User",
   userAvatar,
-  activePath, // Add this
+  activePath,
 }: SidebarProps) {
   const location = useLocation();
   const navItems = isCollectorMode ? collectorNavItems : userNavItems;
-  
+
   // Use activePath if provided, otherwise use current location
   const currentPath = activePath || location.pathname;
 
@@ -55,9 +55,9 @@ export function Sidebar({
         <div className="flex flex-col gap-2">
           {navItems.map((item) => {
             const isScheduleItem = item.href === "/app/schedule";
-           const isActive = isScheduleItem
-          ? location.pathname.startsWith("/app/schedule")
-          : location.pathname === item.href;
+            const isActive = isScheduleItem
+              ? currentPath.startsWith("/app/schedule")
+              : currentPath === item.href;
             const Icon = item.icon;
 
             return (
