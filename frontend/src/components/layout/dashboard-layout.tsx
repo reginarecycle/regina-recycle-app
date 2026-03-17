@@ -73,11 +73,7 @@ export default function DashboardLayout() {
   if (location.pathname === Routes.app) {
     return <Navigate to={Routes.dashboard} replace />;
   }
-
-  // Redirect from /app/collector to collector dashboard
-  if (location.pathname === "/app/collector") {
-    return <Navigate to={Routes.collectordashboard} replace />;
-  }
+  
 
   // Mock user data - replace with actual auth context
   const userName = "John Doe";
