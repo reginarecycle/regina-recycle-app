@@ -3,7 +3,7 @@ import { Routes } from "../routes";
 import type { RouteObject } from "react-router-dom";
 
 const UserDashboard = lazy(() => import("@/views/customer/home"));
-const CollectorDashboard = lazy(() => import("@/views/collector/home"));
+const CollectorDashboard = lazy(() => import("@/views/collector/dashboard"));
 const CustomerProfile = lazy(() => import("@/views/customer/profile"));
 const SchedulePickupView = lazy(() => import ("@/views/customer/schedule_pickup_view/index"));
 const SchedulePickupTime = lazy(() => import ("@/views/customer/schedule_pickup_time/index"));
@@ -35,6 +35,7 @@ export const dashboardRoutes = () => {
 
     {
       path: Routes.collectorapp,
+      element: <CollectorDashboard />, 
       children: [
         {
           path: Routes.collectordashboard,
@@ -46,6 +47,7 @@ export const dashboardRoutes = () => {
         },
       ],
     },
+
     {
       path: Routes.profile,
       element: <CustomerProfile />,

@@ -66,7 +66,7 @@ export const userNavItems: NavItem[] = [
 export const collectorNavItems: NavItem[] = [
   {
     title: "Dashboard",
-    href: "/app/collector/dashboard",
+    href: "/app/collector",
     icon: LayoutDashboard,
   },
   {
