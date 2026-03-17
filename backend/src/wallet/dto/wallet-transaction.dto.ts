@@ -3,6 +3,8 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { TxType, TxStatus } from '@prisma/client';
 import { Type } from "class-transformer";
 
+// this is for the customer and the user
+
 export class WalletTransactionDTO {
     @ApiProperty({ example: 'cm9abc123' })
     @IsString()
@@ -27,6 +29,8 @@ export class WalletTransactionDTO {
     @IsNumber({ maxDecimalPlaces: 2 })
     amount!: number;
 
+    // in the figma there are different labels being used for the collector or user
+    // however only the status labels for the collector are defined
     @ApiProperty({ enum: TxStatus, example: TxStatus.PENDING })
     @IsEnum(TxStatus)
     @IsNotEmpty()
@@ -63,12 +67,14 @@ export class WalletTransactionDTO {
     transactionDate?: Date;
 
     // sender -> sends the transaction
+    // this is on the collector side
     @ApiProperty({ example: 'cm9abc123' })
     @IsString()
     @IsNotEmpty()
     senderId: string;
 
     // reciever -> is on the recieving end of the transaction
+    // this is on the collector side
     @ApiProperty({ example: 'cm9abc123' })
     @IsString()
     @IsNotEmpty()
@@ -80,5 +86,7 @@ export class WalletTransactionDTO {
     @IsNumber({ maxDecimalPlaces: 2 })
     @IsNotEmpty()
     fees: number;
+
+    // topup -> still unsure on what role this plays
 
 }
