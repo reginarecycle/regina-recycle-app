@@ -76,7 +76,7 @@ export function ViewDetailsModal({
                         <button
                             onClick={onClose}
                             aria-label="Close modal"
-                            className="rounded-md p-1 text-[#111827] transition hover:bg-gray-100"
+                            className="print:hidden rounded-md p-1 text-[#111827] transition hover:bg-gray-100"
                         >
                             <X className="h-6 w-6" />
                         </button>
@@ -153,18 +153,18 @@ export function ViewDetailsModal({
                     </div>
 
                     {/* footer */}
-                    <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-[#E5E7EB] bg-white px-7 py-5 sm:flex-row sm:justify-end">
+                    <div className="print:hidden flex shrink-0 flex-col-reverse gap-3 border-t border-[#E5E7EB] bg-white px-7 py-5 sm:flex-row sm:justify-end">
                         <Button
                             variant="outline"
                             onClick={onClose}
-                            className="h-[44px] min-w-[98px] rounded-[12px] border-[#D1D5DB] bg-white text-[16px] font-semibold text-[#111827] hover:bg-gray-50"
+                            className="print:hidden h-[44px] min-w-[98px] rounded-[12px] border-[#D1D5DB] bg-white text-[16px] font-semibold text-[#111827] hover:bg-gray-50"
                         >
                             Close
                         </Button>
 
                         <Button
                             onClick={() => window.print()}
-                            className="h-[44px] min-w-[182px] rounded-[12px] bg-[#6F8F7B] text-[16px] font-semibold text-white hover:bg-[#5F7F6B]"
+                            className="print:hidden h-[44px] min-w-[182px] rounded-[12px] bg-[#6F8F7B] text-[16px] font-semibold text-white hover:bg-[#5F7F6B]"
                         >
                             Download Report
                         </Button>
