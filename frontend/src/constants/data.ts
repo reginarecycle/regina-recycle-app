@@ -5,13 +5,20 @@ import {
   History,
   User,
   ClipboardList,
+  Clock,
   Users,
+  Volume2,
+  Truck,
+  AlertTriangle,
   Settings,
+  DollarSign,
 } from "lucide-react";
+
 import imgPlastic from "@/assets/KidsRecycleImg.png";
 import imgPaper from "@/assets/map.png";
 import imgGlass from "@/assets/RecyclePhones.png";
 import type { RecyclingItem } from "./interface";
+import type { NotificationSection } from "@/types/notification";
 
 
 // Export locations
@@ -89,7 +96,9 @@ export const collectorNavItems: NavItem[] = [
 
 // Get page title from current route
 export const getPageTitle = () => {
-    const path = location.pathname.split("/").pop() || "";
+    const p = location.pathname;
+    if ( p.includes("/schedule")) return "Schedule";
+    const path = p.split("/").pop() || "";
     const titleMap: Record<string, string> = {
       dashboard: "Dashboard",
       schedule: "Schedule",
@@ -262,3 +271,80 @@ export const getPageTitle = () => {
     },
   ];
 
+export const NOTIFICATION_SECTIONS: NotificationSection[] = [
+  {
+    id: "email",
+    title: "Email Notification",
+    subtitle: "Receive updates and alerts via your registered email address.",
+    saveLabel: "Update Preferences",
+    items: [
+      {
+        key: "email:pickup",
+        icon: Clock,
+        title: "Pickup Reminders",
+        description: "Get notified 24 hours before your scheduled collection.",
+      },
+      {
+        key: "email:activity",
+        icon: Users,
+        title: "Account Activity",
+        description: "Security alert, password changes and login notifications.",
+      },
+      {
+        key: "email:marketing",
+        icon: Volume2,
+        title: "Marketing",
+        description: "Newsletter, impact reports, promotional offers.",
+      },
+    ],
+  },
+  {
+    id: "inapp",
+    title: "In-App Notification",
+    subtitle: "Get instant updates within the platform.",
+    items: [
+      {
+        key: "inapp:pickup",
+        icon: Truck,
+        title: "Pickup Reminders",
+        description: "Receive a text message 1 hour before pickup.",
+      },
+      {
+        key: "inapp:alerts",
+        icon: AlertTriangle,
+        title: "Important Alerts",
+        description: "Service disruption, weather delays, and urgent updates.",
+      },
+    ],
+  },
+];
+
+export type CollectorNotificationKey =
+  | "email:collection"
+  | "email:activity"
+  | "email:payment"
+  | "inapp:reminders"
+  | "inapp:alerts";
+
+export const COLLECTOR_NOTIFICATION_SECTIONS = [
+  {
+    id: "email",
+    title: "Email Notification",
+    subtitle: "Receive updates and alerts via your registered email address.",
+    saveLabel: "Update Preferences",
+    items: [
+      { key: "email:collection" as CollectorNotificationKey, icon: Clock,         title: "New Collection Requests", description: "Get notified 24 hours before your scheduled collection." },
+      { key: "email:activity"   as CollectorNotificationKey, icon: Users,         title: "Account Activity",        description: "Security alert, password changes and login notifications." },
+      { key: "email:payment"    as CollectorNotificationKey, icon: DollarSign,    title: "Payment",                 description: "Transaction confirmations, low balance alerts, payout notifications." },
+    ],
+  },
+  {
+    id: "inapp",
+    title: "In-App Notification",
+    subtitle: "Get instant updates within the platform.",
+    items: [
+      { key: "inapp:reminders" as CollectorNotificationKey, icon: Truck,          title: "Collection Reminders",    description: "Receive a text message 1 hour before pickup." },
+      { key: "inapp:alerts"    as CollectorNotificationKey, icon: AlertTriangle,  title: "Important Alerts",        description: "Request cancellations, updates, weather delays, and urgent updates." },
+    ],
+  },
+];
