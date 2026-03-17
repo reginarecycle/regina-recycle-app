@@ -6,13 +6,12 @@ import {
   Patch,
   Param,
   Delete,
-  UseGuards,
   Query,
 } from '@nestjs/common';
 import { TipsService } from './tips.service';
 import { CreateTipDto } from './dto/create-tip.dto';
 import { UpdateTipDto } from './dto/update-tip.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Auth } from '../common/decorator/auth.decorator';
 
 @Controller('tips')
 export class TipsController {
@@ -40,28 +39,28 @@ export class TipsController {
 
   // Protected: create a tip
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @Auth()
   createTip(@Body() createTipDto: CreateTipDto) {
     return this.tipsService.createTip(createTipDto);
   }
 
   // Protected: update a tip
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
+  @Auth()
   updateTip(@Param('id') id: string, @Body() updateTipDto: UpdateTipDto) {
     return this.tipsService.updateTip(id, updateTipDto);
   }
 
   // Protected: toggle active/inactive
   @Patch(':id/toggle')
-  @UseGuards(JwtAuthGuard)
+  @Auth()
   toggleTipActiveStatus(@Param('id') id: string) {
     return this.tipsService.toggleTipActiveStatus(id);
   }
 
   // Protected: delete a tip
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @Auth()
   deleteTip(@Param('id') id: string) {
     return this.tipsService.deleteTip(id);
   }
