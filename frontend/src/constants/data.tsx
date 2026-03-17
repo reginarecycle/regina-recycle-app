@@ -12,13 +12,16 @@ import {
   AlertTriangle,
   Settings,
   DollarSign,
+  CheckCircle2,
+  XCircle,
+  Package,
 } from "lucide-react";
 
 import imgPlastic from "@/assets/KidsRecycleImg.png";
 import imgPaper from "@/assets/map.png";
 import imgGlass from "@/assets/RecyclePhones.png";
 import type { RecyclingItem } from "./interface";
-import type { NotificationSection } from "@/types/notification";
+import type { NotificationSection, Notification, NotificationTab } from "@/types/notification";
 
 
 // Export locations
@@ -347,4 +350,157 @@ export const COLLECTOR_NOTIFICATION_SECTIONS = [
       { key: "inapp:alerts"    as CollectorNotificationKey, icon: AlertTriangle,  title: "Important Alerts",        description: "Request cancellations, updates, weather delays, and urgent updates." },
     ],
   },
+];
+
+export const customerNotifications: Notification[] = [
+  {
+    id: "1",
+    type: "success",
+    category: "pickups",
+    title: "Pickup Confirmed",
+    message: "Your pickup has been scheduled for tomorrow at 2:00 PM",
+    timestamp: new Date(Date.now() - 5 * 60 * 1000),
+    read: false,
+    link: "/app/schedule",
+    icon: <CheckCircle2 className="h-5 w-5" />,
+  },
+  {
+    id: "2",
+    type: "info",
+    category: "pickups",
+    title: "Pickup Reminder",
+    message: "Your scheduled pickup is in 1 hour. Please have your materials ready.",
+    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+    read: false,
+    link: "/app/schedule",
+    icon: <Truck className="h-5 w-5" />,
+  },
+  {
+    id: "3",
+    type: "success",
+    category: "payments",
+    title: "Payment Received",
+    message: "You've earned $45.50 from your recent pickup",
+    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
+    read: true,
+    link: "/app/wallet",
+    icon: <DollarSign className="h-5 w-5" />,
+  },
+  {
+    id: "4",
+    type: "warning",
+    category: "alerts",
+    title: "Weather Alert",
+    message: "Severe weather expected tomorrow. Pickup may be delayed.",
+    timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+    read: true,
+    link: "/app/schedule",
+    icon: <AlertTriangle className="h-5 w-5" />,
+  },
+  {
+    id: "5",
+    type: "error",
+    category: "pickups",
+    title: "Pickup Cancelled",
+    message: "Your pickup scheduled for Dec 15 has been cancelled due to weather conditions.",
+    timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+    read: true,
+    link: "/app/schedule",
+    icon: <XCircle className="h-5 w-5" />,
+  },
+  {
+    id: "6",
+    type: "info",
+    category: "account",
+    title: "Profile Updated",
+    message: "Your account information has been successfully updated.",
+    timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+    read: true,
+    icon: <Clock className="h-5 w-5" />,
+  },
+];
+
+export const collectorNotifications: Notification[] = [
+  {
+    id: "1",
+    type: "info",
+    category: "requests",
+    title: "New Collection Request",
+    message: "John Doe has requested a pickup for 50 kg of materials",
+    timestamp: new Date(Date.now() - 10 * 60 * 1000),
+    read: false,
+    link: "/app/collector/requests",
+    icon: <Package className="h-5 w-5" />,
+  },
+  {
+    id: "2",
+    type: "warning",
+    category: "requests",
+    title: "Request Cancelled",
+    message: "Customer has cancelled the pickup scheduled for tomorrow",
+    timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
+    read: false,
+    link: "/app/collector/requests",
+    icon: <XCircle className="h-5 w-5" />,
+  },
+  {
+    id: "3",
+    type: "success",
+    category: "payments",
+    title: "Payment Sent",
+    message: "Payment of $125.00 has been sent to John Doe",
+    timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
+    read: true,
+    link: "/app/collector/wallet",
+    icon: <DollarSign className="h-5 w-5" />,
+  },
+  {
+    id: "4",
+    type: "info",
+    category: "requests",
+    title: "Pickup Completed",
+    message: "Collection from Jane Smith has been marked as completed",
+    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
+    read: true,
+    link: "/app/collector/requests",
+    icon: <CheckCircle2 className="h-5 w-5" />,
+  },
+  {
+    id: "5",
+    type: "warning",
+    category: "alerts",
+    title: "Weather Alert",
+    message: "Severe weather expected tomorrow. Plan your routes accordingly.",
+    timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+    read: true,
+    link: "/app/collector/dashboard",
+    icon: <AlertTriangle className="h-5 w-5" />,
+  },
+  {
+    id: "6",
+    type: "info",
+    category: "account",
+    title: "New Customer",
+    message: "A new customer has joined your service area",
+    timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+    read: true,
+    link: "/app/collector/users",
+    icon: <Users className="h-5 w-5" />,
+  },
+];
+
+export const customerTabs: NotificationTab[] = [
+  { value: "all",      label: "All"      },
+  { value: "pickups",  label: "Pickups"  },
+  { value: "payments", label: "Payments" },
+  { value: "alerts",   label: "Alerts"   },
+  { value: "account",  label: "Account"  },
+];
+
+export const collectorTabs: NotificationTab[] = [
+  { value: "all",      label: "All"      },
+  { value: "requests", label: "Requests" },
+  { value: "payments", label: "Payments" },
+  { value: "alerts",   label: "Alerts"   },
+  { value: "account",  label: "Account"  },
 ];

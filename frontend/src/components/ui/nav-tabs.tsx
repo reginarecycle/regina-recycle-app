@@ -4,25 +4,15 @@ import type { TabItem, TabRoutingMode } from "@/types/tabs";
 
 interface TabsProps {
   tabs: TabItem[];
-  /**
-   * "path"  — active tab is driven by the URL pathname (uses react-router navigate)
-   * "query" — active tab is a query param value  (?tab=profile)
-   * "none"  — fully controlled, no URL involvement
-   */
   mode?: TabRoutingMode;
-  /** Query param key when mode === "query". Defaults to "tab" */
   queryKey?: string;
-  /** Controlled active value when mode === "none" */
   value?: string;
-  /** Called on tab change when mode === "none" */
   onChange?: (href: string) => void;
-  /** Extra className on the outer wrapper */
   className?: string;
-  /** Extra className on the tab bar */
   tabBarClassName?: string;
-  /** Extra className on the content area */
   contentClassName?: string;
 }
+
 export function NavTabs({
   tabs,
   mode = "none",
@@ -51,7 +41,7 @@ export function NavTabs({
         role="tablist"
         className={cn(
           "flex items-center border-b border-border",
-          "overflow-x-auto scrollbar-none", // scroll instead of overflow
+          "overflow-x-auto scrollbar-none",
           tabBarClassName
         )}
       >
@@ -69,9 +59,9 @@ export function NavTabs({
               onClick={() => !tab.disabled && navigate(tab.href)}
               className={cn(
                 "relative flex items-center gap-2 py-2.5 text-sm font-medium transition-colors outline-none",
-                "px-4 sm:px-8",           // tighter padding on mobile
-                "whitespace-nowrap",       // prevent labels from wrapping
-                "shrink-0",               // don't squish tabs
+                "px-4 sm:px-8",
+                "whitespace-nowrap",
+                "shrink-0",
                 "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 rounded-t",
                 isActive
                   ? "text-accent-foreground"
@@ -81,6 +71,13 @@ export function NavTabs({
             >
               {Icon && <Icon className="w-4 h-4" />}
               {tab.label}
+
+              {/* Badge */}
+              {tab.badge != null && tab.badge > 0 && (
+                <span className="ml-1 h-5 min-w-5 px-1.5 rounded-full bg-primary text-white text-xs flex items-center justify-center">
+                  {tab.badge}
+                </span>
+              )}
 
               {isActive && (
                 <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent-foreground" />
