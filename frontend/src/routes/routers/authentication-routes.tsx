@@ -10,6 +10,7 @@ const SuccessView = lazy(() => import("@/views/auth/success"));
 const CollectorRegistration = lazy(
   () => import("@/views/auth/collector-register")
 );
+const CollectorRequests = lazy(() => import("@/views/collector/requests"));
 const ForgotPassword = lazy(() => import("@/views/auth/forgot-password"));
 const ResetPassword = lazy(() => import("@/views/auth/reset-password"));
 
@@ -38,6 +39,10 @@ export const authenticationRoutes = () => {
     {
       path: Routes.collectorRegister,
       element: <CollectorRegistration />,
+    },
+    {
+      // path: Routes.requests,
+      element: <CollectorRequests />,
     },
     {
       path: Routes.forgot,

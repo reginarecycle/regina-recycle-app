@@ -49,7 +49,10 @@ export function Sidebar({
         <div className=" pt-8 text-xs font-medium text-primary">MENU</div>
         <div className="flex flex-col gap-2">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.href;
+            const isScheduleItem = item.href === "/app/schedule";
+           const isActive = isScheduleItem
+          ? location.pathname.startsWith("/app/schedule")
+          : location.pathname === item.href;
             const Icon = item.icon;
 
             return (
