@@ -4,12 +4,23 @@ import type { TabItem, TabRoutingMode } from "@/types/tabs";
 
 interface TabsProps {
   tabs: TabItem[];
+  /**
+   * "path"  — active tab is driven by the URL pathname (uses react-router navigate)
+   * "query" — active tab is a query param value  (?tab=profile)
+   * "none"  — fully controlled, no URL involvement
+   */
   mode?: TabRoutingMode;
+  /** Query param key when mode === "query". Defaults to "tab" */
   queryKey?: string;
+  /** Controlled active value when mode === "none" */
   value?: string;
+  /** Called on tab change when mode === "none" */
   onChange?: (href: string) => void;
+  /** Extra className on the outer wrapper */
   className?: string;
+  /** Extra className on the tab bar */
   tabBarClassName?: string;
+  /** Extra className on the content area */
   contentClassName?: string;
 }
 
