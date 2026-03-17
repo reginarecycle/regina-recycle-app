@@ -2,7 +2,8 @@ import { WalletService } from './wallet.service';
 import { Controller, Get, Param, Post, Body, Query } from '@nestjs/common';
 import { WithdrawDto } from 'src/common/dto/withdraw.dto';
 import { WalletTransactionDTO } from './dto/wallet-transaction.dto';
-import { WalletDto } from './dto/customerWallet.dto';
+import { CustomerWalletDto } from './dto/customerWallet.dto';
+import { CollectorWalletDto } from './dto/collectorWallet.dto';
 import { Auth } from 'src/common/decorator/auth.decorator';
 import { User } from '@prisma/client';
 //import pagination

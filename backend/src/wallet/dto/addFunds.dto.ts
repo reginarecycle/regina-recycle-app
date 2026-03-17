@@ -16,24 +16,24 @@ export class AddFundsDto {
     @ApiProperty({ example: 'cm9abc123' })
     @IsString()
     @IsNotEmpty()
-    userId: string;
+    userId!: string;
 
     @ApiProperty({ example: 'cm9abc123' })
     @IsString()
     @IsNotEmpty()
-    walletId: string;
+    walletId!: string;
 
     // funds added
     @ApiProperty({ example: 100.00 })
     @Type(() => Number)
     @IsNumber({ maxDecimalPlaces: 2 })
     @IsNotEmpty()
-    fundsAdded: number;
+    fundsAdded!: number;
 
     // payment method (debit or credit or mobile payment)
     @ApiProperty({ type: PaymentMethodDto })
     @ValidateNested()
     @Type(() => PaymentMethodDto)
     @IsNotEmpty()
-    paymentMethod: PaymentMethodDto;
+    paymentMethod!: PaymentMethodDto;
 }

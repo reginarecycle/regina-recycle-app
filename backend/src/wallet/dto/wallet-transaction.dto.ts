@@ -14,27 +14,27 @@ export class WalletTransactionDTO {
     @ApiProperty({ example: 'cm9abc123' })
     @IsString()
     @IsNotEmpty()
-    walletId: string;
+    walletId!: string;
 
     //   type          TxType
     @ApiProperty({ enum: TxType, example: TxType.CREDIT })
     @IsEnum(TxType)
     @IsNotEmpty()
-    type: TxType;
+    type!: TxType;
 
     //   amount        Decimal  @db.Decimal(14,2)
     // takes a number and stores it as a decimal after checking the decimal places
     @ApiProperty({ example: 100.52 })
     @Type(() => Number)
     @IsNumber({ maxDecimalPlaces: 2 })
-    amount: number;
+    amount!: number;
 
     // in the figma there are different labels being used for the collector or user
     // however only the status labels for the collector are defined
     @ApiProperty({ enum: TxStatus, example: TxStatus.PENDING })
     @IsEnum(TxStatus)
     @IsNotEmpty()
-    status: TxStatus;
+    status!: TxStatus;
 
     //   description   String?
     @ApiPropertyOptional({ example: 'This is a description of your earnings' })
@@ -64,28 +64,28 @@ export class WalletTransactionDTO {
     @Type(() => Date)
     @IsDate()
     @IsNotEmpty()
-    transactionDate: Date;
+    transactionDate!: Date;
 
     // sender -> sends the transaction
     // this is on the collector side
     @ApiProperty({ example: 'cm9abc123' })
     @IsString()
     @IsNotEmpty()
-    senderId: string;
+    senderId!: string;
 
     // reciever -> is on the recieving end of the transaction
     // this is on the collector side
     @ApiProperty({ example: 'cm9abc123' })
     @IsString()
     @IsNotEmpty()
-    receiverId: string;
+    receiverId!: string;
 
     // fees
     @ApiProperty({ example: 1.25 })
     @Type(() => Number)
     @IsNumber({ maxDecimalPlaces: 2 })
     @IsNotEmpty()
-    fees: number;
+    fees!: number;
 
     // topup -> still unsure on what role this plays
 

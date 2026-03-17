@@ -6,31 +6,31 @@ export class CollectorWalletDto {
     @ApiProperty({ example: 'cm9abc123' })
     @IsString()
     @IsNotEmpty()
-    userId: string;
+    userId!: string;
 
     @ApiProperty({ example: 'cm9abc123' })
     @IsString()
     @IsNotEmpty()
-    walletId: string;
+    walletId!: string;
 
     @ApiProperty({ example: 100.00 })
     @Type(() => Number)
     @IsNumber({ maxDecimalPlaces: 2 })
     @IsNotEmpty()
-    balance: number;
+    balance!: number;
 
     // total payouts
     @ApiProperty({ example: 100.00 })
     @Type(() => Number)
     @IsNumber({ maxDecimalPlaces: 2 })
     @IsNotEmpty()
-    monthlyPayouts: number;
+    monthlyPayouts!: number;
 
     // monthly net flow
     @ApiProperty({ example: 100.00 })
     @Type(() => Number)
     @IsNumber({ maxDecimalPlaces: 2 })
     @IsNotEmpty()
-    monthlyNetFlow: number;
+    monthlyNetFlow!: number;
 
 }

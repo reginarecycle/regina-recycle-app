@@ -6,24 +6,27 @@ export class CustomerWalletDto {
     @ApiProperty({ example: 'cm9abc123' })
     @IsString()
     @IsNotEmpty()
-    userId: string;
+    userId!: string;
 
     @ApiProperty({ example: 'cm9abc123' })
     @IsString()
     @IsNotEmpty()
-    walletId: string;
+    walletId!: string;
 
     @Type(() => Number)
     @IsNumber({ maxDecimalPlaces: 2 })
-    balance: number;
+    @IsNotEmpty()
+    balance!: number;
 
     // shows how much was earned each month
     @Type(() => Number)
     @IsNumber({ maxDecimalPlaces: 2 })
-    monthlyEarnings: number;
+    @IsNotEmpty()
+    monthlyEarnings!: number;
 
     // shows how much was earned over the year
     @Type(() => Number)
     @IsNumber({ maxDecimalPlaces: 2 })
-    yearlyEarnings: number;
+    @IsNotEmpty()
+    yearlyEarnings!: number;
 }
