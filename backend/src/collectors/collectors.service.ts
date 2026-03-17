@@ -5,6 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { UpdateMaterialPricingDto } from './dto/update-material-pricing.dto';
 import { UpdateMaterialSettingsDto } from './dto/update-material-settings.dto';
 import { BadRequestException } from '@nestjs/common';
+import { MaterialPricingFactory } from "../materials/pricing/material-pricing-factory";
 
 @Injectable()
 export class CollectorsService {
