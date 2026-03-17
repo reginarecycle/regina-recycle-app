@@ -157,7 +157,7 @@ model Address {
   pickups Pickup[]
   user       User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
-
+  @@unique([userId, line1, postalCode])
   @@map("addresses")
   @@index([userId])
 }
