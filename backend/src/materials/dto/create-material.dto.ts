@@ -24,5 +24,4 @@ export class CreateMaterialDto {
  @Type(() => Number)
  @IsNumber()
  waterSaved?: number;
-
 }

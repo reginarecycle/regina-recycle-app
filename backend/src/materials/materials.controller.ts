@@ -15,6 +15,7 @@ export class MaterialsController {
   }
 
   @Get()
+  @Auth()
   getAllMaterials(
    @Query('limit') limit?: string,
    @Query('offset') offset?: string,
@@ -28,6 +29,7 @@ export class MaterialsController {
   }
 
   @Get(':id')
+  @Auth()
   getMaterialById(@Param('id') id: string) {
     return this.materialsService.getMaterialById(id);
   }

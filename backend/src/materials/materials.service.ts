@@ -22,10 +22,11 @@ export class MaterialsService {
  
 
   async getAllMetarials(limit = 10, offset = 0, search?: string) {
+  const trimmedSearch = search?.trim();
   return this.prisma.material.findMany({
-    where: search
+    where: trimmedSearch
        ? {
-          name: { contains: search, mode: 'insensitive' },
+          name: { contains: trimmedSearch , mode: 'insensitive' },
          }
        : {},
      orderBy: {
