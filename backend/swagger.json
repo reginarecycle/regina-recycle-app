@@ -700,7 +700,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateAddressDto"
+                "$ref": "#/components/schemas/AddressDto"
               }
             }
           }
@@ -710,6 +710,11 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Addresses"
         ]
@@ -722,6 +727,30 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "tags": [
+          "Addresses"
+        ]
+      }
+    },
+    "/addresses/default": {
+      "get": {
+        "operationId": "AddressesController_getDefault",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Addresses"
         ]
@@ -745,6 +774,11 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Addresses"
         ]
@@ -776,6 +810,11 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Addresses"
         ]
@@ -797,6 +836,11 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Addresses"
         ]
@@ -820,6 +864,11 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Addresses"
         ]
@@ -1172,6 +1221,9 @@
           },
           "longitude": {
             "type": "number"
+          },
+          "isPrimary": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -1333,13 +1385,34 @@
         "type": "object",
         "properties": {}
       },
-      "CreateAddressDto": {
-        "type": "object",
-        "properties": {}
-      },
       "UpdateAddressDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "line1": {
+            "type": "string"
+          },
+          "line2": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "province": {
+            "type": "string"
+          },
+          "postalCode": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "isPrimary": {
+            "type": "boolean"
+          }
+        }
       },
       "CreatePickupDto": {
         "type": "object",

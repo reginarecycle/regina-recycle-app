@@ -112,3 +112,12 @@ export const collectorSecuritySchema = z
   });
 
 export type CollectorSecurityFormValues = z.infer<typeof collectorSecuritySchema>;
+
+export const deleteSchema = z.object({
+  confirmText: z.string(),
+}).refine((data) => data.confirmText === "DELETE", {
+  message: 'Please type "DELETE" to confirm',
+  path: ["confirmText"],
+});
+
+export type DeleteAccountFormValues = z.infer<typeof deleteSchema>;
