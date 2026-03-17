@@ -16,12 +16,16 @@ export enum Routes {
     //dashboard
     app = "/app",
     dashboard = "/app/dashboard",
+    schedulePickup = "/app/schedule",
+    schedulePickupTime = "/app/schedule/pickupTime",
+    schedulePickupLoc = "/app/schedule/pickupLoc",
     collectorapp = "/app/collector",
     collectordashboard = "/app/collector/dashboard",
     collectorsettings = "/app/collector/settings",
 
     //profile
     profile = "/app/profile",
+    profileSection = "/app/profile/:section",
 
     //collector requests
     requests = "/app/collector/requests",

@@ -1,94 +1,31 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// HOOK TEMPLATE — copy this file and replace types/endpoints for every resource
+// useUsers.ts — example resource hook using the base query helpers
 //
-// Pattern:
-//   useGet<Resource>      → useQuery  (fetching)
-//   useCreate<Resource>   → useMutation (POST)
-//   useUpdate<Resource>   → useMutation (PUT/PATCH)
-//   useDelete<Resource>   → useMutation (DELETE)
+// Note: For every new resource you create you only need to define:
+//   1. The resource type
+//   2. The query keys
+//   3. Call the right helper with the endpoint
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiFetch } from "../lib/apiFetch";
+import { useGetList, useGetOne, useCreate, useUpdate, useRemove } from "../lib/queryHelpers";
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// ── 1. Type ───────────────────────────────────────────────────────────────────
 export interface User {
   id: string;
   name: string;
   email: string;
 }
 
-// ── Query keys (keep in one place per resource) ───────────────────────────────
+// ── 2. Query keys ─────────────────────────────────────────────────────────────
 export const userKeys = {
-  all: () => ["users"] as const,
-  lists: () => ["users", "list"] as const,
-  detail: (id: string) => ["users", "detail", id] as const,
+  all:    ()           => ["users"]               as const,
+  lists:  ()           => ["users", "list"]        as const,
+  detail: (id: string) => ["users", "detail", id]  as const,
 };
 
-// ── GET all users ─────────────────────────────────────────────────────────────
-export function useGetUsers() {
-  return useQuery({
-    queryKey: userKeys.lists(),
-    queryFn: () => apiFetch<User[]>("/users"),
-    // Errors auto-surface in the global alert — no extra handling needed here.
-  });
-}
-
-// ── GET one user ──────────────────────────────────────────────────────────────
-export function useGetUser(id: string) {
-  return useQuery({
-    queryKey: userKeys.detail(id),
-    queryFn: () => apiFetch<User>(`/users/${id}`),
-    enabled: Boolean(id),
-  });
-}
-
-// ── CREATE user ───────────────────────────────────────────────────────────────
-export function useCreateUser() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (body: Omit<User, "id">) =>
-      apiFetch<User>("/users", {
-        method: "POST",
-        data: body,
-      }),
-    onSuccess: () => {
-      // Invalidate the list so it refetches with the new item
-      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
-    },
-    // onError is optional — the global handler already shows the alert.
-    // Add it only if you need resource-specific side effects on failure.
-  });
-}
-
-// ── UPDATE user ───────────────────────────────────────────────────────────────
-export function useUpdateUser(id: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (body: Partial<User>) =>
-      apiFetch<User>(`/users/${id}`, {
-        method: "PATCH",
-        data: body,
-      }),
-    onSuccess: (updated) => {
-      queryClient.setQueryData(userKeys.detail(id), updated);
-      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
-    },
-  });
-}
-
-// ── DELETE user ───────────────────────────────────────────────────────────────
-export function useDeleteUser() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) =>
-      apiFetch<void>(`/users/${id}`, { method: "DELETE" }),
-    onSuccess: (_data, id) => {
-      queryClient.removeQueries({ queryKey: userKeys.detail(id) });
-      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
-    },
-  });
-}
+// ── 3. Hooks ──────────────────────────────────────────────────────────────────
+export const useGetUsers   = ()           => useGetList<User>(userKeys.lists(), "/users");
+export const useGetUser    = (id: string) => useGetOne<User>(userKeys.detail(id), `/users/${id}`, { enabled: Boolean(id) });
+export const useCreateUser = ()           => useCreate<User, Omit<User, "id">>("/users", userKeys.lists());
+export const useUpdateUser = ()           => useUpdate<User, Partial<User>>((id) => `/users/${id}`, userKeys.lists(), userKeys.detail);
+export const useDeleteUser = ()           => useRemove((id) => `/users/${id}`, userKeys.lists(), userKeys.detail);

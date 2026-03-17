@@ -3,11 +3,14 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import { AppProviders } from './components/AppProviders';
+import { ScheduleProvider } from "./components/scheduleView/ScheduleContext";
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AppProviders>
-      <App />
+      <ScheduleProvider>
+        <App />
+      </ScheduleProvider>
     </AppProviders>
   </StrictMode>,
 )
