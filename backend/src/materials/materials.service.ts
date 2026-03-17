@@ -2,41 +2,62 @@ import { Injectable, NotFoundException} from '@nestjs/common';
 import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
 import { PrismaService } from '../prisma/prisma.service';
-
+import { paginate, getPaginationParams } from '../common/pagination/pagination-helper';
 
 @Injectable()
 export class MaterialsService {
    constructor(private readonly prisma: PrismaService) {} 
 
-  async createMaterial(createMaterialDto: CreateMaterialDto) {  
-    return this.prisma.material.create({
-      data: {
-        name: createMaterialDto.name,
-        type: createMaterialDto.type,
-        photoUrl: createMaterialDto.photoUrl,
-        co2Saved: createMaterialDto.co2Saved,
-        waterSaved: createMaterialDto.waterSaved,
-      },
-    });
+  async createMaterial(createMaterialDto: CreateMaterialDto) {
+
+  const existingMaterial = await this.prisma.material.findUnique({
+    where: { name: createMaterialDto.name }
+  });
+
+  if (existingMaterial) {
+    return existingMaterial;
   }
+
+  return this.prisma.material.create({
+    data: {
+      name: createMaterialDto.name,
+      type: createMaterialDto.type,
+      photoUrl: createMaterialDto.photoUrl,
+      co2Saved: createMaterialDto.co2Saved,
+      waterSaved: createMaterialDto.waterSaved,
+    },
+  });
+}
  
 
-  async getAllMetarials(limit = 10, offset = 0, search?: string) {
-  const trimmedSearch = search?.trim();
-  return this.prisma.material.findMany({
-    where: trimmedSearch
-       ? {
-          name: { contains: trimmedSearch , mode: 'insensitive' },
-         }
-       : {},
-     orderBy: {
-       createdAt: 'desc',
-     },
-     take: limit,
-     skip: offset,
-   });
+  async getAllMaterials(page = 1, limit = 10, search?: string) {
+  const where = search
+    ? {
+        name: {
+          contains: search,
+          mode: 'insensitive' as const,
+        },
+      }
+    : {};
 
-}   
+  const { skip, take } = getPaginationParams(page, limit);
+
+  const [data, total] = await Promise.all([
+    this.prisma.material.findMany({
+      where,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip,
+      take,
+    }),
+    this.prisma.material.count({
+      where,
+    }),
+  ]);
+
+  return paginate(data, total, page, limit);
+}
   
 
   async getMaterialById(id: string) {  

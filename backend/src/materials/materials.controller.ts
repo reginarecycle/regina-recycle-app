@@ -16,17 +16,17 @@ export class MaterialsController {
 
   @Get()
   @Auth()
-  getAllMaterials(
-   @Query('limit') limit?: string,
-   @Query('offset') offset?: string,
-   @Query('search') search?: string,
- ) {
-    return this.materialsService.getAllMetarials (
-     Number(limit) || 10,
-     Number(offset) || 0,
-     search,
-);
-  }
+ getAllMaterials(
+  @Query('page') page?: string,
+  @Query('limit') limit?: string,
+  @Query('search') search?: string,
+) {
+  return this.materialsService.getAllMaterials(
+    Number(page) || 1,
+    Number(limit) || 10,
+    search,
+  );
+}
 
   @Get(':id')
   @Auth()
