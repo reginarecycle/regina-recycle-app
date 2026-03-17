@@ -3,6 +3,7 @@ import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { paginate, getPaginationParams } from '../common/pagination/pagination-helper';
+import { PaginationDto } from 'src/common/pagination/pagination.dto';
 
 @Injectable()
 export class MaterialsService {
@@ -28,9 +29,11 @@ export class MaterialsService {
     },
   });
 }
- 
 
-  async getAllMaterials(page = 1, limit = 10, search?: string) {
+  async getAllMaterials(pagination?: PaginationDto, search?: string) {
+  const page = pagination?.page ?? 1;
+  const limit = pagination?.limit ?? 10;
+
   const where = search
     ? {
         name: {
@@ -58,7 +61,6 @@ export class MaterialsService {
 
   return paginate(data, total, page, limit);
 }
-  
 
   async getMaterialById(id: string) {  
    const material = await this.prisma.material.findUnique({

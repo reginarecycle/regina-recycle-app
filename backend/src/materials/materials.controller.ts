@@ -3,6 +3,8 @@ import { MaterialsService } from './materials.service';
 import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
 import { Auth } from '../common/decorator/auth.decorator';
+import { PaginationDto } from 'src/common/pagination/pagination.dto';
+
 
 @Controller('materials')
 export class MaterialsController {
@@ -17,13 +19,11 @@ export class MaterialsController {
   @Get()
   @Auth()
  getAllMaterials(
-  @Query('page') page?: string,
-  @Query('limit') limit?: string,
+  @Query() pagination?: PaginationDto,
   @Query('search') search?: string,
 ) {
   return this.materialsService.getAllMaterials(
-    Number(page) || 1,
-    Number(limit) || 10,
+    pagination,
     search,
   );
 }
