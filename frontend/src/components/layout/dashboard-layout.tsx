@@ -1,9 +1,21 @@
-// components/layout/DashboardLayout.tsx
 import { useState, useEffect, useRef } from "react";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Routes } from "@/routes/routes";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Toolbar } from "@/components/layout/toolbar";
+
+const PAGE_TITLES: Record<string, string> = {
+  "/app/dashboard":           "Dashboard",
+  "/app/schedule":            "Schedule Pickup",
+  "/app/wallet":              "My Wallet",
+  "/app/history":             "History",
+  "/app/profile":             "Profile",
+  "/app/collector/dashboard": "Dashboard",
+  "/app/collector/requests":  "Collection Requests",
+  "/app/collector/wallet":    "Wallet",
+  "/app/collector/users":     "Users",
+  "/app/collector/settings":  "Settings",
+};
 
 export default function DashboardLayout() {
   const location = useLocation();
@@ -11,14 +23,14 @@ export default function DashboardLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentLocation, setCurrentLocation] = useState("123-lane");
   const [pageTitle, setPageTitle] = useState("Dashboard");
-  
+
   // Determine if current path is collector route
   const isCollectorRoute = location.pathname.includes("/collector");
 
   // Initialize lastMainPage from localStorage or default to dashboard
   const getInitialLastPage = () => {
-    if (location.pathname.includes('/notification')) {
-      const stored = localStorage.getItem('lastMainPage');
+    if (location.pathname.includes("/notification")) {
+      const stored = localStorage.getItem("lastMainPage");
       if (stored) return stored;
       return isCollectorRoute ? Routes.collectordashboard : Routes.dashboard;
     }
@@ -29,9 +41,9 @@ export default function DashboardLayout() {
 
   // Update last main page if we're not on notifications
   useEffect(() => {
-    if (!location.pathname.includes('/notification')) {
+    if (!location.pathname.includes("/notification")) {
       lastMainPage.current = location.pathname;
-      localStorage.setItem('lastMainPage', location.pathname);
+      localStorage.setItem("lastMainPage", location.pathname);
     }
   }, [location.pathname]);
 
@@ -39,30 +51,12 @@ export default function DashboardLayout() {
   useEffect(() => {
     const pathname = location.pathname;
 
-    if (pathname.includes('/notification')) {
-      setPageTitle('Notifications');
-    } else if (pathname === '/app' || pathname === '/app/dashboard') {
-      setPageTitle('Dashboard');
-    } else if (pathname === '/app/schedule') {
-      setPageTitle('Schedule Pickup');
-    } else if (pathname === '/app/wallet') {
-      setPageTitle('My Wallet');
-    } else if (pathname === '/app/history') {
-      setPageTitle('History');
-    } else if (pathname === '/app/profile') {
-      setPageTitle('Profile');
-    } else if (pathname === '/app/collector/dashboard') {
-      setPageTitle('Dashboard');
-    } else if (pathname === '/app/collector/requests') {
-      setPageTitle('Collection Requests');
-    } else if (pathname === '/app/collector/wallet') {
-      setPageTitle('Wallet');
-    } else if (pathname === '/app/collector/users') {
-      setPageTitle('Users');
-    } else if (pathname === '/app/collector/settings') {
-      setPageTitle('Settings');
+    if (pathname.includes("/notification")) {
+      setPageTitle("Notifications");
+    } else if (pathname.startsWith("/app/schedule")) {
+      setPageTitle("Schedule Pickup");
     } else {
-      setPageTitle('Dashboard');
+      setPageTitle(PAGE_TITLES[pathname] ?? "Dashboard");
     }
   }, [location.pathname]);
 
@@ -83,9 +77,7 @@ export default function DashboardLayout() {
 
   // Get notifications route based on current user type
   const getNotificationsRoute = () => {
-    if (isCollectorRoute) {
-      return Routes.collectornotifications;
-    }
+    if (isCollectorRoute) return Routes.collectornotifications;
     return Routes.notifications;
   };
 
@@ -95,8 +87,8 @@ export default function DashboardLayout() {
   };
 
   // Get the active path for sidebar (use last main page if on notifications)
-  const sidebarActivePath = location.pathname.includes('/notification') 
-    ? lastMainPage.current 
+  const sidebarActivePath = location.pathname.includes("/notification")
+    ? lastMainPage.current
     : location.pathname;
 
   return (
