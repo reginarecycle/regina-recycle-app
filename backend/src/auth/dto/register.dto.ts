@@ -17,27 +17,26 @@ import {
 import { Role } from '@prisma/client';
 import { AddressDto } from '../../addresses/dto/address.dto';
 import { Type } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class RegisterDto {
+  @ApiProperty()
   @IsString()
   name: string;
 
+  @ApiProperty()
   @IsEmail()
   email: string;
 
+  @ApiProperty()
   @IsString()
-  @IsString()
-  @MinLength(8, { message: 'Password must be at least 8 characters long' })
-  @Matches(
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-    {
-      message:
-        'Password must contain at least 8 characters, including one uppercase letter, one lowercase letter, one number, and one special character',
-    },
-  )
+  @MinLength(8)
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, {
+    message: 'Password must contain at least 8 characters...',
+  })
   password: string;
 
+  @ApiPropertyOptional()
   @IsString()
   @IsOptional()
   phoneNumber?: string;
@@ -46,28 +45,29 @@ export class RegisterDto {
   @IsEnum(Role)
   role: Role;
 
+  @ApiProperty()
   @IsBoolean()
-  @Validate((value: boolean) => value === true, {
-    message: 'You must agree to the terms and conditions',
-  })
   agreedToTerms: boolean;
 
+  @ApiPropertyOptional()
   @IsDateString()
   @IsOptional()
   dateOfBirth?: string;
 
+  @ApiProperty({ type: () => AddressDto })
   @ValidateNested()
   @Type(() => AddressDto)
   @IsNotEmpty()
   address: AddressDto;
 
-  // Collector only
+  @ApiPropertyOptional()
   @ValidateIf((o) => o.role === 'COLLECTOR')
   @IsString()
   @IsNotEmpty()
   @Matches(/^[0-9]{9}$/, { message: 'License ID must be 9 digits' })
   licenseId?: string;
 
+  @ApiPropertyOptional()
   @IsNumber()
   @IsOptional()
   serviceFee?: number;
