@@ -25,6 +25,7 @@ export enum Routes {
 
     //profile
     profile = "/app/profile",
+    profileSection = "/app/profile/:section",
 
     //collector requests
     requests = "/app/collector/requests",
