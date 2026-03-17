@@ -2,7 +2,7 @@ import { ApiPropertyOptional, ApiProperty } from "@nestjs/swagger";
 import { IsNumber, IsOptional, IsNotEmpty, IsString } from "class-validator";
 import { Type } from "class-transformer";
 
-export class UpdateWalletDto {
+export class CollectorWalletDto {
     @ApiProperty({ example: 'cm9abc123' })
     @IsString()
     @IsNotEmpty()
@@ -16,21 +16,21 @@ export class UpdateWalletDto {
     @ApiProperty({ example: 100.00 })
     @Type(() => Number)
     @IsNumber({ maxDecimalPlaces: 2 })
-    @IsOptional()
+    @IsNotEmpty()
     balance: number;
 
     // total payouts
     @ApiProperty({ example: 100.00 })
     @Type(() => Number)
     @IsNumber({ maxDecimalPlaces: 2 })
-    @IsOptional()
-    totalPayouts: number;
+    @IsNotEmpty()
+    monthlyPayouts: number;
 
     // monthly net flow
     @ApiProperty({ example: 100.00 })
     @Type(() => Number)
     @IsNumber({ maxDecimalPlaces: 2 })
-    @IsOptional()
+    @IsNotEmpty()
     monthlyNetFlow: number;
 
 }

@@ -1,24 +1,39 @@
-import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsNumber, IsOptional } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import {
+    IsNumber,
+    IsOptional,
+    IsNotEmpty,
+    ValidateNested,
+    IsString,
+    IsEnum,
+} from "class-validator";
 import { Type } from "class-transformer";
+import { PaymentMethodDto } from "./paymentMethod.dto";
 
 // this is only needed for the collector
 
-export class UpdateWalletDto {
+export class AddFundsDto {
+    @ApiProperty({ example: 'cm9abc123' })
+    @IsString()
+    @IsNotEmpty()
+    userId: string;
 
-    @ApiPropertyOptional({ example: 100.00 })
-    @Type(() => Number)
-    @IsNumber({ maxDecimalPlaces: 2 })
-    @IsOptional()
-    balance?: number;
+    @ApiProperty({ example: 'cm9abc123' })
+    @IsString()
+    @IsNotEmpty()
+    walletId: string;
 
     // funds added
+    @ApiProperty({ example: 100.00 })
+    @Type(() => Number)
+    @IsNumber({ maxDecimalPlaces: 2 })
+    @IsNotEmpty()
+    fundsAdded: number;
 
-
-    //payment method (deboit or credit or mobile payment)
-
-    //status
-
-    //wallet id
-
+    // payment method (debit or credit or mobile payment)
+    @ApiProperty({ type: PaymentMethodDto })
+    @ValidateNested()
+    @Type(() => PaymentMethodDto)
+    @IsNotEmpty()
+    paymentMethod: PaymentMethodDto;
 }

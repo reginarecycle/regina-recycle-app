@@ -5,7 +5,6 @@ import {
     IsEnum, Matches,
     IsBoolean
 } from "class-validator";
-import { Type } from "class-transformer";
 import { PaymentMethodType } from "@prisma/client";
 
 export class PaymentMethodDto {
@@ -31,12 +30,13 @@ export class PaymentMethodDto {
     @ApiPropertyOptional({ example: '0000' })
     @IsString()
     @IsNotEmpty()
+    @Matches(/^\d{4}$/) // can only be 4 ints long
     cardLast4?: string;
 
     //   cardBrand       String?
     @ApiPropertyOptional({ example: 'Visa' })
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     cardBrand?: string;
 
     //   expMonth        Int?
@@ -51,7 +51,7 @@ export class PaymentMethodDto {
     @ApiPropertyOptional({ example: 2030 })
     @IsInt()
     @Min(2000)
-    @Max(2040)
+    @Max(2060)
     @IsOptional()
     expYear?: number;
 
@@ -64,9 +64,7 @@ export class PaymentMethodDto {
     //   phoneNumber     String?
     @ApiPropertyOptional({ example: '306 231 7863' })
     // check for multiple formats of the phone number
-    @Matches(/^\(?\d{3}\)?[-\s]?\d{3}[-\s]?\d{4}$/, {
-        message: "Invalid phone number format",
-    })
+    @Matches(/^\(?\d{3}\)?[-\s]?\d{3}[-\s]?\d{4}$/)
     @IsOptional()
     phoneNumber?: string;
 

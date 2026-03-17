@@ -6,10 +6,10 @@ import { Type } from "class-transformer";
 // this is for the customer and the user
 
 export class WalletTransactionDTO {
-    @ApiProperty({ example: 'cm9abc123' })
+    @ApiPropertyOptional({ example: 'cm9abc123' })
     @IsString()
-    @IsNotEmpty()
-    userId: string;
+    @IsOptional()
+    userId?: string;
 
     @ApiProperty({ example: 'cm9abc123' })
     @IsString()
@@ -20,14 +20,14 @@ export class WalletTransactionDTO {
     @ApiProperty({ enum: TxType, example: TxType.CREDIT })
     @IsEnum(TxType)
     @IsNotEmpty()
-    type!: TxType;
+    type: TxType;
 
     //   amount        Decimal  @db.Decimal(14,2)
     // takes a number and stores it as a decimal after checking the decimal places
     @ApiProperty({ example: 100.52 })
     @Type(() => Number)
     @IsNumber({ maxDecimalPlaces: 2 })
-    amount!: number;
+    amount: number;
 
     // in the figma there are different labels being used for the collector or user
     // however only the status labels for the collector are defined
@@ -60,11 +60,11 @@ export class WalletTransactionDTO {
     search?: string;
 
     // transaction time & date
-    @ApiPropertyOptional({ example: '2026-03-16T18:25:43.511Z' })
+    @ApiProperty({ example: '2026-03-16T18:25:43.511Z' })
     @Type(() => Date)
     @IsDate()
-    @IsOptional()
-    transactionDate?: Date;
+    @IsNotEmpty()
+    transactionDate: Date;
 
     // sender -> sends the transaction
     // this is on the collector side
