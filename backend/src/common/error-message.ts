@@ -39,4 +39,12 @@ export enum ErrorMessage {
     REFRESH_TOKEN_NOT_FOUND = 'Refresh token not found',
     USER_STILL_IN_SESSION = 'An active session already exists. Please log out first',
     EMPTY_DATA = 'Request body cannot be empty',
+
+    // Address
+    ADDRESS_NOT_FOUND = 'Address not found',
+    ADDRESS_NO_ACCESS = 'You don\'t have enough permission to access this address',
+    ADDRESS_PRIMARY_DELETE = 'Cannot delete primary address. Please set another address as primary first.',
+    ADDRESS_ALREADY_PRIMARY = 'Address is already set as primary',
+    NO_PRIMARY_ADDRESS = 'No primary address found for this user',
+    ADDRESS_ALREADY_EXISTS = 'This address already exists for this user',
 }
