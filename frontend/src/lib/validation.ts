@@ -129,3 +129,12 @@ export const withdrawSchema = z.object({
 });
 
 export type WithdrawFormValues = z.infer<typeof withdrawSchema>;
+
+export const deleteSchema = z.object({
+  confirmText: z.string(),
+}).refine((data) => data.confirmText === "DELETE", {
+  message: 'Please type "DELETE" to confirm',
+  path: ["confirmText"],
+});
+
+export type DeleteAccountFormValues = z.infer<typeof deleteSchema>;

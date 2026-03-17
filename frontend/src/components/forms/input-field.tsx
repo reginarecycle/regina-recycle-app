@@ -3,15 +3,18 @@ import { Field, FieldError, FieldLabel } from "../ui/field";
 import { Input } from "../ui/input";
 import { type UseFormRegisterReturn } from "react-hook-form";
 import { Eye, EyeClosed } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface InputFieldProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, "id"> {
   register: UseFormRegisterReturn;
   error?: string;
-  label: string;
+  label?: string;
   id?: string;
   helperText?: React.ReactNode;
   showPasswordToggle?: boolean;
+  inputClassName?: string;
+  labelClassName?: string;
 }
 
 const InputField: FC<InputFieldProps> = ({
@@ -22,6 +25,8 @@ const InputField: FC<InputFieldProps> = ({
   helperText,
   placeholder,
   type = "text",
+  inputClassName,
+  labelClassName,
   showPasswordToggle = false,
   ...inputProps
 }) => {
@@ -34,12 +39,15 @@ const InputField: FC<InputFieldProps> = ({
 
   return (
     <Field data-invalid={!!error} className="relative">
-      <FieldLabel htmlFor={fieldId}>
+
+      <FieldLabel htmlFor={fieldId} className={labelClassName}>
   {label}
   {inputProps.required && (
     <span className="text-destructive ml-0.5">*</span>
   )}
 </FieldLabel>
+
+      <FieldLabel htmlFor={fieldId} className={labelClassName}>{label}</FieldLabel>
       <div className="relative">
         <Input
           {...register}
@@ -48,7 +56,7 @@ const InputField: FC<InputFieldProps> = ({
           type={showPasswordToggle && showPassword ? "text" : type}
           aria-invalid={!!error}
           placeholder={placeholder}
-          className={showPasswordToggle ? "pr-10" : ""}
+          className={cn( inputClassName,`${showPasswordToggle ? "pr-10" : ""}`)}
         />
         {showPasswordToggle && (
           <div

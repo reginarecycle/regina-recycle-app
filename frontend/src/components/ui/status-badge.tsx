@@ -1,5 +1,4 @@
 
-
 type TxStatus = "CREDIT" | "WITHDRAWAL" | "FAILED";
 
 const statusStyles: Record<TxStatus, { badgeBg: string; badgeText: string }> = {

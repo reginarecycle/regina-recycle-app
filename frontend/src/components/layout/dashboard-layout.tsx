@@ -15,11 +15,7 @@ export default function DashboardLayout() {
   if (location.pathname === Routes.app) {
     return <Navigate to={Routes.dashboard} replace />;
   }
-
-  // Redirect from /app/collector to collector dashboard
-  if (location.pathname === "/app/collector") {
-    return <Navigate to={Routes.collectordashboard} replace />;
-  }
+  
 
   // Determine if current path is collector route
   const isCollectorRoute = location.pathname.includes("/collector");

@@ -9,7 +9,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { CurrentUser } from './decorator/current-user.decorator';
 import type { User } from '@prisma/client';
 import { ResendOtpDto } from './dto/resend-otp.dto';
-import { Auth } from 'src/common/decorator/auth.decorator';
+import { Auth } from '../common/decorator/auth.decorator';
 
 @Controller('auth')
 export class AuthController {
