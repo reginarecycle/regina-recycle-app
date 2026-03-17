@@ -1,8 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Query, Body } from '@nestjs/common';
 import { CollectorsService } from './collectors.service';
 import { UpdateCollectorDto } from './dto/update-collector.dto';
 import { UpdateMaterialPricingDto } from './dto/update-material-pricing.dto';
 import { UpdateMaterialSettingsDto } from './dto/update-material-settings.dto';
+import { Auth } from '../common/decorator/auth.decorator';
+import { CurrentUser } from '../auth/decorator/current-user.decorator';
+
+type CurrentUserPayload = {
+ userId: string;
+ email: string;
+ name: string;
+ role: 'CUSTOMER' | 'COLLECTOR';
+ status: 'ACTIVE' | 'INACTIVE';
+ emailVerified: boolean;
+};
 
 
 @Controller('collectors')
@@ -10,133 +21,137 @@ export class CollectorsController {
   constructor(private readonly collectorsService: CollectorsService) {}
 
   @Get('stats')
-  @UseGuards()
-  getStats(/* @CurrentUser() user: User */) {
-    const collectorId = 'temp-collector-id';
-    return this.collectorsService.getStats(collectorId);
+  @Auth()
+   getStats(@CurrentUser() user: CurrentUserPayload) {
+    return this.collectorsService.getStats(user.userId);
   }
 
   @Get('material-distribution')
-  @UseGuards()
+  @Auth()
   getMaterialDistribution(
-  /* @CurrentUser() user: User, */
-  @Query('period') period?: string, // 'month', 'week', 'year'
+  @CurrentUser() user: CurrentUserPayload,
+    @Query('period') period?: string,
   ) {
-      const collectorId = 'temp-collector-id';
-    return this.collectorsService.getMaterialDistribution(collectorId, period);
+    return this.collectorsService.getMaterialDistribution(user.userId, period);
   }
 
   @Get('pickup-overview')
-  @UseGuards()
-  getPickupOverview(/* @CurrentUser() user: User */) {
-    const collectorId = 'temp-collector-id';
-    return this.collectorsService.getPickupOverview(collectorId);
+  @Auth()
+   getPickupOverview(@CurrentUser() user: CurrentUserPayload) {
+    return this.collectorsService.getPickupOverview(user.userId);
   }
 
   @Get('pickups')
-  @UseGuards()
+  @Auth()
   getPickups(
-    /* @CurrentUser() user: User, */
-    @Query('status') status?: string, // 'PENDING', 'ACCEPTED', 'COMPLETED'
-    @Query('limit') limit?: number,
-    @Query('offset') offset?: number,
+    @CurrentUser() user: CurrentUserPayload,
+    @Query('status') status?: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
   ) {
-    const collectorId = 'temp-collector-id';
     return this.collectorsService.getPickups(
-      collectorId,
+      user.userId,
       status,
-      limit,
-      offset,
+      Number(limit) || 10,
+      Number(offset) || 0,
     );
   }
 
   @Get('top-locations')
-  @UseGuards()
-  getTopLocations(/* @CurrentUser() user: User */
-    @Query('limit') limit?: number,
-    @Query('period') period?: string, // 'month', 'week', 'year'  
+  @Auth()
+  getTopLocations(@CurrentUser() user: CurrentUserPayload,
+    @Query('limit') limit?: string,
+    @Query('period') period?: string,
   ) {
-    const collectorId = 'temp-collector-id';
-    return this.collectorsService.getTopLocations(collectorId, limit, period);
+    return this.collectorsService.getTopLocations(
+      user.userId,
+      Number(limit) || 3,
+      period,
+    );
   }
 
   @Get('customers')
-  @UseGuards()
+   @Auth()
   getCustomers(
-    /* @CurrentUser() user: User */
-    @Query('limit') limit?: number,
+    @CurrentUser() user: CurrentUserPayload,
+    @Query('limit') limit?: string,
     @Query('search') search?: string,
-    @Query('offset') offset?: number,
+    @Query('offset') offset?: string,
   ) {
-    const collectorId = 'temp-collector-id';
-    return this.collectorsService.getCustomers(collectorId, search, limit, offset);
+    return this.collectorsService.getCustomers(
+      user.userId,
+      search,
+      Number(limit) || 10,
+      Number(offset) || 0,
+    );
   }
 
   @Get('customers/:customerId')
-  // @UseGuards(JwtAuthGuard, CollectorGuard)
+   @Auth()
   getCustomerDetails(
-    /* @CurrentUser() user: User, */
+   @CurrentUser() user: CurrentUserPayload,
     @Param('customerId') customerId: string,
   ) {
-    const collectorId = 'temp-user-id';  
-    return this.collectorsService.getCustomerDetails(collectorId, customerId);
+    return this.collectorsService.getCustomerDetails(user.userId, customerId);
   }
 
   @Patch('profile')
-  // @UseGuards(JwtAuthGuard, CollectorGuard)
+  @Auth()
   updateProfile(
-    /* @CurrentUser() user: User, */
-    @Body() dto: any,
+    @CurrentUser() user: CurrentUserPayload,
+    @Body() dto: UpdateCollectorDto,
   ) {
-    const collectorId = 'temp-user-id';
-    return this.collectorsService.updateProfile(collectorId, dto);
+    return this.collectorsService.updateProfile(user.userId, dto);
   }
+
   @Get('me/pricing')
-  // @UseGuards(JwtAuthGuard, CollectorGuard)
+  @Auth()
   getPricing(
-    /* @CurrentUser() user: User, */
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @CurrentUser() user: CurrentUserPayload,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
     @Query('search') search?: string,
     @Query('status') status?: string,
   ) {
-    const userId = 'temp-user-id';
     return this.collectorsService.getPricing(
-      userId,
-      page,
-      limit,
+      user.userId,
+      Number(limit) || 10,
+      Number(offset) || 0,
       search,
       status,
     );
   }
 
   @Patch('pricing/:materialId')
-  @UseGuards()
+  @Auth()
   updateMaterialPricing(
-  // @CurrentUser() user: User,
-  @Param('materialId') materialId: string,
-  @Body() dto: any,
+    @CurrentUser() user: CurrentUserPayload,
+    @Param('materialId') materialId: string,
+    @Body() dto: UpdateMaterialPricingDto,
   ) {
-    const collectorId = 'temp-user-id';  
-    return this.collectorsService.updateMaterialPricing(collectorId, materialId, dto);
+    return this.collectorsService.updateMaterialPricing(
+      user.userId,
+      materialId,
+      dto,
+    );
   }
 
   @Get('pricing-settings')
-  @UseGuards()
-  getMaterialSettings(/* @CurrentUser() user: User */) {
-    const userId = 'temp-user-id';
-    return this.collectorsService.getMaterialSettings(userId);
+   @Auth()
+  getMaterialSettings( @CurrentUser() user: CurrentUserPayload) {
+    return this.collectorsService.getMaterialSettings(user.userId);
   }
 
+
   @Patch('pricing-settings')
-  @UseGuards()
+   @Auth()
   updateMaterialSettings(
-    /* @CurrentUser() user: User, */
-    @Body() dto: any,
+    @CurrentUser() user: CurrentUserPayload,
+    @Body() dto: UpdateMaterialSettingsDto,
   ) {
-    const userId = 'temp-user-id';
-    return this.collectorsService.updateMaterialSettings(userId, dto);
+    return this.collectorsService.updateMaterialSettings(user.userId, dto);
   }
+
 
 }
 
