@@ -4,6 +4,8 @@ import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptor/response.interceptor';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { join } from 'path';
+import { writeFileSync } from 'fs';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -34,6 +36,8 @@ async function bootstrap() {
     swaggerOptions: { persistAuthorization: true },
     customSiteTitle: 'ReginaRecycle API Docs',
   });
+  const outputPath = join(process.cwd(), 'swagger-spec.json');
+  writeFileSync(outputPath, JSON.stringify(document, null, 2));
 
   await app.listen(process.env.PORT ?? 3000);
 }
