@@ -1,9 +1,19 @@
-import { IsString, IsNumber, IsOptional, IsNotEmpty, IsEnum } from "class-validator";
+import { IsString, IsNumber, IsOptional, IsNotEmpty, IsEnum, IsDate } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { TxType } from '@prisma/client';
+import { TxType, TxStatus } from '@prisma/client';
 import { Type } from "class-transformer";
 
 export class WalletTransactionDTO {
+    @ApiProperty({ example: 'cm9abc123' })
+    @IsString()
+    @IsNotEmpty()
+    userId: string;
+
+    @ApiProperty({ example: 'cm9abc123' })
+    @IsString()
+    @IsNotEmpty()
+    walletId: string;
+
     //   type          TxType
     @ApiProperty({ enum: TxType, example: TxType.CREDIT })
     @IsEnum(TxType)
@@ -17,19 +27,58 @@ export class WalletTransactionDTO {
     @IsNumber({ maxDecimalPlaces: 2 })
     amount!: number;
 
+    @ApiProperty({ enum: TxStatus, example: TxStatus.PENDING })
+    @IsEnum(TxStatus)
+    @IsNotEmpty()
+    status: TxStatus;
+
     //   description   String?
     @ApiPropertyOptional({ example: 'This is a description of your earnings' })
     @IsString()
     @IsOptional()
     description?: string;
 
-    //   referenceType String?
+    // referenceType String?
     @ApiPropertyOptional({ example: 'CREDIT' })
     @IsString()
     @IsOptional()
     referenceType?: string;
 
-    //search
+    @ApiPropertyOptional({ example: 'cm9abc123' })
+    @IsString()
+    @IsOptional()
+    referenceId?: string;
 
-    //status
+    // search
+    @ApiPropertyOptional({ example: 'Payment for tins' })
+    @IsString()
+    @IsOptional()
+    search?: string;
+
+    // transaction time & date
+    @ApiPropertyOptional({ example: '2026-03-16T18:25:43.511Z' })
+    @Type(() => Date)
+    @IsDate()
+    @IsOptional()
+    transactionDate?: Date;
+
+    // sender -> sends the transaction
+    @ApiProperty({ example: 'cm9abc123' })
+    @IsString()
+    @IsNotEmpty()
+    senderId: string;
+
+    // reciever -> is on the recieving end of the transaction
+    @ApiProperty({ example: 'cm9abc123' })
+    @IsString()
+    @IsNotEmpty()
+    receiverId: string;
+
+    // fees
+    @ApiProperty({ example: 1.25 })
+    @Type(() => Number)
+    @IsNumber({ maxDecimalPlaces: 2 })
+    @IsNotEmpty()
+    fees: number;
+
 }
