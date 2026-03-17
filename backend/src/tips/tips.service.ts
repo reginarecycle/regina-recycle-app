@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTipDto } from './dto/create-tip.dto';
 import { UpdateTipDto } from './dto/update-tip.dto';
@@ -8,10 +9,16 @@ import { ErrorMessage } from '../common/error-message';
 export class TipsService {
   constructor(private prisma: PrismaService) {}
 
-  // Public: returns one random active tip within its date range
-  async getTips() {
-    const now = new Date();
+  // In-memory store for the current day's tip
+  private dailyTip: {
+    tip: any;
+    date: string;
+  } | null = null;
 
+  // Runs every day at midnight to pick a new tip
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async refreshDailyTip() {
+    const now = new Date();
     const activeTips = await this.prisma.tip.findMany({
       where: {
         active: true,
@@ -30,17 +37,33 @@ export class TipsService {
       },
     });
 
-    if (activeTips.length === 0) {
+    if (activeTips.length > 0) {
+      const randomTip = activeTips[Math.floor(Math.random() * activeTips.length)];
+      this.dailyTip = {
+        tip: randomTip,
+        date: now.toISOString().split('T')[0], // e.g. "2026-03-17"
+      };
+    }
+  }
+
+  // Public: returns the tip of the day (same tip for the whole day)
+  async getRandomActiveTip() {
+    const today = new Date().toISOString().split('T')[0];
+
+    // If no daily tip yet or it's from a previous day, refresh it
+    if (!this.dailyTip || this.dailyTip.date !== today) {
+      await this.refreshDailyTip();
+    }
+
+    if (!this.dailyTip) {
       throw new NotFoundException(ErrorMessage.TIP_NOT_FOUND);
     }
 
-    const randomTip = activeTips[Math.floor(Math.random() * activeTips.length)];
-    return randomTip;
+    return this.dailyTip.tip;
   }
 
   // Create a tip
-  async create(createTipDto: CreateTipDto) {
-    // Check for duplicate tip content
+  async createTip(createTipDto: CreateTipDto) {
     const existingTip = await this.prisma.tip.findFirst({
       where: { content: createTipDto.content },
     });
@@ -60,7 +83,7 @@ export class TipsService {
   }
 
   // Get all tips with optional active filter
-  async findAll(activeOnly?: boolean) {
+  async getAllTips(activeOnly?: boolean) {
     const tips = await this.prisma.tip.findMany({
       where: activeOnly !== undefined ? { active: activeOnly } : undefined,
       orderBy: { createdAt: 'desc' },
@@ -70,7 +93,7 @@ export class TipsService {
   }
 
   // Get a single tip by ID
-  async findOne(tipId: string) {
+  async getTipById(tipId: string) {
     const tip = await this.prisma.tip.findUnique({
       where: { tipId },
     });
@@ -83,7 +106,7 @@ export class TipsService {
   }
 
   // Update a tip
-  async update(tipId: string, updateTipDto: UpdateTipDto) {
+  async updateTip(tipId: string, updateTipDto: UpdateTipDto) {
     const existing = await this.prisma.tip.findUnique({
       where: { tipId },
     });
@@ -92,7 +115,6 @@ export class TipsService {
       throw new NotFoundException(ErrorMessage.TIP_NOT_FOUND);
     }
 
-    // Check for duplicate content if content is being updated
     if (updateTipDto.content && updateTipDto.content !== existing.content) {
       const duplicateTip = await this.prisma.tip.findFirst({
         where: { content: updateTipDto.content },
@@ -115,7 +137,7 @@ export class TipsService {
   }
 
   // Delete a tip
-  async remove(tipId: string) {
+  async deleteTip(tipId: string) {
     const existing = await this.prisma.tip.findUnique({
       where: { tipId },
     });
@@ -134,7 +156,7 @@ export class TipsService {
   }
 
   // Toggle active/inactive
-  async toggleActive(tipId: string) {
+  async toggleTipActiveStatus(tipId: string) {
     const existing = await this.prisma.tip.findUnique({
       where: { tipId },
     });
