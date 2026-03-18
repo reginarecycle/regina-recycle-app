@@ -15,26 +15,15 @@ import LearnCard from "@/components/learn/LearnCard";
 import Light from "@/assets/LightBulb.svg?react";
 import Composite from "@/assets/composite-icon.svg?react";
 import LearnFooter from "@/components/learn/LearnFooter";
+import { useGetTip } from "@/hooks/useTips";
 
 const INITIAL_COUNT = 8;
 
 const filters: { label: string; value: Category; icon: React.ReactNode }[] = [
   { label: "All", value: "all", icon: <LayoutGrid className="size-3.5" /> },
-  {
-    label: "Recyclables",
-    value: "recyclable",
-    icon: <BadgeAlertIcon className="size-3.5" />,
-  },
-  {
-    label: "Hazardous",
-    value: "hazardous",
-    icon: <AlertTriangle className="size-3.5" />,
-  },
-  {
-    label: "Compost",
-    value: "compost",
-    icon: <Composite className="size-3.5" />,
-  },
+  { label: "Recyclables", value: "recyclable", icon: <BadgeAlertIcon className="size-3.5" /> },
+  { label: "Hazardous", value: "hazardous", icon: <AlertTriangle className="size-3.5" /> },
+  { label: "Compost", value: "compost", icon: <Composite className="size-3.5" /> },
   { label: "Garbage", value: "garbage", icon: <Trash className="size-3.5" /> },
 ];
 
@@ -42,6 +31,8 @@ function LearnPage() {
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<Category>("all");
   const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
+
+  const { data: activeTip, isLoading: tipsLoading } = useGetTip();
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
@@ -69,6 +60,7 @@ function LearnPage() {
       <div className="bg-[#fbfbfb] min-h-screen">
         <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16 py-12 md:py-16 lg:py-20">
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+
             {/* Left Sidebar */}
             <motion.div
               className="flex flex-col gap-6 lg:w-72 shrink-0"
@@ -87,20 +79,26 @@ function LearnPage() {
               </div>
 
               {/* Tip of the Day */}
-              <div className="border border-[#a16207] bg-[#faf9f1] rounded-xl p-4 relative overflow-hidden">
+              <div className="border border-[#a16207] bg-[#faf9f1] rounded-xl p-4 relative overflow-hidden min-h-[100px]">
                 <div className="flex items-center gap-1 mb-2">
                   <span className="text-[#a16207] text-xs">⭐</span>
                   <span className="text-[#a16207] text-xs font-bold">
                     Tip of the day
                   </span>
                 </div>
-                <p className="text-black font-bold text-base mb-2">
-                  Pizza Boxes?
-                </p>
-                <p className="text-black text-xs leading-5">
-                  Greasy pizza boxes belong in the compost, not recycling! Only
-                  the clean lid can be recycled.
-                </p>
+                {tipsLoading ? (
+                  <div className="animate-pulse flex flex-col gap-2">
+                    <div className="h-4 bg-yellow-100 rounded w-1/2" />
+                    <div className="h-3 bg-yellow-100 rounded w-full" />
+                    <div className="h-3 bg-yellow-100 rounded w-3/4" />
+                  </div>
+                ) : activeTip ? (
+                  <p className="text-black text-xs leading-5">{activeTip.content}</p>
+                ) : (
+                  <p className="text-black text-xs leading-5 text-muted-foreground">
+                    No tip available today.
+                  </p>
+                )}
                 <div className="absolute -right-4 -top-4 opacity-20 text-6xl select-none pointer-events-none">
                   <Light />
                 </div>
@@ -109,14 +107,12 @@ function LearnPage() {
 
             {/* Right Content */}
             <div className="flex-1 min-w-0 flex flex-col gap-6">
-              {/* Search + Filters white card */}
               <motion.div
                 className="bg-white rounded-xl border border-border p-4 flex flex-col gap-4"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}
               >
-                {/* Search row */}
                 <div className="flex gap-3 items-center">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
@@ -130,27 +126,23 @@ function LearnPage() {
                   <Button size="lg">Search</Button>
                 </div>
 
-                {/* Filter chips */}
                 <div className="flex gap-2 flex-wrap">
                   {filters.map((f) => (
                     <button
                       key={f.value}
                       onClick={() => handleFilterChange(f.value)}
-                      className={`flex items-center gap-1.5 px-4 h-9 rounded-full text-xs font-medium transition-colors border ${
-                        activeFilter === f.value
+                      className={`flex items-center gap-1.5 px-4 h-9 rounded-full text-xs font-medium transition-colors border ${activeFilter === f.value
                           ? "bg-primary text-primary-foreground border-primary"
                           : "bg-white text-muted-foreground border-border hover:border-primary hover:text-primary"
-                      }`}
+                        }`}
                     >
                       {activeFilter === f.value && f.icon}
-
                       {f.label}
                     </button>
                   ))}
                 </div>
               </motion.div>
 
-              {/* Cards Grid */}
               {filtered.length > 0 ? (
                 <div className="flex flex-col gap-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -158,7 +150,6 @@ function LearnPage() {
                       <LearnCard key={item.id} item={item} />
                     ))}
                   </div>
-
                   {visibleCount < filtered.length && (
                     <div className="flex justify-center">
                       <Button
