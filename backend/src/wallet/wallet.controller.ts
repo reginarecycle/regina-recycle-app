@@ -8,10 +8,10 @@ import {
   Query,
 } from '@nestjs/common';
 import { Auth } from 'src/common/decorator/auth.decorator';
-import { PaginationDto } from 'src/common/pagination/pagination.dto';
 import { CurrentUser } from '../auth/decorator/current-user.decorator';
 import { CustomerWithdrawFundsDto } from './dto/customerWithdrawFunds.dto';
 import { TopUpRequestsDto } from './dto/topUpRequests.dto';
+import { WalletTransactionQueryDto } from './dto/walletTransactionQuery.dto';
 
 @Controller('wallet')
 export class WalletController {
@@ -44,17 +44,9 @@ export class WalletController {
   @Auth()
   async getWalletTransactions(
     @CurrentUser('id') userId: string,
-    @Query() paginationDto: PaginationDto,
-    @Query('search') search?: string,
+    @Query() query: WalletTransactionQueryDto,
   ) {
-    const { page = 1, limit = 10 } = paginationDto;
-
-    return this.walletService.getWalletTransactions(
-      userId,
-      page,
-      limit,
-      search,
-    );
+    return this.walletService.getWalletTransactions(userId, query);
   }
 
   // get a single wallet transaction by id

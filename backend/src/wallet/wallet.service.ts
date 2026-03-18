@@ -8,6 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { ErrorMessage } from '../common/error-message';
 import { CustomerWithdrawFundsDto } from './dto/customerWithdrawFunds.dto';
 import { TopUpRequestsDto } from './dto/topUpRequests.dto';
+import { WalletTransactionQueryDto } from './dto/walletTransactionQuery.dto';
 import { TxStatus, TxType } from '@prisma/client';
 
 @Injectable()
@@ -29,13 +30,13 @@ export class WalletService {
 
         if (!wallet) {
             wallet = await this.prisma.wallet.create({
-                data: {
-                    userId,
-                },
+                data: { userId },
             });
         }
 
         const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
         const monthlyEarnings = await this.prisma.walletTransaction.aggregate({
             where: {
@@ -43,7 +44,7 @@ export class WalletService {
                 type: TxType.CREDIT,
                 status: TxStatus.COMPLETED,
                 createdAt: {
-                    gte: new Date(now.getFullYear(), now.getMonth(), 1),
+                    gte: monthStart,
                 },
             },
             _sum: {
@@ -65,12 +66,43 @@ export class WalletService {
             },
         });
 
+        const pendingEarnings = await this.prisma.walletTransaction.aggregate({
+            where: {
+                walletId: wallet.walletId,
+                type: TxType.CREDIT,
+                status: TxStatus.PENDING,
+            },
+            _sum: {
+                amount: true,
+            },
+        });
+
+        const prevMonthEarnings = await this.prisma.walletTransaction.aggregate({
+            where: {
+                walletId: wallet.walletId,
+                type: TxType.CREDIT,
+                status: TxStatus.COMPLETED,
+                createdAt: {
+                    gte: prevMonthStart,
+                    lt: monthStart,
+                },
+            },
+            _sum: {
+                amount: true,
+            },
+        });
+
+        const current = Number(monthlyEarnings._sum.amount ?? 0);
+        const previous = Number(prevMonthEarnings._sum.amount ?? 0);
+
         return {
             userId: wallet.userId,
             walletId: wallet.walletId,
             balance: Number(wallet.balance),
-            monthlyEarnings: Number(monthlyEarnings._sum.amount ?? 0),
+            monthlyEarnings: current,
             yearlyEarnings: Number(yearlyEarnings._sum.amount ?? 0),
+            pendingEarningsAmount: Number(pendingEarnings._sum.amount ?? 0),
+            earningsChangeAmount: current - previous,
         };
     }
 
@@ -89,9 +121,7 @@ export class WalletService {
 
         if (!wallet) {
             wallet = await this.prisma.wallet.create({
-                data: {
-                    userId,
-                },
+                data: { userId },
             });
         }
 
@@ -140,6 +170,17 @@ export class WalletService {
             },
         });
 
+        const pendingRequests = await this.prisma.walletTransaction.aggregate({
+            where: {
+                walletId: wallet.walletId,
+                type: TxType.DEBIT,
+                status: TxStatus.PENDING,
+            },
+            _sum: {
+                amount: true,
+            },
+        });
+
         return {
             userId: wallet.userId,
             walletId: wallet.walletId,
@@ -148,6 +189,8 @@ export class WalletService {
             monthlyNetFlow:
                 Number(monthlyCredits._sum.amount ?? 0) -
                 Number(monthlyDebits._sum.amount ?? 0),
+            pendingRequestsAmount: Number(pendingRequests._sum.amount ?? 0),
+            pendingApprovalAmount: Number(pendingRequests._sum.amount ?? 0),
         };
     }
 
@@ -167,12 +210,7 @@ export class WalletService {
         };
     }
 
-    async getWalletTransactions(
-        userId: string,
-        page: number,
-        limit: number,
-        search?: string,
-    ) {
+    async getWalletTransactions(userId: string, query: WalletTransactionQueryDto) {
         const wallet = await this.prisma.wallet.findUnique({
             where: { userId },
         });
@@ -181,18 +219,40 @@ export class WalletService {
             throw new NotFoundException(ErrorMessage.WALLET_NOT_FOUND);
         }
 
+        const {
+            page = 1,
+            limit = 10,
+            search,
+            type,
+            status,
+            startDate,
+            endDate,
+        } = query;
+
         const skip = (page - 1) * limit;
 
-        return this.prisma.walletTransaction.findMany({
+        const transactions = await this.prisma.walletTransaction.findMany({
             where: {
                 walletId: wallet.walletId,
-                OR: search
-                    ? [
-                        { description: { contains: search, mode: 'insensitive' } },
-                        { referenceId: { contains: search, mode: 'insensitive' } },
-                        { referenceType: { contains: search, mode: 'insensitive' } },
-                    ]
-                    : undefined,
+                ...(type ? { type } : {}),
+                ...(status ? { status } : {}),
+                ...(startDate || endDate
+                    ? {
+                        createdAt: {
+                            ...(startDate ? { gte: new Date(startDate) } : {}),
+                            ...(endDate ? { lte: new Date(endDate) } : {}),
+                        },
+                    }
+                    : {}),
+                ...(search
+                    ? {
+                        OR: [
+                            { description: { contains: search, mode: 'insensitive' } },
+                            { referenceId: { contains: search, mode: 'insensitive' } },
+                            { referenceType: { contains: search, mode: 'insensitive' } },
+                        ],
+                    }
+                    : {}),
             },
             skip,
             take: limit,
@@ -200,6 +260,21 @@ export class WalletService {
                 createdAt: 'desc',
             },
         });
+
+        return transactions.map((t) => ({
+            userId: wallet.userId,
+            walletId: t.walletId,
+            type: t.type,
+            amount: Number(t.amount),
+            status: t.status,
+            description: t.description ?? undefined,
+            referenceType: t.referenceType ?? undefined,
+            referenceId: t.referenceId ?? undefined,
+            createdAt: t.createdAt,
+            senderId: undefined, // is optional and not in the prisma
+            receiverId: undefined, // is optional and not in the prisma
+            fees: undefined,
+        }));
     }
 
     async getTransactionById(userId: string, transactionId: string) {
@@ -222,7 +297,20 @@ export class WalletService {
             throw new NotFoundException(ErrorMessage.TRANSACTION_NOT_FOUND);
         }
 
-        return transaction;
+        return {
+            userId: wallet.userId,
+            walletId: transaction.walletId,
+            type: transaction.type,
+            amount: Number(transaction.amount),
+            status: transaction.status,
+            description: transaction.description ?? undefined,
+            referenceType: transaction.referenceType ?? undefined,
+            referenceId: transaction.referenceId ?? undefined,
+            createdAt: transaction.createdAt,
+            senderId: undefined,
+            receiverId: undefined,
+            fees: undefined,
+        };
     }
 
     async withdrawFunds(userId: string, withdrawDto: CustomerWithdrawFundsDto) {
@@ -308,11 +396,11 @@ export class WalletService {
         }
 
         const dateFilter =
-            startDate && endDate
+            startDate || endDate
                 ? {
                     createdAt: {
-                        gte: new Date(startDate),
-                        lte: new Date(endDate),
+                        ...(startDate ? { gte: new Date(startDate) } : {}),
+                        ...(endDate ? { lte: new Date(endDate) } : {}),
                     },
                 }
                 : {};
@@ -362,20 +450,35 @@ export class WalletService {
             throw new NotFoundException(ErrorMessage.WALLET_NOT_FOUND);
         }
 
-        return this.prisma.walletTransaction.findMany({
+        const earnings = await this.prisma.walletTransaction.findMany({
             where: {
                 walletId: wallet.walletId,
                 type: TxType.CREDIT,
                 status: TxStatus.COMPLETED,
                 createdAt: {
-                    gte: startDate ? new Date(startDate) : undefined,
-                    lte: endDate ? new Date(endDate) : undefined,
+                    ...(startDate ? { gte: new Date(startDate) } : {}),
+                    ...(endDate ? { lte: new Date(endDate) } : {}),
                 },
             },
             orderBy: {
                 createdAt: 'desc',
             },
         });
+
+        return earnings.map((t) => ({
+            userId: wallet.userId,
+            walletId: t.walletId,
+            type: t.type,
+            amount: Number(t.amount),
+            status: t.status,
+            description: t.description ?? undefined,
+            referenceType: t.referenceType ?? undefined,
+            referenceId: t.referenceId ?? undefined,
+            createdAt: t.createdAt,
+            senderId: undefined,
+            receiverId: undefined,
+            fees: undefined,
+        }));
     }
 
     async validateOwnership(walletId: string, userId: string): Promise<boolean> {
