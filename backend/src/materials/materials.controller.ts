@@ -4,6 +4,8 @@ import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
 import { Auth } from '../common/decorator/auth.decorator';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
+import { ApiOperation } from '@nestjs/swagger';
+import { MaterialQueryDto } from './dto/material-query.dto';
 
 
 @Controller('materials')
@@ -17,19 +19,17 @@ export class MaterialsController {
   }
 
   @Get()
-  @Auth()
+  @ApiOperation({summary: 'Get all materials'})
  getAllMaterials(
-  @Query() pagination?: PaginationDto,
-  @Query('search') search?: string,
+  @Query() query: MaterialQueryDto,
 ) {
   return this.materialsService.getAllMaterials(
-    pagination,
-    search,
+  query
   );
 }
 
   @Get(':id')
-  @Auth()
+  
   getMaterialById(@Param('id') id: string) {
     return this.materialsService.getMaterialById(id);
   }
