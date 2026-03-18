@@ -1,10 +1,11 @@
-import { Controller, Get, Patch, Param, Query, Body } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Param, Query, Body, BadRequestException } from '@nestjs/common';
 import { CollectorsService } from './collectors.service';
 import { UpdateCollectorDto } from './dto/update-collector.dto';
 import { UpdateMaterialPricingDto } from './dto/update-material-pricing.dto';
 import { UpdateMaterialSettingsDto } from './dto/update-material-settings.dto';
 import { Auth } from '../common/decorator/auth.decorator';
 import { CurrentUser } from '../auth/decorator/current-user.decorator';
+import { CreateMaterialPricingDto} from './dto/create-material-pricing.dto';
 
 type CurrentUserPayload = {
  userId: string;
@@ -104,6 +105,16 @@ export class CollectorsController {
     return this.collectorsService.updateProfile(user.userId, dto);
   }
 
+ @Post('pricing')
+ @Auth()
+ createMaterialPricing(
+  @CurrentUser() user: CurrentUserPayload,
+  @Body() dto: CreateMaterialPricingDto,
+) {
+  return this.collectorsService.createMaterialPricing(user.userId, dto);
+}
+
+
   @Get('me/pricing')
   @Auth()
   getPricing(
@@ -152,6 +163,25 @@ export class CollectorsController {
     return this.collectorsService.updateMaterialSettings(user.userId, dto);
   }
 
+  @Get(':collectorId/material-pricing/:materialId/calculate')
+  @Auth()
+  calculateMaterialPrice(
+  @CurrentUser() user: CurrentUserPayload,
+  @Param('materialId') materialId: string,
+  @Query('quantity') quantity: string,
+) {
+  const qty = Number(quantity);
+
+  if (isNaN(qty) || qty <= 0) {
+    throw new BadRequestException('Quantity must be a number greater than 0');
+  }
+
+  return this.collectorsService.calculateMaterialPrice(
+    user.userId,
+    materialId,
+    qty,
+  );
+}
 
 }
 

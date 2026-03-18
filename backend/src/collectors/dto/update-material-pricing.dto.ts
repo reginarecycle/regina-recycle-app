@@ -1,19 +1,4 @@
-import { IsOptional, IsNumber, IsEnum } from 'class-validator';
-import { Type } from 'class-transformer';
-import { PricingStatus } from '@prisma/client';
+import { PartialType } from '@nestjs/swagger';
+import { CreateMaterialPricingDto } from './create-material-pricing.dto';
 
-export class UpdateMaterialPricingDto {
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  basePrice?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  bulkPrice?: number;
-
-  @IsOptional()
-  @IsEnum(PricingStatus)
-  status?: PricingStatus;
-}
+export class UpdateMaterialPricingDto extends PartialType(CreateMaterialPricingDto) {}

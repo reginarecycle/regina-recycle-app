@@ -6,6 +6,7 @@ import { UpdateMaterialPricingDto } from './dto/update-material-pricing.dto';
 import { UpdateMaterialSettingsDto } from './dto/update-material-settings.dto';
 import { BadRequestException } from '@nestjs/common';
 import { MaterialPricingFactory } from "../materials/pricing/material-pricing-factory";
+import { CreateMaterialPricingDto} from './dto/create-material-pricing.dto';
 
 @Injectable()
 export class CollectorsService {
@@ -618,4 +619,72 @@ export class CollectorsService {
       data: updatedSettings,
     };
   }
+  
+
+  async createMaterialPricing(
+  collectorId: string,
+  dto: CreateMaterialPricingDto,
+) {
+  await this.ensureCollectorExists(collectorId);
+
+  return this.prisma.collectorPricing.create({
+    data: {
+      collectorUserId: collectorId,
+      materialId: dto.materialId,
+      basePrice: dto.basePrice,
+      bulkPrice: dto.bulkPrice,
+      status: dto.status ?? 'ACTIVE',
+    },
+  });
+}
+
+
+  async calculateMaterialPrice(
+  collectorId: string,
+  materialId: string,
+  quantity: number,
+) {
+  await this.ensureCollectorExists(collectorId);
+
+  const collectorPricing = await this.prisma.collectorPricing.findUnique({
+    where: {
+      collectorUserId_materialId: {
+        collectorUserId: collectorId,
+        materialId,
+      },
+    },
+    include: {
+      material: true,
+    },
+  });
+
+  if (!collectorPricing) {
+    throw new Error('Collector pricing not found for this material');
   }
+
+  const factory = new MaterialPricingFactory();
+  const material = factory.createMaterial(
+    collectorPricing.material.name.toLowerCase(),
+  );
+
+  if (collectorPricing.basePrice !== null) {
+    material.setBasePrice(Number(collectorPricing.basePrice));
+  }
+
+  if (collectorPricing.bulkPrice !== null) {
+    material.setBulkRate(Number(collectorPricing.bulkPrice));
+  }
+
+  const estimatedCost = material.estimateCost(quantity);
+  const recommendedPrice = material.getRecommendedPrice(quantity);
+
+  return {
+    collectorId,
+    materialId,
+    materialName: collectorPricing.material.name,
+    quantity,
+    estimatedCost,
+    recommendedPrice,
+  };
+}
+}

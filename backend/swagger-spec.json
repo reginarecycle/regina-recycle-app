@@ -561,6 +561,35 @@
         ]
       }
     },
+    "/collectors/pricing": {
+      "post": {
+        "operationId": "CollectorsController_createMaterialPricing",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMaterialPricingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "tags": [
+          "Collectors"
+        ]
+      }
+    },
     "/collectors/me/pricing": {
       "get": {
         "operationId": "CollectorsController_getPricing",
@@ -682,6 +711,42 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "tags": [
+          "Collectors"
+        ]
+      }
+    },
+    "/collectors/{collectorId}/material-pricing/{materialId}/calculate": {
+      "get": {
+        "operationId": "CollectorsController_calculateMaterialPrice",
+        "parameters": [
+          {
+            "name": "materialId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "quantity",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": ""
@@ -1748,9 +1813,33 @@
         "type": "object",
         "properties": {}
       },
+      "CreateMaterialPricingDto": {
+        "type": "object",
+        "properties": {
+          "materialId": {
+            "type": "string"
+          },
+          "basePrice": {
+            "type": "number"
+          },
+          "bulkPrice": {
+            "type": "number"
+          },
+          "status": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "materialId",
+          "basePrice"
+        ]
+      },
       "UpdateMaterialPricingDto": {
         "type": "object",
         "properties": {
+          "materialId": {
+            "type": "string"
+          },
           "basePrice": {
             "type": "number"
           },
