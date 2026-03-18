@@ -664,7 +664,7 @@ export class CollectorsService {
 
   const factory = new MaterialPricingFactory();
   const material = factory.createMaterial(
-    collectorPricing.material.name.toLowerCase(),
+    collectorPricing.material.type.toLowerCase(),
   );
 
   if (collectorPricing.basePrice !== null) {
