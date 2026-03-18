@@ -91,9 +91,10 @@ export class MaterialsService {
   async removeMaterial(id: string) {  
    await this.getMaterialById(id);
 
-    return this.prisma.material.delete({
+    await this.prisma.material.delete({
       where: { materialId: id },
     });
+     return {message: 'Material deleted'};
   } 
   }
 
