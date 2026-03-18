@@ -17,4 +17,6 @@ export interface TabItem {
   icon?: ComponentType<{ className?: string }>;
   /** Disable this tab */
   disabled?: boolean;
+  /** Optional unread/alert badge count */
+  badge?: number;
 }
