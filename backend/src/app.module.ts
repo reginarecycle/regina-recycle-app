@@ -17,9 +17,9 @@ import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }), 
+    ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule, AuthModule, UsersModule, CustomersModule, CollectorsModule, AddressesModule, PickupsModule, MaterialsModule, WalletModule, NotificationsModule, TipsModule, CommonModule, ScheduleModule.forRoot()],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
