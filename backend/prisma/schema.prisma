@@ -128,16 +128,17 @@ model CollectorProfile {
 }
 
 model NotificationPreference {
-  id                    String   @id @default(uuid())
-  userId                String   @unique
-  emailPickupReminder   Boolean  @default(true)
-  emailAccountActivity  Boolean  @default(true)
-  emailMarketing        Boolean  @default(false)
-  inAppPickupReminder   Boolean  @default(true)
-  inAppAlerts           Boolean  @default(true)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  user                  User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  emailPickupReminder  Boolean  @default(true)   
+  emailAccountActivity Boolean  @default(true)   
+  emailMarketing       Boolean  @default(false)  
+  emailPayment         Boolean  @default(false)  
+  inAppPickupReminder  Boolean  @default(true)   
+  inAppAlerts          Boolean  @default(true) 
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  user                 User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@map("notification_preferences")
 }

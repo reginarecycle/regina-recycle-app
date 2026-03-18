@@ -6,7 +6,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { EmailService } from 'src/notifications/email/email.service';
+import { EmailService } from '../notifications/email/email.service';
+import { EmailTemplatesService } from 'src/notifications/email/email.template.service';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { EmailService } from 'src/notifications/email/email.service';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, EmailService],
+  providers: [AuthService, JwtStrategy, EmailService, EmailTemplatesService],
   exports: [AuthService, JwtStrategy],
 })
 export class AuthModule {}

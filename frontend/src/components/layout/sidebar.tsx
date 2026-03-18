@@ -10,6 +10,7 @@ interface SidebarProps {
   userName?: string;
   userRole?: string;
   userAvatar?: string;
+  activePath?: string;
 }
 
 export function Sidebar({
@@ -17,9 +18,13 @@ export function Sidebar({
   userName = "John Doe",
   userRole = "Verified User",
   userAvatar,
+  activePath,
 }: SidebarProps) {
   const location = useLocation();
   const navItems = isCollectorMode ? collectorNavItems : userNavItems;
+
+  // Use activePath if provided, otherwise use current location
+  const currentPath = activePath || location.pathname;
 
   const getInitials = (name: string) => {
     return name
@@ -49,7 +54,10 @@ export function Sidebar({
         <div className=" pt-8 text-xs font-medium text-primary">MENU</div>
         <div className="flex flex-col gap-2">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.href;
+            const isScheduleItem = item.href === "/app/schedule";
+            const isActive = isScheduleItem
+              ? currentPath.startsWith("/app/schedule")
+              : currentPath === item.href;
             const Icon = item.icon;
 
             return (
@@ -58,7 +66,7 @@ export function Sidebar({
                   className={cn(
                     "flex items-center w-full justify-start px-2 py-3 rounded gap-3 text-foreground hover:bg-primary/10 hover:text-primary [&_svg]:hover:text-primary",
                     isActive &&
-                      "bg-primary/10 font-medium text-primary [&_svg]:text-primary"
+                    "bg-primary/10 font-medium text-primary [&_svg]:text-primary"
                   )}
                 >
                   <Icon className="h-5 w-5" />
