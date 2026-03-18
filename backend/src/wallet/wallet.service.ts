@@ -6,17 +6,14 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ErrorMessage } from '../common/error-message';
-import { WithdrawDto } from 'src/common/dto/withdraw.dto';
-import { TxType, TxStatus } from '@prisma/client';
-
+import { CustomerWithdrawFundsDto } from './dto/customerWithdrawFunds.dto';
+import { TopUpRequestsDto } from './dto/topUpRequests.dto';
+import { TxStatus, TxType } from '@prisma/client';
 
 @Injectable()
 export class WalletService {
-
     constructor(private prisma: PrismaService) { }
-    //-----------------------------------------------------------------------------
-    // customer wallet
-    // create a new wallet for a customer if one does not already exist
+
     async getOrCreateCustomerWallet(userId: string) {
         const user = await this.prisma.user.findUnique({
             where: { userId },
@@ -26,26 +23,27 @@ export class WalletService {
             throw new NotFoundException(ErrorMessage.USER_NOT_FOUND);
         }
 
-        let customerWallet = await this.prisma.wallet.findUnique({
+        let wallet = await this.prisma.wallet.findUnique({
             where: { userId },
         });
 
-        if (!customerWallet) {
-            customerWallet = await this.prisma.wallet.create({
+        if (!wallet) {
+            wallet = await this.prisma.wallet.create({
                 data: {
                     userId,
-                    balance: '0.00',
                 },
             });
         }
 
-        const monthlyEarningsAggregate = await this.prisma.walletTransaction.aggregate({
+        const now = new Date();
+
+        const monthlyEarnings = await this.prisma.walletTransaction.aggregate({
             where: {
-                walletId: customerWallet.walletId,
+                walletId: wallet.walletId,
                 type: TxType.CREDIT,
                 status: TxStatus.COMPLETED,
                 createdAt: {
-                    gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+                    gte: new Date(now.getFullYear(), now.getMonth(), 1),
                 },
             },
             _sum: {
@@ -53,13 +51,13 @@ export class WalletService {
             },
         });
 
-        const yearlyEarningsAggregate = await this.prisma.walletTransaction.aggregate({
+        const yearlyEarnings = await this.prisma.walletTransaction.aggregate({
             where: {
-                walletId: customerWallet.walletId,
+                walletId: wallet.walletId,
                 type: TxType.CREDIT,
                 status: TxStatus.COMPLETED,
                 createdAt: {
-                    gte: new Date(new Date().getFullYear(), 0, 1),
+                    gte: new Date(now.getFullYear(), 0, 1),
                 },
             },
             _sum: {
@@ -68,17 +66,14 @@ export class WalletService {
         });
 
         return {
-            userId: customerWallet.userId,
-            walletId: customerWallet.walletId,
-            balance: Number(customerWallet.balance),
-            monthlyEarnings: Number(monthlyEarningsAggregate._sum.amount ?? 0),
-            yearlyEarnings: Number(yearlyEarningsAggregate._sum.amount ?? 0),
+            userId: wallet.userId,
+            walletId: wallet.walletId,
+            balance: Number(wallet.balance),
+            monthlyEarnings: Number(monthlyEarnings._sum.amount ?? 0),
+            yearlyEarnings: Number(yearlyEarnings._sum.amount ?? 0),
         };
     }
 
-    //-----------------------------------------------------------------------------
-    // collector wallet
-    // create a new wallet for a collector if one does not already exist
     async getOrCreateCollectorWallet(userId: string) {
         const user = await this.prisma.user.findUnique({
             where: { userId },
@@ -88,26 +83,28 @@ export class WalletService {
             throw new NotFoundException(ErrorMessage.USER_NOT_FOUND);
         }
 
-        let collectorWallet = await this.prisma.wallet.findUnique({
+        let wallet = await this.prisma.wallet.findUnique({
             where: { userId },
         });
 
-        if (!collectorWallet) {
-            collectorWallet = await this.prisma.wallet.create({
+        if (!wallet) {
+            wallet = await this.prisma.wallet.create({
                 data: {
                     userId,
-                    balance: '0.00',
                 },
             });
         }
 
-        const monthlyPayoutsAggregate = await this.prisma.walletTransaction.aggregate({
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+        const monthlyPayouts = await this.prisma.walletTransaction.aggregate({
             where: {
-                walletId: collectorWallet.walletId,
+                walletId: wallet.walletId,
                 type: TxType.DEBIT,
                 status: TxStatus.COMPLETED,
                 createdAt: {
-                    gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+                    gte: monthStart,
                 },
             },
             _sum: {
@@ -115,13 +112,13 @@ export class WalletService {
             },
         });
 
-        const monthlyCreditsAggregate = await this.prisma.walletTransaction.aggregate({
+        const monthlyCredits = await this.prisma.walletTransaction.aggregate({
             where: {
-                walletId: collectorWallet.walletId,
+                walletId: wallet.walletId,
                 type: TxType.CREDIT,
                 status: TxStatus.COMPLETED,
                 createdAt: {
-                    gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+                    gte: monthStart,
                 },
             },
             _sum: {
@@ -129,13 +126,13 @@ export class WalletService {
             },
         });
 
-        const monthlyDebitsAggregate = await this.prisma.walletTransaction.aggregate({
+        const monthlyDebits = await this.prisma.walletTransaction.aggregate({
             where: {
-                walletId: collectorWallet.walletId,
+                walletId: wallet.walletId,
                 type: TxType.DEBIT,
                 status: TxStatus.COMPLETED,
                 createdAt: {
-                    gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+                    gte: monthStart,
                 },
             },
             _sum: {
@@ -144,18 +141,16 @@ export class WalletService {
         });
 
         return {
-            userId: collectorWallet.userId,
-            walletId: collectorWallet.walletId,
-            balance: Number(collectorWallet.balance),
-            monthlyPayouts: Number(monthlyPayoutsAggregate._sum.amount ?? 0),
+            userId: wallet.userId,
+            walletId: wallet.walletId,
+            balance: Number(wallet.balance),
+            monthlyPayouts: Number(monthlyPayouts._sum.amount ?? 0),
             monthlyNetFlow:
-                Number(monthlyCreditsAggregate._sum.amount ?? 0) -
-                Number(monthlyDebitsAggregate._sum.amount ?? 0),
+                Number(monthlyCredits._sum.amount ?? 0) -
+                Number(monthlyDebits._sum.amount ?? 0),
         };
     }
 
-    private balance = 3000;
-    // get the wallet balance
     async getWalletBalance(userId: string) {
         const wallet = await this.prisma.wallet.findUnique({
             where: { userId },
@@ -173,10 +168,10 @@ export class WalletService {
     }
 
     async getWalletTransactions(
+        userId: string,
         page: number,
         limit: number,
-        userId?: string,
-        search?: string
+        search?: string,
     ) {
         const wallet = await this.prisma.wallet.findUnique({
             where: { userId },
@@ -195,6 +190,7 @@ export class WalletService {
                     ? [
                         { description: { contains: search, mode: 'insensitive' } },
                         { referenceId: { contains: search, mode: 'insensitive' } },
+                        { referenceType: { contains: search, mode: 'insensitive' } },
                     ]
                     : undefined,
             },
@@ -229,8 +225,7 @@ export class WalletService {
         return transaction;
     }
 
-
-    async withdrawFunds(userId: string, data: WithdrawDto) {
+    async withdrawFunds(userId: string, withdrawDto: CustomerWithdrawFundsDto) {
         const wallet = await this.prisma.wallet.findUnique({
             where: { userId },
         });
@@ -239,41 +234,32 @@ export class WalletService {
             throw new NotFoundException(ErrorMessage.WALLET_NOT_FOUND);
         }
 
-        if (Number(data.amount) <= 0) {
+        if (withdrawDto.amount <= 0) {
             throw new BadRequestException(ErrorMessage.INVALID_AMOUNT);
         }
 
-        if (Number(wallet.balance) < Number(data.amount)) {
+        if (Number(wallet.balance) < withdrawDto.amount) {
             throw new BadRequestException(ErrorMessage.INSUFFICIENT_BALANCE);
         }
 
-        const updatedWallet = await this.prisma.wallet.update({
-            where: { walletId: wallet.walletId },
-            data: {
-                balance: Number(wallet.balance) - Number(data.amount),
-            },
-        });
-
-        const transaction = await this.prisma.walletTransaction.create({
+        const withdrawRequest = await this.prisma.withdrawRequest.create({
             data: {
                 userId,
-                walletId: wallet.walletId,
-                type: TxType.DEBIT,
-                amount: Number(data.amount),
-                status: TxStatus.PENDING,
-                description: 'Withdrawal request',
-                transactionDate: new Date(),
+                interacEmail: withdrawDto.interacEmail,
+                securityQuestion: withdrawDto.securityQuestion,
+                securityAnswer: withdrawDto.securityAnswer,
+                amount: withdrawDto.amount,
+                status: withdrawDto.status ?? TxStatus.PENDING,
             },
         });
 
         return {
-            message: 'Withdrawal request created',
-            wallet: updatedWallet,
-            transaction,
+            message: 'Withdraw request created successfully',
+            withdrawRequest,
         };
     }
 
-    async addFunds(userId: string, data: WithdrawDto) {
+    async addFunds(userId: string, topUpDto: TopUpRequestsDto) {
         const wallet = await this.prisma.wallet.findUnique({
             where: { userId },
         });
@@ -282,33 +268,33 @@ export class WalletService {
             throw new NotFoundException(ErrorMessage.WALLET_NOT_FOUND);
         }
 
-        if (Number(data.amount) <= 0) {
+        if (topUpDto.amount <= 0) {
             throw new BadRequestException(ErrorMessage.INVALID_AMOUNT);
         }
 
-        const updatedWallet = await this.prisma.wallet.update({
-            where: { walletId: wallet.walletId },
-            data: {
-                balance: Number(wallet.balance) + Number(data.amount),
+        const paymentMethod = await this.prisma.paymentMethod.findFirst({
+            where: {
+                paymentMethodId: topUpDto.paymentMethodId,
+                userId,
             },
         });
 
-        const transaction = await this.prisma.walletTransaction.create({
+        if (!paymentMethod) {
+            throw new NotFoundException(ErrorMessage.PAYMENT_METHOD_NOT_FOUND);
+        }
+
+        const topUpRequest = await this.prisma.topUpRequest.create({
             data: {
                 userId,
-                walletId: wallet.walletId,
-                type: TxType.CREDIT,
-                amount: Number(data.amount),
-                status: TxStatus.COMPLETED,
-                description: 'Funds added',
-                transactionDate: new Date(),
+                paymentMethodId: topUpDto.paymentMethodId,
+                amount: topUpDto.amount,
+                status: topUpDto.status ?? TxStatus.PENDING,
             },
         });
 
         return {
-            message: 'Funds added successfully',
-            wallet: updatedWallet,
-            transaction,
+            message: 'Top up request created successfully',
+            topUpRequest,
         };
     }
 
@@ -331,22 +317,39 @@ export class WalletService {
                 }
                 : {};
 
-        const totals = await this.prisma.walletTransaction.aggregate({
+        const credits = await this.prisma.walletTransaction.aggregate({
             where: {
                 walletId: wallet.walletId,
+                type: TxType.CREDIT,
                 ...dateFilter,
             },
             _sum: {
                 amount: true,
             },
-            _count: {
-                transactionId: true,
+        });
+
+        const debits = await this.prisma.walletTransaction.aggregate({
+            where: {
+                walletId: wallet.walletId,
+                type: TxType.DEBIT,
+                ...dateFilter,
+            },
+            _sum: {
+                amount: true,
+            },
+        });
+
+        const totalTransactions = await this.prisma.walletTransaction.count({
+            where: {
+                walletId: wallet.walletId,
+                ...dateFilter,
             },
         });
 
         return {
-            totalAmount: Number(totals._sum.amount ?? 0),
-            totalTransactions: totals._count.transactionId,
+            totalCredits: Number(credits._sum.amount ?? 0),
+            totalDebits: Number(debits._sum.amount ?? 0),
+            totalTransactions,
         };
     }
 
@@ -363,6 +366,7 @@ export class WalletService {
             where: {
                 walletId: wallet.walletId,
                 type: TxType.CREDIT,
+                status: TxStatus.COMPLETED,
                 createdAt: {
                     gte: startDate ? new Date(startDate) : undefined,
                     lte: endDate ? new Date(endDate) : undefined,

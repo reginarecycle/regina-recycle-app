@@ -22,11 +22,6 @@ export class TopUpRequestsDto {
     @ApiProperty({ example: 'cm9abc123' })
     @IsString()
     @IsNotEmpty()
-    walletId!: string;
-
-    @ApiProperty({ example: 'cm9abc123' })
-    @IsString()
-    @IsNotEmpty()
     paymentMethodId!: string;
 
     // funds added

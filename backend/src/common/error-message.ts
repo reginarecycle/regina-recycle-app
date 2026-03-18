@@ -57,5 +57,6 @@ export enum ErrorMessage {
     TRANSACTION_NOT_FOUND = 'Transaction not found',
     INVALID_AMOUNT = 'Invalid amount inputted, please try a different amount',
     INSUFFICIENT_BALANCE = 'Insufficient balance',
-    WALLET_NO_ACCESS = 'You do not have access to this wallet'
+    WALLET_NO_ACCESS = 'You do not have access to this wallet',
+    PAYMENT_METHOD_NOT_FOUND = 'Payment method not found'
 }
