@@ -40,6 +40,15 @@ async function main() {
         co2Saved: 1.1,
         waterSaved: 3.0,
       },
+
+      {
+        name: "Battery",
+        type: "Batteries",
+        photoUrl:"https://res.cloudinary.com/dxhy4qyzp/image/upload/v1773873765/battery_jovvg2.webp",
+        co2Saved: 1.0,
+        waterSaved: 2.5,
+
+      }
     ],
      skipDuplicates: true
   });
