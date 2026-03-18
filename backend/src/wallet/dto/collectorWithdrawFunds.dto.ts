@@ -9,7 +9,6 @@ import {
     MinLength, MaxLength
 } from "class-validator";
 import { Type } from "class-transformer";
-import { PaymentMethodDto } from "./paymentMethod.dto";
 import { TxStatus } from "@prisma/client";
 
 export class CollectorWithdrawFundsDto {

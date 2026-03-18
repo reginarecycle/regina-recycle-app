@@ -15,4 +15,12 @@ export class CustomerWalletDto {
 
     @ApiProperty({ example: 0.0 })
     yearlyEarnings!: number;
+
+    // for the pending earnings view in the customer dashboard
+    @ApiProperty({ example: 0.0 })
+    pendingEarningsAmount!: number;
+
+    // for the wallet balance card at the bottom
+    @ApiProperty({ example: 0.0 })
+    earningsChangeAmount!: number;
 }

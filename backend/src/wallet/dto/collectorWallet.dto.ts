@@ -14,7 +14,15 @@ export class CollectorWalletDto {
     @ApiProperty({ example: 250.50 })
     monthlyPayouts!: number;
 
-    // net flow = credits - debits
+    // net flow 
     @ApiProperty({ example: 120.75 })
     monthlyNetFlow!: number;
+
+    // for the pending requests card in the collector dashboard
+    @ApiProperty({ example: 0.0 })
+    pendingRequestsAmount!: number;
+
+    // for the pending requests card in the collector dashboard (the smaller text on the bottom)
+    @ApiProperty({ example: 0.0 })
+    pendingApprovalAmount!: number;
 }
