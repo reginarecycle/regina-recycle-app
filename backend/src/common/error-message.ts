@@ -51,4 +51,11 @@ export enum ErrorMessage {
     //Tips
     TIP_NOT_FOUND = 'Tip not found',
     TIP_ALREADY_EXISTS = 'A tip with this content already exists',
+
+    //Wallet
+    WALLET_NOT_FOUND = 'Wallet not found',
+    TRANSACTION_NOT_FOUND = 'Transaction not found',
+    INVALID_AMOUNT = 'Invalid amount inputted, please try a different amount',
+    INSUFFICIENT_BALANCE = 'Insufficient balance',
+    WALLET_NO_ACCESS = 'You do not have access to this wallet'
 }

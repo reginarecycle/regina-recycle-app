@@ -1,36 +1,20 @@
-import { ApiPropertyOptional, ApiProperty } from "@nestjs/swagger";
-import { IsNumber, IsOptional, IsNotEmpty, IsString } from "class-validator";
-import { Type } from "class-transformer";
+import { ApiProperty } from "@nestjs/swagger";
 
 export class CollectorWalletDto {
     @ApiProperty({ example: 'cm9abc123' })
-    @IsString()
-    @IsNotEmpty()
     userId!: string;
 
-    @ApiProperty({ example: 'cm9abc123' })
-    @IsString()
-    @IsNotEmpty()
+    @ApiProperty({ example: 'wallet_123' })
     walletId!: string;
 
     @ApiProperty({ example: 100.00 })
-    @Type(() => Number)
-    @IsNumber({ maxDecimalPlaces: 2 })
-    @IsNotEmpty()
     balance!: number;
 
-    // total payouts
-    @ApiProperty({ example: 100.00 })
-    @Type(() => Number)
-    @IsNumber({ maxDecimalPlaces: 2 })
-    @IsNotEmpty()
+    // total payouts for the current month
+    @ApiProperty({ example: 250.50 })
     monthlyPayouts!: number;
 
-    // monthly net flow
-    @ApiProperty({ example: 100.00 })
-    @Type(() => Number)
-    @IsNumber({ maxDecimalPlaces: 2 })
-    @IsNotEmpty()
+    // net flow = credits - debits
+    @ApiProperty({ example: 120.75 })
     monthlyNetFlow!: number;
-
 }

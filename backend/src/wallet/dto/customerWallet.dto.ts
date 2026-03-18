@@ -1,32 +1,18 @@
-import { IsNumber, IsString, IsNotEmpty } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
 
 export class CustomerWalletDto {
-    @ApiProperty({ example: 'cm9abc123' })
-    @IsString()
-    @IsNotEmpty()
+    @ApiProperty({ example: "cm9abc123" })
     userId!: string;
 
-    @ApiProperty({ example: 'cm9abc123' })
-    @IsString()
-    @IsNotEmpty()
+    @ApiProperty({ example: "wallet_123" })
     walletId!: string;
 
-    @Type(() => Number)
-    @IsNumber({ maxDecimalPlaces: 2 })
-    @IsNotEmpty()
+    @ApiProperty({ example: 0.0 })
     balance!: number;
 
-    // shows how much was earned each month
-    @Type(() => Number)
-    @IsNumber({ maxDecimalPlaces: 2 })
-    @IsNotEmpty()
+    @ApiProperty({ example: 0.0 })
     monthlyEarnings!: number;
 
-    // shows how much was earned over the year
-    @Type(() => Number)
-    @IsNumber({ maxDecimalPlaces: 2 })
-    @IsNotEmpty()
+    @ApiProperty({ example: 0.0 })
     yearlyEarnings!: number;
 }

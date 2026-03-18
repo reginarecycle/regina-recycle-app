@@ -12,7 +12,7 @@ import { Type } from "class-transformer";
 import { PaymentMethodDto } from "./paymentMethod.dto";
 import { TxStatus } from "@prisma/client";
 
-export class CustomerWithdrawFundsDto {
+export class CollectorWithdrawFundsDto {
 
     @ApiPropertyOptional({ example: 'cm9abc123' })
     @IsString()
