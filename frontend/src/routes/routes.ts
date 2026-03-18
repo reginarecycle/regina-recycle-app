@@ -22,11 +22,19 @@ export enum Routes {
     collectorapp = "/app/collector",
     collectordashboard = "/app/collector/dashboard",
     collectorsettings = "/app/collector/settings",
+    collectornotifications = "/app/collector/notification",
+    collectorwallet = "/app/collector/wallet",
+    collectorusers = "/app/collector/users",
+    requests = "/app/collector/requests",
 
     //profile
     profile = "/app/profile",
     profileSection = "/app/profile/:section",
 
+    //notifications
+    notifications = "/app/notification",
+    
     //collector requests
-    requests = "/app/collector/requests",
+    history = "/app/history",
+    wallet = "/app/wallet",
 }

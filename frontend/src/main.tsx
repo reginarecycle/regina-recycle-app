@@ -2,13 +2,15 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
+import { AppProviders } from './components/AppProviders';
 import { ScheduleProvider } from "./components/scheduleView/ScheduleContext";
 
-
 createRoot(document.getElementById('root')!).render(
- <StrictMode>
-    <ScheduleProvider>
-     <App />
-   </ScheduleProvider>
- </StrictMode>,
+  <StrictMode>
+    <AppProviders>
+      <ScheduleProvider>
+        <App />
+      </ScheduleProvider>
+    </AppProviders>
+  </StrictMode>,
 )
