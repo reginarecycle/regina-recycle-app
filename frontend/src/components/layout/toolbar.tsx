@@ -16,6 +16,7 @@ interface ToolbarProps {
     notificationCount?: number;
     pageTitle?: string;
     onMenuClick?: () => void;
+    onNotificationClick?: () => void;
 }
 
 export function Toolbar({
@@ -24,6 +25,7 @@ export function Toolbar({
     notificationCount = 0,
     pageTitle = "Dashboard",
     onMenuClick,
+    onNotificationClick,
 }: ToolbarProps) {
     return (
         <header className="sticky top-0 z-30 lg:z-50 flex h-16 items-center justify-between border-b bg-white dark:bg-gray-950 px-6">
@@ -60,7 +62,12 @@ export function Toolbar({
                 </Select>
 
                 {/* Notification Button */}
-                <Button variant="ghost" size="icon" className="relative text-black-800 bg-card rounded-full px-2 py-2">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="relative text-black-800 bg-card rounded-full px-2 py-2"
+                    onClick={onNotificationClick}
+                >
                     <Bell className="h-5 w-5" />
                     {notificationCount > 0 && (
                         <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
