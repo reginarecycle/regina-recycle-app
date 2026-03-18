@@ -1,180 +1,162 @@
-import { PrismaClient, Role, PickupStatus } from '@prisma/client';
-
+import { PrismaClient, PickupStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-
 async function main() {
- console.log('Seeding started...');
-
-
- // MATERIALS
- const materialData = [
-   { name: 'Plastic Bottle', type: 'PLASTIC', co2Saved: 1.5, waterSaved: 2.1 },
-   { name: 'Glass Bottle', type: 'GLASS', co2Saved: 2.3, waterSaved: 3.2 },
-   { name: 'Aluminum Can', type: 'METAL', co2Saved: 1.9, waterSaved: 2.5 },
-   { name: 'Cardboard Box', type: 'PAPER', co2Saved: 1.2, waterSaved: 1.8 },
-   { name: 'Magazine', type: 'PAPER', co2Saved: 0.8, waterSaved: 1.1 },
-   {
-     name: 'Plastic Container',
-     type: 'PLASTIC',
-     co2Saved: 1.7,
-     waterSaved: 2.4,
-   },
-   { name: 'Steel Scrap', type: 'METAL', co2Saved: 3.1, waterSaved: 2.8 },
- ];
-
-
- for (const material of materialData) {
-   await prisma.material.upsert({
-     where: { name: material.name },
-     update: {
-       type: material.type,
-       co2Saved: material.co2Saved,
-       waterSaved: material.waterSaved,
-     },
-     create: material,
-   });
- }
-
-
- // COLLECTOR
- const collector = await prisma.user.upsert({
-   where: { email: 'collector@test.com' },
-   update: {},
-   create: {
-     name: 'Test Collector',
-     email: 'collector@test.com',
-     password: 'hashedpassword',
-     role: Role.COLLECTOR,
-     emailVerified: true,
-     agreedToTerms: true,
-   },
- });
-
-
- // COLLECTOR PROFILE
- await prisma.collectorProfile.upsert({
-  where: { userId: collector.userId },
-  update: {
-    licenseId: '123456789',
-    serviceFee: 10,
-  },
-  create: {
-    userId: collector.userId,
-    licenseId: '123456789',
-    serviceFee: 10,
-  },
-});
-
-
- // CUSTOMERS
- const customers: { userId: string }[] = [];
-
-
- for (let i = 1; i <= 5; i++) {
-   const customer = await prisma.user.upsert({
-     where: { email: `customer${i}@test.com` },
-     update: {},
-     create: {
-       name: `Customer ${i}`,
-       email: `customer${i}@test.com`,
-       password: 'hashedpassword',
-       role: Role.CUSTOMER,
-       emailVerified: true,
-       agreedToTerms: true,
-     },
-     select: {
-       userId: true,
-     },
-   });
-
-
-   customers.push(customer);
- }
-
-
- // ADDRESSES
- for (let i = 0; i < customers.length; i++) {
-  const line1 = `${100 + i} Main St`;
-  const postalCode = 'S4P3Y2';
-
-  const existingAddress = await prisma.address.findFirst({
-    where: {
-      userId: customers[i].userId,
-      line1,
-      postalCode,
-    },
+  const collector = await prisma.user.findUnique({
+    where: { email: 'collector1@example.com' },
+    select: { userId: true, email: true, role: true },
   });
 
-  if (!existingAddress) {
-    await prisma.address.create({
-      data: {
-        userId: customers[i].userId,
-        line1,
+  if (!collector) {
+    throw new Error(
+      'Collector user not found. First register collector1@example.com in Swagger.',
+    );
+  }
+
+  if (collector.role !== 'COLLECTOR') {
+    throw new Error('The user exists but is not a COLLECTOR.');
+  }
+
+  const collectorProfile = await prisma.collectorProfile.findUnique({
+  where: { userId: collector.userId },
+});
+
+if (!collectorProfile) {
+  throw new Error(
+    'Collector profile not found. Register the collector through Swagger first.',
+  );
+}
+
+  const materialData = [
+    {
+      name: 'Plastic Bottle',
+      type: 'PLASTIC',
+      photoUrl: 'https://example.com/plastic-bottle.png',
+      co2Saved: 1.5,
+      waterSaved: 2.1,
+    },
+    {
+      name: 'Glass Bottle',
+      type: 'GLASS',
+      photoUrl: 'https://example.com/glass-bottle.png',
+      co2Saved: 2.3,
+      waterSaved: 3.2,
+    },
+    {
+      name: 'Aluminum Can',
+      type: 'METAL',
+      photoUrl: 'https://example.com/aluminum-can.png',
+      co2Saved: 1.9,
+      waterSaved: 2.5,
+    },
+    {
+      name: 'Cardboard Box',
+      type: 'PAPER',
+      photoUrl: 'https://example.com/cardboard-box.png',
+      co2Saved: 1.2,
+      waterSaved: 1.8,
+    },
+  ];
+
+  for (const material of materialData) {
+    await prisma.material.upsert({
+      where: { name: material.name },
+      update: {
+        type: material.type,
+        photoUrl: material.photoUrl,
+        co2Saved: material.co2Saved,
+        waterSaved: material.waterSaved,
+      },
+      create: material,
+    });
+  }
+
+  const materials = await prisma.material.findMany({
+    select: { materialId: true },
+  });
+
+  const customers: { userId: string }[] = [];
+
+  for (let i = 1; i <= 5; i++) {
+    const customer = await prisma.user.upsert({
+      where: { email: `customer${i}@example.com` },
+      update: {},
+      create: {
+        userId: `customer-${i}`,
+        name: `Customer ${i}`,
+        email: `customer${i}@example.com`,
+        password:
+          '$2b$10$Vh8C8M7n0Y9lQW6c0mQv3u7k0vA5fY9n3m4FhW8mQ8m2bVQw5dL2C',
+        role: 'CUSTOMER',
+        phoneNumber: `30655500${i}`,
+        emailVerified: true,
+        agreedToTerms: true,
+      },
+      select: { userId: true },
+    });
+
+    customers.push(customer);
+
+    await prisma.address.upsert({
+      where: { addressId: `address-${i}` },
+      update: {},
+      create: {
+        addressId: `address-${i}`,
+        userId: customer.userId,
+        line1: `${i} Main Street`,
         city: 'Regina',
         province: 'SK',
-        postalCode,
+        postalCode: 'S4P3Y2',
         isPrimary: true,
       },
     });
   }
+
+  const existingPickups = await prisma.pickup.count({
+    where: { collectorUserId: collector.userId },
+  });
+
+  if (existingPickups === 0) {
+    const statuses = [
+      PickupStatus.PENDING,
+      PickupStatus.ACCEPTED,
+      PickupStatus.IN_PROGRESS,
+      PickupStatus.COMPLETED,
+      PickupStatus.CANCELLED,
+    ];
+
+    for (let i = 0; i < 10; i++) {
+      await prisma.pickup.create({
+        data: {
+          pickupId: `pickup-${i + 1}`,
+          requesterUserId: customers[i % customers.length].userId,
+          collectorUserId: collector.userId,
+          addressId: `address-${(i % customers.length) + 1}`,
+          status: statuses[i % statuses.length],
+          scheduledAt: new Date(),
+          estimatedEarning: 20 + i,
+          items: {
+            create: [
+              {
+                materialId: materials[i % materials.length].materialId,
+                quantity: (i % 5) + 1,
+              },
+            ],
+          },
+        },
+      });
+    }
+  }
+
+  console.log('Collector seed completed for:', collector.email);
 }
-
-
- const materials = await prisma.material.findMany();
-
-
- // OPTIONAL: only create pickups if none exist for this collector
- const existingPickups = await prisma.pickup.count({
-   where: { collectorUserId: collector.userId },
- });
-
-
- if (existingPickups === 0) {
-   for (let i = 0; i < 10; i++) {
-     const customer = customers[i % customers.length];
-     const address = await prisma.address.findFirst({
-       where: { userId: customer.userId },
-     });
-
-
-     await prisma.pickup.create({
-       data: {
-         requesterUserId: customer.userId,
-         collectorUserId: collector.userId,
-         addressId: address?.addressId,
-         scheduledAt: new Date(),
-         status: [
-           PickupStatus.PENDING,
-           PickupStatus.ACCEPTED,
-           PickupStatus.IN_PROGRESS,
-           PickupStatus.COMPLETED,
-         ][i % 4],
-         estimatedEarning: Math.floor(Math.random() * 20) + 5,
-         items: {
-           create: [
-             {
-               materialId: materials[i % materials.length].materialId,
-               quantity: Math.floor(Math.random() * 10) + 1,
-             },
-           ],
-         },
-       },
-     });
-   }
- }
-
-
- console.log('Seeding finished');
-}
-
 
 main()
- .catch((e) => {
-   console.error(e);
-   process.exit(1);
- })
- .finally(async () => {
-   await prisma.$disconnect();
- });
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

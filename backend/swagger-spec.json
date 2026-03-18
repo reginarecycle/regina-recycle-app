@@ -320,16 +320,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": ""
           }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Collectors"
         ]
@@ -350,16 +348,14 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": ""
           }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Collectors"
         ]
@@ -371,16 +367,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": ""
           }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Collectors"
         ]
@@ -403,7 +397,7 @@
             "required": true,
             "in": "query",
             "schema": {
-              "type": "number"
+              "type": "string"
             }
           },
           {
@@ -411,22 +405,20 @@
             "required": true,
             "in": "query",
             "schema": {
-              "type": "number"
+              "type": "string"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": ""
           }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Collectors"
         ]
@@ -441,7 +433,7 @@
             "required": true,
             "in": "query",
             "schema": {
-              "type": "number"
+              "type": "string"
             }
           },
           {
@@ -455,16 +447,14 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": ""
           }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Collectors"
         ]
@@ -479,7 +469,7 @@
             "required": true,
             "in": "query",
             "schema": {
-              "type": "number"
+              "type": "string"
             }
           },
           {
@@ -495,22 +485,20 @@
             "required": true,
             "in": "query",
             "schema": {
-              "type": "number"
+              "type": "string"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": ""
           }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Collectors"
         ]
@@ -531,16 +519,14 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": ""
           }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Collectors"
         ]
@@ -550,18 +536,26 @@
       "patch": {
         "operationId": "CollectorsController_updateProfile",
         "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCollectorDto"
               }
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Collectors"
         ]
@@ -572,19 +566,19 @@
         "operationId": "CollectorsController_getPricing",
         "parameters": [
           {
-            "name": "page",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
             "name": "limit",
             "required": true,
             "in": "query",
             "schema": {
-              "type": "number"
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
             }
           },
           {
@@ -606,16 +600,14 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": ""
           }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Collectors"
         ]
@@ -634,18 +626,26 @@
             }
           }
         ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMaterialPricingDto"
               }
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Collectors"
         ]
@@ -657,16 +657,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": ""
           }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Collectors"
         ]
@@ -674,18 +672,26 @@
       "patch": {
         "operationId": "CollectorsController_updateMaterialSettings",
         "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMaterialSettingsDto"
               }
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Collectors"
         ]
@@ -1022,7 +1028,7 @@
     },
     "/materials": {
       "post": {
-        "operationId": "MaterialsController_createMaterial",
+        "operationId": "MaterialsController_create",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -1039,60 +1045,18 @@
             "description": ""
           }
         },
-        "security": [
-          {
-            "JWT-auth": []
-          }
-        ],
         "tags": [
           "Materials"
         ]
       },
       "get": {
-        "operationId": "MaterialsController_getAllMaterials",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "default": 1,
-              "example": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "maximum": 100,
-              "default": 10,
-              "example": 10,
-              "type": "number"
-            }
-          },
-          {
-            "name": "search",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "operationId": "MaterialsController_findAll",
+        "parameters": [],
         "responses": {
           "200": {
             "description": ""
           }
         },
-        "security": [
-          {
-            "JWT-auth": []
-          }
-        ],
         "tags": [
           "Materials"
         ]
@@ -1100,7 +1064,7 @@
     },
     "/materials/{id}": {
       "get": {
-        "operationId": "MaterialsController_getMaterialById",
+        "operationId": "MaterialsController_findOne",
         "parameters": [
           {
             "name": "id",
@@ -1116,17 +1080,12 @@
             "description": ""
           }
         },
-        "security": [
-          {
-            "JWT-auth": []
-          }
-        ],
         "tags": [
           "Materials"
         ]
       },
       "patch": {
-        "operationId": "MaterialsController_updateMaterial",
+        "operationId": "MaterialsController_update",
         "parameters": [
           {
             "name": "id",
@@ -1152,17 +1111,12 @@
             "description": ""
           }
         },
-        "security": [
-          {
-            "JWT-auth": []
-          }
-        ],
         "tags": [
           "Materials"
         ]
       },
       "delete": {
-        "operationId": "MaterialsController_removeMaterial",
+        "operationId": "MaterialsController_remove",
         "parameters": [
           {
             "name": "id",
@@ -1178,11 +1132,6 @@
             "description": ""
           }
         },
-        "security": [
-          {
-            "JWT-auth": []
-          }
-        ],
         "tags": [
           "Materials"
         ]
@@ -1382,13 +1331,183 @@
     },
     "/tips": {
       "get": {
-        "operationId": "TipsController_getTips",
+        "operationId": "TipsController_getRandomActiveTip",
         "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Tips"
+        ]
+      },
+      "post": {
+        "operationId": "TipsController_createTip",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTipDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "tags": [
+          "Tips"
+        ]
+      }
+    },
+    "/tips/all": {
+      "get": {
+        "operationId": "TipsController_getAllTips",
+        "parameters": [
+          {
+            "name": "active",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": ""
           }
         },
+        "tags": [
+          "Tips"
+        ]
+      }
+    },
+    "/tips/{id}": {
+      "get": {
+        "operationId": "TipsController_getTipById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Tips"
+        ]
+      },
+      "patch": {
+        "operationId": "TipsController_updateTip",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTipDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "tags": [
+          "Tips"
+        ]
+      },
+      "delete": {
+        "operationId": "TipsController_deleteTip",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "tags": [
+          "Tips"
+        ]
+      }
+    },
+    "/tips/{id}/toggle": {
+      "patch": {
+        "operationId": "TipsController_toggleTipActiveStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Tips"
         ]
@@ -1625,6 +1744,38 @@
         "type": "object",
         "properties": {}
       },
+      "UpdateCollectorDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateMaterialPricingDto": {
+        "type": "object",
+        "properties": {
+          "basePrice": {
+            "type": "number"
+          },
+          "bulkPrice": {
+            "type": "number"
+          },
+          "status": {
+            "type": "object"
+          }
+        }
+      },
+      "UpdateMaterialSettingsDto": {
+        "type": "object",
+        "properties": {
+          "bulkIncentiveEnabled": {
+            "type": "boolean"
+          },
+          "bulkThreshold": {
+            "type": "number"
+          },
+          "serviceFee": {
+            "type": "number"
+          }
+        }
+      },
       "UpdateAddressDto": {
         "type": "object",
         "properties": {
@@ -1718,6 +1869,51 @@
           },
           "inAppAlerts": {
             "type": "boolean"
+          }
+        }
+      },
+      "CreateTipDto": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "example": "Rinse milk containers before storage to prevent odors."
+          },
+          "startDate": {
+            "type": "string",
+            "example": "2026-01-01T00:00:00.000Z"
+          },
+          "endDate": {
+            "type": "string",
+            "example": "2026-12-31T00:00:00.000Z"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "content"
+        ]
+      },
+      "UpdateTipDto": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "example": "Rinse milk containers before storage to prevent odors."
+          },
+          "startDate": {
+            "type": "string",
+            "example": "2026-01-01T00:00:00.000Z"
+          },
+          "endDate": {
+            "type": "string",
+            "example": "2026-12-31T00:00:00.000Z"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
           }
         }
       }
