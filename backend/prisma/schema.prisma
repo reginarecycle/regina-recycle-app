@@ -176,7 +176,7 @@ model Material {
   pickupItems       PickupItem[]
   pickupSnapshots   PickupSnapshot[] 
 
-  @@map("materials")
+  @@map("Material")
   @@index([type])
 }
 
