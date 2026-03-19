@@ -1,11 +1,21 @@
-// Base API client — extend headers, auth tokens, base URL, interceptors here.
-// All hooks should use this so error shapes stay uniform.
-
 import axios, { type AxiosRequestConfig, AxiosError } from "axios";
 
 export interface ApiError extends Error {
   status?: number;
   data?: unknown;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: T;
+  timestamp: string;
+}
+
+export interface ApiResult<T> {
+  data: T;
+  message: string;
 }
 
 export const apiClient = axios.create({
@@ -15,14 +25,12 @@ export const apiClient = axios.create({
   },
 });
 
-// ── Request interceptor — attach auth token, etc. ────────────────────────────
 apiClient.interceptors.request.use((config) => {
-  // const token = getToken();
-  // if (token) config.headers.Authorization = `Bearer ${token}`;
+  const token = localStorage.getItem(import.meta.env.AUTH_TOKEN ?? "acc_key");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// ── Response interceptor — normalize error shape ─────────────────────────────
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError<{ message?: string; error?: string }>) => {
@@ -34,16 +42,19 @@ apiClient.interceptors.response.use(
 
     const apiError = new Error(message) as ApiError;
     apiError.status = error.response?.status;
-    apiError.data   = error.response?.data;
+    apiError.data = error.response?.data;
     return Promise.reject(apiError);
   }
 );
 
-// ── Typed wrapper used by all hooks ──────────────────────────────────────────
+// Unwraps the envelope — callers get T directly, not ApiResponse<T>
 export async function apiFetch<T>(
   path: string,
   config?: AxiosRequestConfig
-): Promise<T> {
-  const response = await apiClient.request<T>({ url: path, ...config });
-  return response.data;
+): Promise<ApiResult<T>> {
+  const response = await apiClient.request<ApiResponse<T>>({ url: path, ...config });
+  return {
+    data: response.data.data,
+    message: response.data.message,
+  };
 }
