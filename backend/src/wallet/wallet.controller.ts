@@ -72,7 +72,10 @@ export class WalletController {
     @CurrentUser() user: User,
     @Body() customerWithdrawFundsDto: CustomerWithdrawFundsDto,
   ) {
-    return this.walletService.withdrawFunds(user.userId, customerWithdrawFundsDto);
+    return this.walletService.withdrawFunds(
+      user.userId,
+      customerWithdrawFundsDto,
+    );
   }
 
   @Post('top-up')
@@ -101,6 +104,10 @@ export class WalletController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
-    return this.walletService.getWalletEarnings(user.userId, startDate, endDate);
+    return this.walletService.getWalletEarnings(
+      user.userId,
+      startDate,
+      endDate,
+    );
   }
 }
