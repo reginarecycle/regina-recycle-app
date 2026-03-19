@@ -6,14 +6,12 @@ import { saveToken, setUserRole } from "@/lib/helper";
 import { loginSchema, type LoginFormValues } from "@/lib/validation";
 import { Routes } from "@/routes/routes";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { type FC } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-type Props = {};
 
-const Login: FC<Props> = () => {
+const Login = () => {
   const { mutate, isPending } = useLogin();
   const navigate = useNavigate();
   const {

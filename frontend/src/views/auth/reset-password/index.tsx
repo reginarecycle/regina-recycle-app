@@ -1,4 +1,3 @@
-import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -14,7 +13,7 @@ import {
   type ResetPasswordFormValues,
 } from "@/lib/validation";
 
-const ResetPassword: React.FC = () => {
+const ResetPassword = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
