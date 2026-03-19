@@ -10,9 +10,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
-type Props = {};
 
-function ResetPassword({}: Props) {
+function ResetPassword() {
   const navigate = useNavigate();
   const {
     register,

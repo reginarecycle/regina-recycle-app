@@ -37,12 +37,12 @@ export default function DashboardLayout() {
     return location.pathname;
   };
 
-  const lastMainPage = useRef(getInitialLastPage());
+  const [lastMainPage, setLastMainPage] = useState(getInitialLastPage());
 
   // Update last main page if we're not on notifications
   useEffect(() => {
     if (!location.pathname.includes("/notification")) {
-      lastMainPage.current = location.pathname;
+      setLastMainPage(location.pathname);
       localStorage.setItem("lastMainPage", location.pathname);
     }
   }, [location.pathname]);
@@ -88,8 +88,9 @@ export default function DashboardLayout() {
 
   // Get the active path for sidebar (use last main page if on notifications)
   const sidebarActivePath = location.pathname.includes("/notification")
-    ? lastMainPage.current
-    : location.pathname;
+  ? lastMainPage
+  : location.pathname;
+
 
   return (
     <div className="flex h-screen overflow-hidden">

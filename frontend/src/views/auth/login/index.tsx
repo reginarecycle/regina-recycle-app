@@ -8,9 +8,8 @@ import { type FC } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 
-type Props = {};
 
-const Login: FC<Props> = () => {
+const Login: FC = () => {
   const {
     register,
     handleSubmit,
