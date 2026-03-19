@@ -3,7 +3,6 @@ import { Outlet } from "react-router-dom";
 import { Routes } from "../routes";
 import type { RouteObject } from "react-router-dom";
 import addPermissions from "../route-permission";
-import CollectorWallet from "@/views/collector/wallet";
 
 const UserDashboard         = lazy(() => import("@/views/customer/home"));
 const CollectorDashboard    = lazy(() => import("@/views/collector/dashboard"));
@@ -14,7 +13,6 @@ const SchedulePickupLoc     = lazy(() => import("@/views/customer/schedule_picku
 const CollectorRequests     = lazy(() => import("@/views/collector/requests"));
 const CollectorSettingsPage = lazy(() => import("@/views/collector/settings"));
 const NotificationsPage     = lazy(() => import("@/views/notifications"));
-const CollectorWalletPage   = lazy(() => import("@/views/collector/wallet"));
 
 export const dashboardRoutes = () => {
   return [
@@ -61,10 +59,6 @@ export const dashboardRoutes = () => {
           path: Routes.requests,
           element: addPermissions(CollectorRequests, ["collector"])
         },
-        {
-          path: Routes.collectorwallet,
-          element: addPermissions(CollectorWalletPage, ["collector"])
-        }
       ],
     },
   
