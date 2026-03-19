@@ -10,10 +10,14 @@ import { CustomerWithdrawFundsDto } from './dto/customerWithdrawFunds.dto';
 import { TopUpRequestsDto } from './dto/topUpRequests.dto';
 import { WalletTransactionQueryDto } from './dto/walletTransactionQuery.dto';
 import { TxStatus, TxType } from '@prisma/client';
+import { NotificationGatewayService } from '../notifications/notifications.gateway.service';
 
 @Injectable()
 export class WalletService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private notificationGatewayService: NotificationGatewayService,
+    ) { }
 
     async getOrCreateCustomerWallet(userId: string) {
         const user = await this.prisma.user.findUnique({
@@ -292,6 +296,17 @@ export class WalletService {
             throw new BadRequestException(ErrorMessage.INSUFFICIENT_BALANCE);
         }
 
+        const user = await this.prisma.user.findUnique({
+            where: { userId },
+            select: {
+                email: true,
+            },
+        });
+
+        if (!user) {
+            throw new NotFoundException(ErrorMessage.USER_NOT_FOUND);
+        }
+
         const withdrawRequest = await this.prisma.withdrawRequest.create({
             data: {
                 userId,
@@ -301,6 +316,15 @@ export class WalletService {
                 amount: withdrawDto.amount,
                 status: withdrawDto.status ?? TxStatus.PENDING,
             },
+        });
+
+        // Current code only creates a request; it does NOT reduce wallet balance yet.
+        // So send a request/alert notification instead of a balance-change notification.
+        await this.notificationGatewayService.notifyAlert({
+            userId,
+            recipientEmail: user.email,
+            title: 'Withdrawal Request Submitted',
+            message: `Your withdrawal request for $${Number(withdrawDto.amount)} has been submitted and is awaiting processing.`,
         });
 
         return {
@@ -333,6 +357,17 @@ export class WalletService {
             throw new NotFoundException(ErrorMessage.PAYMENT_METHOD_NOT_FOUND);
         }
 
+        const user = await this.prisma.user.findUnique({
+            where: { userId },
+            select: {
+                email: true,
+            },
+        });
+
+        if (!user) {
+            throw new NotFoundException(ErrorMessage.USER_NOT_FOUND);
+        }
+
         const topUpRequest = await this.prisma.topUpRequest.create({
             data: {
                 userId,
@@ -340,6 +375,15 @@ export class WalletService {
                 amount: topUpDto.amount,
                 status: topUpDto.status ?? TxStatus.PENDING,
             },
+        });
+
+        // Current code only creates a request; it does NOT increase wallet balance yet.
+        // So send a request/alert notification instead of a balance-change notification.
+        await this.notificationGatewayService.notifyAlert({
+            userId,
+            recipientEmail: user.email,
+            title: 'Top-up Request Submitted',
+            message: `Your top-up request for $${Number(topUpDto.amount)} has been submitted and is awaiting approval.`,
         });
 
         return {
@@ -482,5 +526,44 @@ export class WalletService {
         }
 
         return !!transaction;
+    }
+
+    // Use these helper methods later in the code path where balance actually changes.
+    async notifyWalletCredit(userId: string, amount: number, balance: number) {
+        const user = await this.prisma.user.findUnique({
+            where: { userId },
+            select: { email: true },
+        });
+
+        if (!user) {
+            throw new NotFoundException(ErrorMessage.USER_NOT_FOUND);
+        }
+
+        await this.notificationGatewayService.notifyWalletUpdated({
+            userId,
+            recipientEmail: user.email,
+            amount,
+            balance,
+            type: 'CREDIT',
+        });
+    }
+
+    async notifyWalletDebit(userId: string, amount: number, balance: number) {
+        const user = await this.prisma.user.findUnique({
+            where: { userId },
+            select: { email: true },
+        });
+
+        if (!user) {
+            throw new NotFoundException(ErrorMessage.USER_NOT_FOUND);
+        }
+
+        await this.notificationGatewayService.notifyWalletUpdated({
+            userId,
+            recipientEmail: user.email,
+            amount,
+            balance,
+            type: 'DEBIT',
+        });
     }
 }
