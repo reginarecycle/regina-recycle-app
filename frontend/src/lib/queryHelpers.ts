@@ -1,9 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// BASE QUERY HELPERS
-// Shared abstractions for all resource hooks.
-// Should use these instead of writing raw useQuery/useMutation.
-// ─────────────────────────────────────────────────────────────────────────────
-
 import {
   useQuery,
   useMutation,
@@ -12,43 +6,41 @@ import {
   type UseQueryOptions,
   type UseMutationOptions,
 } from "@tanstack/react-query";
-import { apiFetch } from "./apiFetch";
+import { apiFetch, type ApiResult } from "./apiFetch";
 
-// ── GET list ──────────────────────────────────────────────────────────────────
+
 export function useGetList<T>(
   queryKey: QueryKey,
   endpoint: string,
-  options?: Omit<UseQueryOptions<T[]>, "queryKey" | "queryFn">
+  options?: Omit<UseQueryOptions<ApiResult<T[]>>, "queryKey" | "queryFn">
 ) {
-  return useQuery<T[]>({
+  return useQuery<ApiResult<T[]>>({
     queryKey,
     queryFn: () => apiFetch<T[]>(endpoint),
     ...options,
   });
 }
 
-// ── GET single ────────────────────────────────────────────────────────────────
 export function useGetOne<T>(
   queryKey: QueryKey,
   endpoint: string,
-  options?: Omit<UseQueryOptions<T>, "queryKey" | "queryFn">
+  options?: Omit<UseQueryOptions<ApiResult<T>>, "queryKey" | "queryFn">
 ) {
-  return useQuery<T>({
+  return useQuery<ApiResult<T>>({
     queryKey,
     queryFn: () => apiFetch<T>(endpoint),
     ...options,
   });
 }
 
-// ── CREATE ────────────────────────────────────────────────────────────────────
 export function useCreate<TData, TBody = Partial<TData>>(
   endpoint: string,
   invalidateKey: QueryKey,
-  options?: UseMutationOptions<TData, Error, TBody>
+  options?: UseMutationOptions<ApiResult<TData>, Error, TBody>
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation<TData, Error, TBody>({
+  return useMutation<ApiResult<TData>, Error, TBody>({
     mutationFn: (body) => apiFetch<TData>(endpoint, { method: "POST", data: body }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: invalidateKey });
@@ -57,21 +49,20 @@ export function useCreate<TData, TBody = Partial<TData>>(
   });
 }
 
-// ── UPDATE ────────────────────────────────────────────────────────────────────
 export function useUpdate<TData, TBody = Partial<TData>>(
   endpointFn: (id: string) => string,
   invalidateKey: QueryKey,
   detailKeyFn?: (id: string) => QueryKey,
-  options?: UseMutationOptions<TData, Error, { id: string; body: TBody }>
+  options?: UseMutationOptions<ApiResult<TData>, Error, { id: string; body: TBody }>
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation<TData, Error, { id: string; body: TBody }>({
+  return useMutation<ApiResult<TData>, Error, { id: string; body: TBody }>({
     mutationFn: ({ id, body }) =>
       apiFetch<TData>(endpointFn(id), { method: "PATCH", data: body }),
-    onSuccess: (updated, variables) => {
+    onSuccess: (result, variables) => {
       if (detailKeyFn) {
-        queryClient.setQueryData(detailKeyFn(variables.id), updated);
+        queryClient.setQueryData(detailKeyFn(variables.id), result);
       }
       queryClient.invalidateQueries({ queryKey: invalidateKey });
     },
@@ -79,16 +70,15 @@ export function useUpdate<TData, TBody = Partial<TData>>(
   });
 }
 
-// ── DELETE ────────────────────────────────────────────────────────────────────
 export function useRemove<TData = void>(
   endpointFn: (id: string) => string,
   invalidateKey: QueryKey,
   detailKeyFn?: (id: string) => QueryKey,
-  options?: UseMutationOptions<TData, Error, string>
+  options?: UseMutationOptions<ApiResult<TData>, Error, string>
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation<TData, Error, string>({
+  return useMutation<ApiResult<TData>, Error, string>({
     mutationFn: (id) => apiFetch<TData>(endpointFn(id), { method: "DELETE" }),
     onSuccess: (_, id) => {
       if (detailKeyFn) {
