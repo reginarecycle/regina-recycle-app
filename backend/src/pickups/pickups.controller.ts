@@ -10,48 +10,65 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { PickupsService } from './pickups.service';
 import { CreatePickupDto } from './dto/create-pickup.dto';
 import { UpdatePickupDto } from './dto/update-pickup.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
-@UseGuards(JwtAuthGuard) // all routes require a logged-in user
+@ApiTags('Pickups')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('pickups')
 export class PickupsController {
   constructor(private readonly pickupsService: PickupsService) {}
 
   // USER: Schedule a pickup
-  // POST /pickups
+  @ApiOperation({ summary: 'Schedule a pickup' })
   @Post()
   create(@Request() req, @Body() createPickupDto: CreatePickupDto) {
     return this.pickupsService.create(req.user.userId, createPickupDto);
   }
 
-  // COLLECTOR: See all pending pickups
-  // GET /pickups
+  // USER: Get their own pickups
+  @ApiOperation({ summary: 'Get all pickups for logged in user' })
   @Get()
-  findAll() {
-    return this.pickupsService.findAll();
+  findAll(@Request() req) {
+    return this.pickupsService.findAll(req.user.userId);
+  }
+
+  // COLLECTOR: Get all PENDING requests
+  @ApiOperation({ summary: 'Get all pending pickup requests (collector)' })
+  @Get('requests')
+  getRequests() {
+    return this.pickupsService.getRequests();
+  }
+
+  // Get a single pickup by ID
+  @ApiOperation({ summary: 'Get a pickup by ID' })
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.pickupsService.findOne(id);
   }
 
   // COLLECTOR: Accept a pickup
-  // PATCH /pickups/:id/accept
+  @ApiOperation({ summary: 'Accept a pickup (collector)' })
   @Patch(':id/accept')
   accept(@Param('id') id: string, @Request() req) {
     return this.pickupsService.accept(id, req.user.userId);
   }
 
-  // COLLECTOR: Update a pickup (correct materials/qty)
-  // PATCH /pickups/:id
+  // Update a pickup
+  @ApiOperation({ summary: 'Update a pickup' })
   @Patch(':id')
   update(@Param('id') id: string, @Body() updatePickupDto: UpdatePickupDto) {
     return this.pickupsService.update(id, updatePickupDto);
   }
 
   // Cancel a pickup
-  // DELETE /pickups/:id
+  @ApiOperation({ summary: 'Cancel a pickup' })
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.pickupsService.remove(id);
+  cancel(@Param('id') id: string) {
+    return this.pickupsService.cancel(id);
   }
 }
