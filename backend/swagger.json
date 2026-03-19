@@ -1022,7 +1022,7 @@
     },
     "/materials": {
       "post": {
-        "operationId": "MaterialsController_create",
+        "operationId": "MaterialsController_createMaterial",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -1039,25 +1039,53 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Materials"
         ]
       },
       "get": {
-        "operationId": "MaterialsController_findAll",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
+        "operationId": "MaterialsController_getAllMaterials",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
             }
           }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Materials"
         ]
@@ -1065,7 +1093,7 @@
     },
     "/materials/{id}": {
       "get": {
-        "operationId": "MaterialsController_findOne",
+        "operationId": "MaterialsController_getMaterialById",
         "parameters": [
           {
             "name": "id",
@@ -1078,22 +1106,20 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": ""
           }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Materials"
         ]
       },
       "patch": {
-        "operationId": "MaterialsController_update",
+        "operationId": "MaterialsController_updateMaterial",
         "parameters": [
           {
             "name": "id",
@@ -1116,22 +1142,20 @@
         },
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": ""
           }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Materials"
         ]
       },
       "delete": {
-        "operationId": "MaterialsController_remove",
+        "operationId": "MaterialsController_removeMaterial",
         "parameters": [
           {
             "name": "id",
@@ -1144,16 +1168,14 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": ""
           }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Materials"
         ]

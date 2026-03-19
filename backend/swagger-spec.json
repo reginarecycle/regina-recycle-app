@@ -1093,7 +1093,7 @@
     },
     "/materials": {
       "post": {
-        "operationId": "MaterialsController_create",
+        "operationId": "MaterialsController_createMaterial",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -1110,18 +1110,66 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Materials"
         ]
       },
       "get": {
-        "operationId": "MaterialsController_findAll",
-        "parameters": [],
+        "operationId": "MaterialsController_getAllMaterials",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "plastic",
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "plastic",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": ""
           }
         },
+        "summary": "Get all materials",
         "tags": [
           "Materials"
         ]
@@ -1129,7 +1177,7 @@
     },
     "/materials/{id}": {
       "get": {
-        "operationId": "MaterialsController_findOne",
+        "operationId": "MaterialsController_getMaterialById",
         "parameters": [
           {
             "name": "id",
@@ -1150,7 +1198,7 @@
         ]
       },
       "patch": {
-        "operationId": "MaterialsController_update",
+        "operationId": "MaterialsController_updateMaterial",
         "parameters": [
           {
             "name": "id",
@@ -1176,12 +1224,17 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Materials"
         ]
       },
       "delete": {
-        "operationId": "MaterialsController_remove",
+        "operationId": "MaterialsController_removeMaterial",
         "parameters": [
           {
             "name": "id",
@@ -1197,6 +1250,11 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
         "tags": [
           "Materials"
         ]
@@ -1914,19 +1972,24 @@
         "type": "object",
         "properties": {
           "name": {
-            "type": "string"
+            "type": "string",
+            "example": "Plastic Bottle"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "example": "plastic"
           },
           "photoUrl": {
-            "type": "string"
+            "type": "string",
+            "example": "https://example.com/image.jpg"
           },
           "co2Saved": {
-            "type": "number"
+            "type": "number",
+            "example": 2.5
           },
           "waterSaved": {
-            "type": "number"
+            "type": "number",
+            "example": 10
           }
         },
         "required": [
