@@ -1,15 +1,19 @@
+import { useLogin } from "@/api-hooks/useAuth";
 import InputField from "@/components/forms/input-field";
 import AuthHeader from "@/components/shared/headerauth";
 import { Button } from "@/components/ui/button";
+import { saveToken, setUserRole } from "@/lib/helper";
 import { loginSchema, type LoginFormValues } from "@/lib/validation";
 import { Routes } from "@/routes/routes";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { type FC } from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 
-const Login: FC = () => {
+const Login = () => {
+  const { mutate, isPending } = useLogin();
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -20,7 +24,34 @@ const Login: FC = () => {
   });
 
   const onSubmit = (data: LoginFormValues) => {
-    console.log(data);
+    mutate(data, {
+      onSuccess: ({ data: { user, token }, message }) => {
+        // Email not verified — send to verification first
+        if (!user.emailVerified) {
+          toast.warning("Please verify your email to continue.");
+          navigate(Routes.verification, {
+            state: {
+              email: user.email,
+              purpose: "account-verification",
+            },
+          });
+          return;
+        }
+
+        saveToken(token);
+        setUserRole(user.role as "CUSTOMER" | "COLLECTOR");
+        toast.success(message);
+
+        if (user.role === "COLLECTOR") {
+          navigate(Routes.collectordashboard);
+        } else {
+          navigate(Routes.dashboard);
+        }
+      },
+      onError: (error) => {
+        toast.error(error.message ?? "Login failed. Please check your credentials.");
+      },
+    });
   };
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-xl">
@@ -53,7 +84,12 @@ const Login: FC = () => {
           }
         />
       </div>
-      <Button type="submit" className="w-full" disabled={!isDirty}>
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={!isDirty || isPending}
+        loading={isPending}
+      >
         Login
       </Button>
       <p className="text-center mt-3 font-">
