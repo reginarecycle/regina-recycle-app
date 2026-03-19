@@ -43,13 +43,9 @@ export class WalletService {
                 walletId: wallet.walletId,
                 type: TxType.CREDIT,
                 status: TxStatus.COMPLETED,
-                createdAt: {
-                    gte: monthStart,
-                },
+                createdAt: { gte: monthStart },
             },
-            _sum: {
-                amount: true,
-            },
+            _sum: { amount: true },
         });
 
         const yearlyEarnings = await this.prisma.walletTransaction.aggregate({
@@ -57,13 +53,9 @@ export class WalletService {
                 walletId: wallet.walletId,
                 type: TxType.CREDIT,
                 status: TxStatus.COMPLETED,
-                createdAt: {
-                    gte: new Date(now.getFullYear(), 0, 1),
-                },
+                createdAt: { gte: new Date(now.getFullYear(), 0, 1) },
             },
-            _sum: {
-                amount: true,
-            },
+            _sum: { amount: true },
         });
 
         const pendingEarnings = await this.prisma.walletTransaction.aggregate({
@@ -72,9 +64,7 @@ export class WalletService {
                 type: TxType.CREDIT,
                 status: TxStatus.PENDING,
             },
-            _sum: {
-                amount: true,
-            },
+            _sum: { amount: true },
         });
 
         const prevMonthEarnings = await this.prisma.walletTransaction.aggregate({
@@ -87,9 +77,7 @@ export class WalletService {
                     lt: monthStart,
                 },
             },
-            _sum: {
-                amount: true,
-            },
+            _sum: { amount: true },
         });
 
         const current = Number(monthlyEarnings._sum.amount ?? 0);
@@ -133,13 +121,9 @@ export class WalletService {
                 walletId: wallet.walletId,
                 type: TxType.DEBIT,
                 status: TxStatus.COMPLETED,
-                createdAt: {
-                    gte: monthStart,
-                },
+                createdAt: { gte: monthStart },
             },
-            _sum: {
-                amount: true,
-            },
+            _sum: { amount: true },
         });
 
         const monthlyCredits = await this.prisma.walletTransaction.aggregate({
@@ -147,13 +131,9 @@ export class WalletService {
                 walletId: wallet.walletId,
                 type: TxType.CREDIT,
                 status: TxStatus.COMPLETED,
-                createdAt: {
-                    gte: monthStart,
-                },
+                createdAt: { gte: monthStart },
             },
-            _sum: {
-                amount: true,
-            },
+            _sum: { amount: true },
         });
 
         const monthlyDebits = await this.prisma.walletTransaction.aggregate({
@@ -161,13 +141,9 @@ export class WalletService {
                 walletId: wallet.walletId,
                 type: TxType.DEBIT,
                 status: TxStatus.COMPLETED,
-                createdAt: {
-                    gte: monthStart,
-                },
+                createdAt: { gte: monthStart },
             },
-            _sum: {
-                amount: true,
-            },
+            _sum: { amount: true },
         });
 
         const pendingRequests = await this.prisma.walletTransaction.aggregate({
@@ -176,9 +152,7 @@ export class WalletService {
                 type: TxType.DEBIT,
                 status: TxStatus.PENDING,
             },
-            _sum: {
-                amount: true,
-            },
+            _sum: { amount: true },
         });
 
         return {
@@ -261,36 +235,25 @@ export class WalletService {
             },
         });
 
-        return transactions.map((t) => ({
+        return transactions.map((transaction) => ({
             userId: wallet.userId,
-            walletId: t.walletId,
-            type: t.type,
-            amount: Number(t.amount),
-            status: t.status,
-            description: t.description ?? undefined,
-            referenceType: t.referenceType ?? undefined,
-            referenceId: t.referenceId ?? undefined,
-            createdAt: t.createdAt,
-            senderId: undefined, // is optional and not in the prisma
-            receiverId: undefined, // is optional and not in the prisma
+            walletId: transaction.walletId,
+            type: transaction.type,
+            amount: Number(transaction.amount),
+            status: transaction.status,
+            description: transaction.description ?? undefined,
+            referenceType: transaction.referenceType ?? undefined,
+            referenceId: transaction.referenceId ?? undefined,
+            createdAt: transaction.createdAt,
+            senderId: undefined,
+            receiverId: undefined,
             fees: undefined,
         }));
     }
 
-    async getTransactionById(userId: string, transactionId: string) {
-        const wallet = await this.prisma.wallet.findUnique({
-            where: { userId },
-        });
-
-        if (!wallet) {
-            throw new NotFoundException(ErrorMessage.WALLET_NOT_FOUND);
-        }
-
-        const transaction = await this.prisma.walletTransaction.findFirst({
-            where: {
-                transactionId,
-                walletId: wallet.walletId,
-            },
+    async getTransactionById(transactionId: string) {
+        const transaction = await this.prisma.walletTransaction.findUnique({
+            where: { transactionId },
         });
 
         if (!transaction) {
@@ -298,7 +261,6 @@ export class WalletService {
         }
 
         return {
-            userId: wallet.userId,
             walletId: transaction.walletId,
             type: transaction.type,
             amount: Number(transaction.amount),
@@ -465,16 +427,16 @@ export class WalletService {
             },
         });
 
-        return earnings.map((t) => ({
+        return earnings.map((transaction) => ({
             userId: wallet.userId,
-            walletId: t.walletId,
-            type: t.type,
-            amount: Number(t.amount),
-            status: t.status,
-            description: t.description ?? undefined,
-            referenceType: t.referenceType ?? undefined,
-            referenceId: t.referenceId ?? undefined,
-            createdAt: t.createdAt,
+            walletId: transaction.walletId,
+            type: transaction.type,
+            amount: Number(transaction.amount),
+            status: transaction.status,
+            description: transaction.description ?? undefined,
+            referenceType: transaction.referenceType ?? undefined,
+            referenceId: transaction.referenceId ?? undefined,
+            createdAt: transaction.createdAt,
             senderId: undefined,
             receiverId: undefined,
             fees: undefined,
@@ -494,5 +456,31 @@ export class WalletService {
         }
 
         return !!wallet;
+    }
+
+    async validateTransactionOwnership(
+        transactionId: string,
+        userId: string,
+    ): Promise<boolean> {
+        const wallet = await this.prisma.wallet.findUnique({
+            where: { userId },
+        });
+
+        if (!wallet) {
+            throw new UnauthorizedException(ErrorMessage.WALLET_NO_ACCESS);
+        }
+
+        const transaction = await this.prisma.walletTransaction.findFirst({
+            where: {
+                transactionId,
+                walletId: wallet.walletId,
+            },
+        });
+
+        if (!transaction) {
+            throw new UnauthorizedException(ErrorMessage.TRANSACTION_NO_ACCESS);
+        }
+
+        return !!transaction;
     }
 }

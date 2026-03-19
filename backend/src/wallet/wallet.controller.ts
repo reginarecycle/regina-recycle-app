@@ -1,4 +1,3 @@
-import { WalletService } from './wallet.service';
 import {
   Controller,
   Get,
@@ -6,8 +5,11 @@ import {
   Body,
   Param,
   Query,
+  UnauthorizedException,
 } from '@nestjs/common';
-import { Auth } from 'src/common/decorator/auth.decorator';
+import { type User } from '@prisma/client/wasm';
+import { WalletService } from './wallet.service';
+import { Auth } from '../common/decorator/auth.decorator';
 import { CurrentUser } from '../auth/decorator/current-user.decorator';
 import { CustomerWithdrawFundsDto } from './dto/customerWithdrawFunds.dto';
 import { TopUpRequestsDto } from './dto/topUpRequests.dto';
@@ -17,87 +19,88 @@ import { WalletTransactionQueryDto } from './dto/walletTransactionQuery.dto';
 export class WalletController {
   constructor(private readonly walletService: WalletService) { }
 
-  // create a wallet summary for a customer
-  // wallets are not created manually since we can only have 1 wallet per user
   @Get('customer')
   @Auth()
-  async getCustomerWallet(@CurrentUser('id') userId: string) {
-    return this.walletService.getOrCreateCustomerWallet(userId);
+  getCustomerWallet(@CurrentUser() user: User) {
+    return this.walletService.getOrCreateCustomerWallet(user.userId);
   }
 
-  // create a wallet summary for a collector
   @Get('collector')
   @Auth()
-  async getCollectorWallet(@CurrentUser('id') userId: string) {
-    return this.walletService.getOrCreateCollectorWallet(userId);
+  getCollectorWallet(@CurrentUser() user: User) {
+    return this.walletService.getOrCreateCollectorWallet(user.userId);
   }
 
-  // get the balance for the wallet
   @Get('balance')
   @Auth()
-  async getWalletBalance(@CurrentUser('id') userId: string) {
-    return this.walletService.getWalletBalance(userId);
+  getWalletBalance(@CurrentUser() user: User) {
+    return this.walletService.getWalletBalance(user.userId);
   }
 
-  // get the wallet transaction history
   @Get('transactions')
   @Auth()
-  async getWalletTransactions(
-    @CurrentUser('id') userId: string,
+  getWalletTransactions(
+    @CurrentUser() user: User,
     @Query() query: WalletTransactionQueryDto,
   ) {
-    return this.walletService.getWalletTransactions(userId, query);
+    return this.walletService.getWalletTransactions(user.userId, query);
   }
 
-  // get a single wallet transaction by id
   @Get('transactions/:transactionId')
   @Auth()
   async getTransactionById(
-    @CurrentUser('id') userId: string,
     @Param('transactionId') transactionId: string,
+    @CurrentUser('id') userId: string,
   ) {
-    return this.walletService.getTransactionById(userId, transactionId);
+    const isOwner = await this.walletService.validateTransactionOwnership(
+      transactionId,
+      userId,
+    );
+
+    if (!isOwner) {
+      throw new UnauthorizedException(
+        'You do not have access to this transaction',
+      );
+    }
+
+    return this.walletService.getTransactionById(transactionId);
   }
 
-  // post the customer withdrawal request
   @Post('withdraw')
   @Auth()
-  async withdrawFunds(
-    @CurrentUser('id') userId: string,
+  withdrawFunds(
+    @CurrentUser() user: User,
     @Body() customerWithdrawFundsDto: CustomerWithdrawFundsDto,
   ) {
-    return this.walletService.withdrawFunds(userId, customerWithdrawFundsDto);
+    return this.walletService.withdrawFunds(user.userId, customerWithdrawFundsDto);
   }
 
-  // collector top-up request
   @Post('top-up')
   @Auth()
-  async addFunds(
-    @CurrentUser('id') userId: string,
+  addFunds(
+    @CurrentUser() user: User,
     @Body() topUpRequestsDto: TopUpRequestsDto,
   ) {
-    return this.walletService.addFunds(userId, topUpRequestsDto);
+    return this.walletService.addFunds(user.userId, topUpRequestsDto);
   }
 
-  // wallet stats
   @Get('stats')
   @Auth()
-  async getWalletStats(
-    @CurrentUser('id') userId: string,
+  getWalletStats(
+    @CurrentUser() user: User,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
-    return this.walletService.getWalletStats(userId, startDate, endDate);
+    return this.walletService.getWalletStats(user.userId, startDate, endDate);
   }
 
-  // wallet earnings
   @Get('earnings')
   @Auth()
-  async getWalletEarnings(
-    @CurrentUser('id') userId: string,
+  getWalletEarnings(
+    @CurrentUser() user: User,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
-    return this.walletService.getWalletEarnings(userId, startDate, endDate);
+    return this.walletService.getWalletEarnings(user.userId, startDate, endDate);
   }
 }
