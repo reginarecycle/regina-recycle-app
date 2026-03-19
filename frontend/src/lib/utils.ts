@@ -1,11 +1,11 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import type { Notification, NotificationType } from "@/types/notification";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-import type { Notification, NotificationType } from "@/types/notification";
 
 export const getTypeStyles = (type: NotificationType) => {
   const styles = {
