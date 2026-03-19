@@ -14,15 +14,17 @@ import { PaymentMethodDto } from "./paymentMethod.dto";
 // this is only needed for the collector
 
 export class TopUpRequestsDto {
-    @ApiProperty({ example: 'cm9abc123' })
-    @IsString()
-    @IsNotEmpty()
-    userId: string;
+    // removed since the user's id will used automatically
+    // @ApiProperty({ example: 'cm9abc123' })
+    // @IsString()
+    // @IsNotEmpty()
+    // userId: string;
 
-    @ApiProperty({ example: 'cm9abc123' })
-    @IsString()
-    @IsNotEmpty()
-    paymentMethodId: string;
+    // removed due to repitition -> this field is already implemented in the payment method dto
+    // @ApiProperty({ example: 'cm9abc123' })
+    // @IsString()
+    // @IsNotEmpty()
+    // paymentMethodId: string;
 
     // funds added
     @ApiProperty({ example: 100.00 })

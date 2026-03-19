@@ -12,11 +12,12 @@ import { Type } from "class-transformer";
 import { TxStatus } from "@prisma/client";
 
 export class CollectorWithdrawFundsDto {
-
-    @ApiPropertyOptional({ example: 'cm9abc123' })
-    @IsString()
-    @IsOptional()
-    userId?: string;
+    
+    // not needed since this is automatically used from the current user
+    // @ApiProperty({ example: 'cm9abc123' })
+    // @IsString()
+    // @IsNotEmpty()
+    // userId: string;
 
     // bank details ----------------------------------------------------------------
     // collector can only widraw via bank

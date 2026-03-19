@@ -17,7 +17,7 @@ import { WalletTransactionQueryDto } from './dto/walletTransactionQuery.dto';
 
 @Controller('wallet')
 export class WalletController {
-  constructor(private readonly walletService: WalletService) { }
+  constructor(private readonly walletService: WalletService) {}
 
   @Get('customer')
   @Auth()
@@ -50,11 +50,11 @@ export class WalletController {
   @Auth()
   async getTransactionById(
     @Param('transactionId') transactionId: string,
-    @CurrentUser('id') userId: string,
+    @CurrentUser() user: User,
   ) {
     const isOwner = await this.walletService.validateTransactionOwnership(
       transactionId,
-      userId,
+      user.userId,
     );
 
     if (!isOwner) {

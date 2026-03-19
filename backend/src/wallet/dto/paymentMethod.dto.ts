@@ -12,7 +12,7 @@ export class PaymentMethodDto {
     @ApiProperty({ example: 'cm9abc123' })
     @IsString()
     @IsNotEmpty()
-    paymentMethodI: string;
+    paymentMethodId: string;
 
     //   userId          String
     @ApiProperty({ example: 'cm9abc123' })

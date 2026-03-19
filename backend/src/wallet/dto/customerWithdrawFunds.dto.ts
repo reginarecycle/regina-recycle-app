@@ -11,10 +11,11 @@ import { TxStatus } from "@prisma/client";
 
 export class CustomerWithdrawFundsDto {
 
-    @ApiPropertyOptional({ example: 'cm9abc123' })
-    @IsString()
-    @IsOptional()
-    userId?: string;
+    // not needed since this is automatically used from the current user
+    // @ApiProperty({ example: 'cm9abc123' })
+    // @IsString()
+    // @IsNotEmpty()
+    // userId: string;
 
     @ApiProperty({ example: 'john@doe@gmail.com' })
     @IsString()
