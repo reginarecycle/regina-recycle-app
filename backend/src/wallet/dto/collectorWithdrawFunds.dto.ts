@@ -25,13 +25,13 @@ export class CollectorWithdrawFundsDto {
     @ApiProperty({ example: "Jane Doe" })
     @IsString()
     @IsNotEmpty()
-    accountHolderName!: string;
+    accountHolderName: string;
 
     // bank name
     @ApiProperty({ example: "TD Bank" })
     @IsString()
     @IsNotEmpty()
-    bankName!: string;
+    bankName: string;
 
     // account number
     @ApiProperty({ example: "123456789012" })
@@ -40,7 +40,7 @@ export class CollectorWithdrawFundsDto {
     @Matches(/^\d+$/)
     @MinLength(6)
     @MaxLength(17)
-    accountNumber!: string;
+    accountNumber: string;
 
     @ApiProperty({ example: "021000021" })
     @IsString()
@@ -48,7 +48,7 @@ export class CollectorWithdrawFundsDto {
     @Matches(/^\d+$/)
     @MinLength(5)
     @MaxLength(9)
-    routingNumber!: string;
+    routingNumber: string;
 
     // ----------------------------------------------------------------
 
@@ -56,7 +56,7 @@ export class CollectorWithdrawFundsDto {
     @Type(() => Number)
     @IsNumber({ maxDecimalPlaces: 2 })
     @IsNotEmpty()
-    amount!: number;
+    amount: number;
 
     @ApiPropertyOptional({ enum: TxStatus, example: TxStatus.PENDING })
     @IsEnum(TxStatus)

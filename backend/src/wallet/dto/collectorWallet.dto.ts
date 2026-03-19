@@ -2,27 +2,27 @@ import { ApiProperty } from "@nestjs/swagger";
 
 export class CollectorWalletDto {
     @ApiProperty({ example: 'cm9abc123' })
-    userId!: string;
+    userId: string;
 
     @ApiProperty({ example: 'wallet_123' })
-    walletId!: string;
+    walletId: string;
 
     @ApiProperty({ example: 100.00 })
-    balance!: number;
+    balance: number;
 
     // total payouts for the current month
     @ApiProperty({ example: 250.50 })
-    monthlyPayouts!: number;
+    monthlyPayouts: number;
 
     // net flow 
     @ApiProperty({ example: 120.75 })
-    monthlyNetFlow!: number;
+    monthlyNetFlow: number;
 
     // for the pending requests card in the collector dashboard
     @ApiProperty({ example: 0.0 })
-    pendingRequestsAmount!: number;
+    pendingRequestsAmount: number;
 
     // for the pending requests card in the collector dashboard (the smaller text on the bottom)
     @ApiProperty({ example: 0.0 })
-    pendingApprovalAmount!: number;
+    pendingApprovalAmount: number;
 }

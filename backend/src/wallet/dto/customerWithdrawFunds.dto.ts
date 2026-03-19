@@ -19,7 +19,7 @@ export class CustomerWithdrawFundsDto {
     @ApiProperty({ example: 'john@doe@gmail.com' })
     @IsString()
     @IsNotEmpty()
-    interacEmail!: string;
+    interacEmail: string;
 
     @ApiPropertyOptional({ example: "What is your favorite color?" })
     @IsString()
@@ -35,7 +35,7 @@ export class CustomerWithdrawFundsDto {
     @Type(() => Number)
     @IsNumber({ maxDecimalPlaces: 2 })
     @IsNotEmpty()
-    amount!: number;
+    amount: number;
 
     @ApiPropertyOptional({ enum: TxStatus, example: TxStatus.PENDING })
     @IsEnum(TxStatus)

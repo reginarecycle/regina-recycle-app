@@ -17,19 +17,19 @@ export class TopUpRequestsDto {
     @ApiProperty({ example: 'cm9abc123' })
     @IsString()
     @IsNotEmpty()
-    userId!: string;
+    userId: string;
 
     @ApiProperty({ example: 'cm9abc123' })
     @IsString()
     @IsNotEmpty()
-    paymentMethodId!: string;
+    paymentMethodId: string;
 
     // funds added
     @ApiProperty({ example: 100.00 })
     @Type(() => Number)
     @IsNumber({ maxDecimalPlaces: 2 })
     @IsNotEmpty()
-    amount!: number;
+    amount: number;
 
     // status
     @ApiPropertyOptional({ enum: TxStatus, example: TxStatus.PENDING })
@@ -42,5 +42,5 @@ export class TopUpRequestsDto {
     @ValidateNested()
     @Type(() => PaymentMethodDto)
     @IsNotEmpty()
-    paymentMethod!: PaymentMethodDto;
+    paymentMethod: PaymentMethodDto;
 }

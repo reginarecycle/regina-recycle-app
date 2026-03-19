@@ -19,25 +19,25 @@ export class WalletTransactionDto {
     @ApiProperty({ example: "wallet_123" })
     @IsString()
     @IsNotEmpty()
-    walletId!: string;
+    walletId: string;
 
     // shows the direction of flow of the money
     // debit is negative, credit is positive
     @ApiProperty({ enum: TxType, example: TxType.CREDIT })
     @IsEnum(TxType)
     @IsNotEmpty()
-    type!: TxType;
+    type: TxType;
 
     @ApiProperty({ example: 100.52 })
     @Type(() => Number)
     @IsNumber({ maxDecimalPlaces: 2 })
     @IsNotEmpty()
-    amount!: number;
+    amount: number;
 
     @ApiProperty({ enum: TxStatus, example: TxStatus.PENDING })
     @IsEnum(TxStatus)
     @IsNotEmpty()
-    status!: TxStatus;
+    status: TxStatus;
 
     @ApiPropertyOptional({ example: "Payment for recycling" })
     @IsString()
@@ -58,7 +58,7 @@ export class WalletTransactionDto {
     @Type(() => Date)
     @IsDate()
     @IsNotEmpty()
-    createdAt!: Date;
+    createdAt: Date;
 
     @ApiPropertyOptional({ example: "cm9abc123" })
     @IsString()

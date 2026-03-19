@@ -12,19 +12,19 @@ export class PaymentMethodDto {
     @ApiProperty({ example: 'cm9abc123' })
     @IsString()
     @IsNotEmpty()
-    paymentMethodId!: string;
+    paymentMethodI: string;
 
     //   userId          String
     @ApiProperty({ example: 'cm9abc123' })
     @IsString()
     @IsNotEmpty()
-    userId!: string;
+    userId: string;
 
     //   type            PaymentMethodType
     @ApiProperty({ enum: PaymentMethodType, example: PaymentMethodType.CARD })
     @IsEnum(PaymentMethodType)
     @IsNotEmpty()
-    type!: PaymentMethodType;
+    type  : PaymentMethodType;
 
     //   cardLast4       String?
     @ApiPropertyOptional({ example: '0000' })
