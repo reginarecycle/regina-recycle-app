@@ -164,19 +164,20 @@ model Address {
 }
 
 model Material {
-  materialId String   @id @default(uuid())
-  name       String   @unique
-  type       String
-  photoUrl   String?
-  co2Saved   Float?
-  waterSaved Float?
-  createdAt  DateTime @default(now())
+  materialId  String   @id @default(uuid())
+  name        String   @unique
+  type        String
+  photoUrl    String?
+  description String?
+  co2Saved    Float?
+  waterSaved  Float?
+  createdAt   DateTime @default(now())
 
   collectorPricings CollectorPricing[]
   pickupItems       PickupItem[]
-  pickupSnapshots   PickupSnapshot[] 
+  pickupSnapshots   PickupSnapshot[]
 
-  @@map("Material")
+  @@map("materials")
   @@index([type])
 }
 
