@@ -6,12 +6,23 @@ import { ResponseInterceptor } from './common/interceptor/response.interceptor';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { join } from 'path';
 import { writeFileSync } from 'fs';
+import  express from 'express';
+import { ExpressAdapter } from '@nestjs/platform-express';
+
+const server = express();
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule , new ExpressAdapter(server));
   app.setGlobalPrefix('api')
 
-  app.enableCors({ origin: '*' });
+  app.enableCors({
+    origin: [
+      'http://localhost:5173',
+      'https://reginarecycle.vercel.app',
+      'https://regina-recycle-staging.vercel.app',
+    ],
+    credentials: true,
+  });
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalInterceptors(new ResponseInterceptor());
@@ -40,7 +51,9 @@ async function bootstrap() {
   const outputPath = join(process.cwd(), 'swagger-spec.json');
   writeFileSync(outputPath, JSON.stringify(document, null, 2));
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.init();
 }
 
 bootstrap();
+
+export default server;
