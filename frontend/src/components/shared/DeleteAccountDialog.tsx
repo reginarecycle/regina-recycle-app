@@ -32,7 +32,8 @@ export function DeleteAccountDialog({
     resolver: zodResolver(deleteSchema),
     defaultValues: { confirmText: "" },
   });
-
+  
+// eslint-disable-next-line react-hooks/incompatible-library
   const confirmText = watch("confirmText");
 
   const handleClose = () => {
