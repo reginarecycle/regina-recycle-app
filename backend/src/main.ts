@@ -1,4 +1,3 @@
-// src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
@@ -6,7 +5,6 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptor/response.interceptor';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { join } from 'path';
-import { writeFileSync } from 'fs';
 import { INestApplication } from '@nestjs/common';
 
 let app: INestApplication | null = null;
@@ -52,8 +50,12 @@ async function createApp(): Promise<INestApplication> {
       customSiteTitle: 'ReginaRecycle API Docs',
     });
     
-    const outputPath = join(process.cwd(), 'swagger-spec.json');
-    writeFileSync(outputPath, JSON.stringify(document, null, 2));
+    if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+      const fs = require('fs');
+      const outputPath = join(process.cwd(), 'swagger-spec.json');
+      fs.writeFileSync(outputPath, JSON.stringify(document, null, 2));
+      console.log('Swagger spec saved locally');
+    }
     
     await app.init();
     console.log('NestJS app initialized');
