@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { EmailNotificationObserver } from './observers/email-notification.observer';
 import { InAppNotificationObserver } from './observers/inapp-notification.observer';
 import { IObserver, ISubject, NotificationEvent, NotificationEventType } from './interface/observer.interface';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class NotificationGatewayService implements ISubject {
