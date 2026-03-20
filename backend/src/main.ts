@@ -1,3 +1,4 @@
+// src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
@@ -8,11 +9,11 @@ import { join } from 'path';
 import { writeFileSync } from 'fs';
 import { INestApplication } from '@nestjs/common';
 
-// Store app instance for reuse
 let app: INestApplication | null = null;
 
 async function createApp(): Promise<INestApplication> {
   if (!app) {
+    console.log('Creating NestJS app...');
     app = await NestFactory.create(AppModule);
     
     app.setGlobalPrefix('api');
@@ -55,28 +56,35 @@ async function createApp(): Promise<INestApplication> {
     writeFileSync(outputPath, JSON.stringify(document, null, 2));
     
     await app.init();
+    console.log('NestJS app initialized');
   }
   return app;
 }
 
-// Check if we're running on Vercel
 const isVercel = process.env.VERCEL === '1';
 
-// For local development - listen on port
+// For local development
 if (!isVercel) {
-  const port = process.env.PORT || 3000;
+  const port = process.env.PORT || 4000;
   createApp().then(app => {
     app.listen(port);
-    console.log(`Application is running on: http://localhost:${port}`);
+    console.log(`✅ Application running on: http://localhost:${port}`);
+    console.log(`📚 Swagger: http://localhost:${port}/docs`);
   }).catch(error => {
-    console.error('Failed to start application:', error);
+    console.error('Failed to start:', error);
   });
 }
 
-// For Vercel - export the app handler
+// For Vercel
 export default async function handler(req: any, res: any) {
-  const app = await createApp();
-  const httpAdapter = app.getHttpAdapter();
-  const instance = httpAdapter.getInstance();
-  instance(req, res);
+  console.log(`[Vercel] Request: ${req.method} ${req.url}`);
+  try {
+    const app = await createApp();
+    const httpAdapter = app.getHttpAdapter();
+    const instance = httpAdapter.getInstance();
+    instance(req, res);
+  } catch (error) {
+    console.error('[Vercel] Error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 }
