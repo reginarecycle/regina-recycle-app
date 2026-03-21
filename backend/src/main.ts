@@ -7,6 +7,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import type { IncomingMessage, ServerResponse } from 'http';
 
 let app: INestApplication | null = null;
+let initPromise: Promise<INestApplication> | null = null;
 
 async function createApp(): Promise<INestApplication> {
   if (app) return app;
