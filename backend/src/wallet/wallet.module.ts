@@ -8,5 +8,6 @@ import { NotificationsModule } from '../notifications/notifications.module';
   imports: [PrismaModule, NotificationsModule],
   controllers: [WalletController],
   providers: [WalletService],
+  exports: [WalletService],
 })
-export class WalletModule { }
+export class WalletModule {}

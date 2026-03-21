@@ -1,76 +1,67 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-    IsNotEmpty, IsOptional,
-    IsString, IsInt, Min, Max,
-    IsEnum, Matches,
-    IsBoolean
-} from "class-validator";
-import { PaymentMethodType } from "@prisma/client";
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsInt,
+  Min,
+  Max,
+  IsEnum,
+  Matches,
+  IsBoolean,
+} from 'class-validator';
+import { PaymentMethodType } from '@prisma/client';
 
 export class PaymentMethodDto {
-    //     paymentMethodId String            @id @default(uuid())
-    @ApiProperty({ example: 'cm9abc123' })
-    @IsString()
-    @IsNotEmpty()
-    paymentMethodId: string;
+  @ApiProperty({ example: 'cm9abc123' })
+  @IsString()
+  @IsNotEmpty()
+  paymentMethodId: string;
 
-    //   userId          String
-    @ApiProperty({ example: 'cm9abc123' })
-    @IsString()
-    @IsNotEmpty()
-    userId: string;
+  @ApiProperty({ enum: PaymentMethodType, example: PaymentMethodType.CARD })
+  @IsEnum(PaymentMethodType)
+  @IsNotEmpty()
+  type: PaymentMethodType;
 
-    //   type            PaymentMethodType
-    @ApiProperty({ enum: PaymentMethodType, example: PaymentMethodType.CARD })
-    @IsEnum(PaymentMethodType)
-    @IsNotEmpty()
-    type  : PaymentMethodType;
+  @ApiPropertyOptional({ example: '4242' })
+  @IsString()
+  @Matches(/^\d{4}$/, { message: 'cardLast4 must be exactly 4 digits' })
+  @IsOptional()
+  cardLast4?: string;
 
-    //   cardLast4       String?
-    @ApiPropertyOptional({ example: '0000' })
-    @IsString()
-    @IsNotEmpty()
-    @Matches(/^\d{4}$/) // can only be 4 ints long
-    cardLast4?: string;
+  @ApiPropertyOptional({ example: 'Visa' })
+  @IsString()
+  @IsOptional()
+  cardBrand?: string;
 
-    //   cardBrand       String?
-    @ApiPropertyOptional({ example: 'Visa' })
-    @IsString()
-    @IsOptional()
-    cardBrand?: string;
+  @ApiPropertyOptional({ example: 12 })
+  @IsInt()
+  @Min(1)
+  @Max(12)
+  @IsOptional()
+  expMonth?: number;
 
-    //   expMonth        Int?
-    @ApiPropertyOptional({ example: 12 })
-    @IsInt()
-    @Min(1)
-    @Max(12)
-    @IsOptional()
-    expMonth?: number;
+  @ApiPropertyOptional({ example: 2030 })
+  @IsInt()
+  @Min(2000)
+  @Max(2060)
+  @IsOptional()
+  expYear?: number;
 
-    //   expYear         Int?
-    @ApiPropertyOptional({ example: 2030 })
-    @IsInt()
-    @Min(2000)
-    @Max(2060)
-    @IsOptional()
-    expYear?: number;
+  @ApiPropertyOptional({ example: 'Apple Pay' })
+  @IsString()
+  @IsOptional()
+  mobileProvider?: string;
 
-    //   mobileProvider  String?
-    @ApiPropertyOptional({ example: 'Apple' })
-    @IsString()
-    @IsOptional()
-    mobileProvider?: string;
+  @ApiPropertyOptional({ example: '306-231-7863' })
+  @Matches(/^\(?\d{3}\)?[-\s]?\d{3}[-\s]?\d{4}$/, {
+    message: 'phoneNumber must be a valid format e.g. 306-231-7863',
+  })
+  @IsOptional()
+  phoneNumber?: string;
 
-    //   phoneNumber     String?
-    @ApiPropertyOptional({ example: '306 231 7863' })
-    // check for multiple formats of the phone number
-    @Matches(/^\(?\d{3}\)?[-\s]?\d{3}[-\s]?\d{4}$/)
-    @IsOptional()
-    phoneNumber?: string;
-
-    //   isDefault       Boolean  @default(false)
-    @ApiPropertyOptional({ example: true })
-    @IsBoolean()
-    @IsOptional()
-    isDefault?: boolean;
+  @ApiPropertyOptional({ example: true })
+  @IsBoolean()
+  @IsOptional()
+  isDefault?: boolean;
 }

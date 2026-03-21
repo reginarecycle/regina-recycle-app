@@ -1,45 +1,39 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-    IsNumber,
-    IsOptional,
-    IsNotEmpty,
-    IsString,
-    IsEnum,
-} from "class-validator";
-import { Type } from "class-transformer";
-import { TxStatus } from "@prisma/client";
+  IsNumber,
+  IsOptional,
+  IsNotEmpty,
+  IsString,
+  IsEnum,
+  IsEmail,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { TxStatus } from '@prisma/client';
 
 export class CustomerWithdrawFundsDto {
+  @ApiProperty({ example: 'john.doe@gmail.com' })
+  @IsEmail({}, { message: 'interacEmail must be a valid email address' })
+  @IsNotEmpty()
+  interacEmail: string;
 
-    // not needed since this is automatically used from the current user
-    // @ApiProperty({ example: 'cm9abc123' })
-    // @IsString()
-    // @IsNotEmpty()
-    // userId: string;
+  @ApiPropertyOptional({ example: 'What is your favourite colour?' })
+  @IsString()
+  @IsOptional()
+  securityQuestion?: string;
 
-    @ApiProperty({ example: 'john@doe@gmail.com' })
-    @IsString()
-    @IsNotEmpty()
-    interacEmail: string;
+  @ApiPropertyOptional({ example: 'Green' })
+  @IsString()
+  @IsOptional()
+  securityAnswer?: string;
 
-    @ApiPropertyOptional({ example: "What is your favorite color?" })
-    @IsString()
-    @IsOptional()
-    securityQuestion?: string;
+  @ApiProperty({ example: 150.75 })
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @IsNotEmpty()
+  amount: number;
 
-    @ApiPropertyOptional({ example: "Green" })
-    @IsString()
-    @IsOptional()
-    securityAnswer?: string;
-
-    @ApiProperty({ example: 150.75 })
-    @Type(() => Number)
-    @IsNumber({ maxDecimalPlaces: 2 })
-    @IsNotEmpty()
-    amount: number;
-
-    @ApiPropertyOptional({ enum: TxStatus, example: TxStatus.PENDING })
-    @IsEnum(TxStatus)
-    @IsOptional()
-    status?: TxStatus;
+  @ApiPropertyOptional({ enum: TxStatus, example: TxStatus.PENDING })
+  @IsEnum(TxStatus)
+  @IsOptional()
+  status?: TxStatus;
 }
