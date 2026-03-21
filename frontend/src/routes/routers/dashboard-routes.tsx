@@ -13,7 +13,7 @@ const SchedulePickupLoc     = lazy(() => import("@/views/customer/schedule_picku
 const CollectorRequests     = lazy(() => import("@/views/collector/requests"));
 const CollectorSettingsPage = lazy(() => import("@/views/collector/settings"));
 const NotificationsPage     = lazy(() => import("@/views/notifications"));
-const CollectorWalletPage   = lazy(() => import("@/views/collector/wallet"));
+const CollectorWalletPage   = lazy(() => import("@/views/collector/wallet/WalletManagement"));
 
 const UserDashboardGuard         = addPermissions(UserDashboard, ["customer"]);
 const CollectorDashboardGuard    = addPermissions(CollectorDashboard, ["collector"]);
@@ -25,6 +25,7 @@ const CollectorRequestsGuard     = addPermissions(CollectorRequests, ["collector
 const CollectorSettingsGuard     = addPermissions(CollectorSettingsPage, ["collector"]);
 const CustomerNotificationsGuard = addPermissions(NotificationsPage, ["customer"]);
 const CollectorNotificationsGuard = addPermissions(NotificationsPage, ["collector"]);
+const CollectorWalletGuard = addPermissions(CollectorWalletPage, ["collector"]);
 
 export const dashboardRoutes = (): RouteObject[] => [
   {
@@ -70,6 +71,10 @@ export const dashboardRoutes = (): RouteObject[] => [
       {
         path: Routes.requests,
         element: <CollectorRequestsGuard />,
+      },
+      {
+        path: Routes.collectorwallet,
+        element: <CollectorWalletGuard />,
       },
     ],
   },
