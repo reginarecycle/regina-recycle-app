@@ -15,7 +15,7 @@ async function createApp(): Promise<INestApplication> {
 
   initPromise = (async () => {
     const instance = await NestFactory.create(AppModule, {
-      bodyParser: false,
+      bodyParser: true,
       logger: ['error', 'warn'],
     });
 

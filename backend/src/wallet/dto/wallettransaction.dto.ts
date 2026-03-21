@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, IsEnum, Matches } from 'class-validator';
 import { TxType, TxStatus } from '@prisma/client';
-import { PaginationDto } from '../../common/pagination/pagination.dto'; // ← fixed: relative path
+import { PaginationDto } from '../../common/pagination/pagination.dto';
 
 export class WalletTransactionQueryDto extends PaginationDto {
   @ApiPropertyOptional({ example: 'Payment for tins' })

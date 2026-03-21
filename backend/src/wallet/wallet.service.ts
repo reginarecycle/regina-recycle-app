@@ -159,7 +159,7 @@ export class WalletService {
       ...(type ? { type } : {}),
       ...(status ? { status } : {}),
       ...(startDate || endDate
-        ? { createdAt: { ...(startDate ? { gte: new Date(startDate) } : {}), ...(endDate ? { lte: new Date(endDate) } : {}) } }
+        ? { createdAt: { ...(startDate ? { gte: new Date(startDate) } : {}), ...(endDate ? { lt: new Date(new Date(endDate).setDate(new Date(endDate).getDate() + 1)) } : {}) } }
         : {}),
       ...(search
         ? {
@@ -396,7 +396,7 @@ export class WalletService {
     if (!wallet) throw new NotFoundException(ErrorMessage.WALLET_NOT_FOUND);
 
     const dateFilter = startDate || endDate
-      ? { createdAt: { ...(startDate ? { gte: new Date(startDate) } : {}), ...(endDate ? { lte: new Date(endDate) } : {}) } }
+      ? { createdAt: { ...(startDate ? { gte: new Date(startDate) } : {}), ...(endDate ? { lt: new Date(new Date(endDate).setDate(new Date(endDate).getDate() + 1)) } : {}) } }
       : {};
 
     const [credits, debits, totalTransactions] = await Promise.all([
@@ -423,7 +423,7 @@ export class WalletService {
         status: TxStatus.COMPLETED,
         createdAt: {
           ...(startDate ? { gte: new Date(startDate) } : {}),
-          ...(endDate ? { lte: new Date(endDate) } : {}),
+          ...(endDate ? { lt: new Date(new Date(endDate).setDate(new Date(endDate).getDate() + 1)) } : {}),
         },
       },
       orderBy: { createdAt: 'desc' },
