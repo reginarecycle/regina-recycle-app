@@ -58,6 +58,11 @@ enum PaymentMethodType {
   MOBILE_PAYMENT
 }
 
+enum WithdrawType {
+  INTERAC
+  BANK_TRANSFER
+}
+
 enum PricingStatus {
   ACTIVE
   INACTIVE
@@ -171,7 +176,7 @@ model Material {
   co2Saved   Float?
   waterSaved Float?
   createdAt  DateTime @default(now())
-
+  description String?
   collectorPricings CollectorPricing[]
   pickupItems       PickupItem[]
   pickupSnapshots   PickupSnapshot[] 
@@ -333,9 +338,17 @@ model PaymentMethod {
 model WithdrawRequest {
   withdrawId         String   @id @default(uuid())
   userId             String?
-  interacEmail       String
+  
+  interacEmail       String?  
   securityQuestion   String?
   securityAnswer     String?
+
+  bankName           String?
+  accountHolderName  String?
+  accountNumber      String?  
+  routingNumber      String?
+
+  withdrawType       WithdrawType @default(INTERAC) 
   amount             Decimal  @db.Decimal(14,2)
   status             TxStatus @default(PENDING)
   requestedAt        DateTime @default(now())
