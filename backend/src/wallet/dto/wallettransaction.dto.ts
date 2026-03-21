@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsEnum, Matches } from 'class-validator';
+import { IsOptional, IsString, IsEnum, IsDateString } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { TxType, TxStatus } from '@prisma/client';
 import { PaginationDto } from '../../common/pagination/pagination.dto';
 
@@ -19,17 +20,21 @@ export class WalletTransactionQueryDto extends PaginationDto {
   @IsOptional()
   status?: TxStatus;
 
-  @ApiPropertyOptional({ example: '2026-01-01' })
-  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
-    message: 'startDate must be in YYYY-MM-DD format',
+  @ApiPropertyOptional({
+    example: '2026-01-01',
+    description: 'ISO date string',
   })
+  @Transform(({ value }) => (value === '' ? undefined : value))
   @IsOptional()
+  @IsDateString({}, { message: 'startDate must be a valid ISO date' })
   startDate?: string;
 
-  @ApiPropertyOptional({ example: '2026-12-31' })
-  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
-    message: 'endDate must be in YYYY-MM-DD format',
+  @ApiPropertyOptional({
+    example: '2026-12-31',
+    description: 'ISO date string',
   })
+  @Transform(({ value }) => (value === '' ? undefined : value))
   @IsOptional()
+  @IsDateString({}, { message: 'endDate must be a valid ISO date' })
   endDate?: string;
 }
