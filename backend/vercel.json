@@ -8,14 +8,6 @@
   ],
   "routes": [
     {
-      "src": "/docs/static/(.*)",
-      "dest": "src/main.ts"
-    },
-    {
-      "src": "/docs(.*)",
-      "dest": "src/main.ts"
-    },
-    {
       "src": "/(.*)",
       "dest": "src/main.ts"
     }
