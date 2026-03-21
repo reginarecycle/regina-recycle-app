@@ -139,3 +139,58 @@ export const deleteSchema = z.object({
 });
 
 export type DeleteAccountFormValues = z.infer<typeof deleteSchema>;
+
+export const withdrawAmountSchema = z.object({
+amount: z.number().positive("Amount must be greater than 0"),
+});
+
+export const withdrawBankSchema = z.object({
+  accountHolder: z
+    .string()
+    .min(2, "Account holder name is required")
+    .regex(/^[^0-9]*$/, "Account holder name cannot contain numbers"),
+  bankName: z
+    .string()
+    .min(2, "Bank name is required")
+    .regex(/^[^0-9]*$/, "Bank name cannot contain numbers"),
+  accountNumber: z
+    .string()
+    .min(4, "Account number must be at least 4 digits")
+    .regex(/^\d+$/, "Account number must contain digits only"),
+  routingNumber: z
+    .string()
+    .min(4, "Routing number must be at least 4 digits")
+    .regex(/^\d+$/, "Routing number must contain digits only"),
+});
+
+export type WithdrawAmountFormValues = z.infer<typeof withdrawAmountSchema>;
+export type WithdrawBankFormValues   = z.infer<typeof withdrawBankSchema>;
+
+
+export const addFundsAmountSchema = z.object({
+  amount: z
+    .number()
+    .positive("Amount must be greater than 0"),
+});
+
+export const addFundsCardSchema = z.object({
+  cardNumber: z
+    .string()
+    .min(16, "Card number must be 16 digits")
+    .regex(/^\d{4} \d{4} \d{4} \d{4}$/, "Enter a valid card number"),
+  cardName: z
+    .string()
+    .min(2, "Card name is required")
+    .regex(/^[^0-9]*$/, "Card name cannot contain numbers"),
+  expiry: z
+    .string()
+    .regex(/^\d{2}\/\d{2}$/, "Enter a valid expiry date (MM/YY)"),
+  cvv: z
+    .string()
+    .length(3, "CVV must be exactly 3 digits")
+    .regex(/^\d{3}$/, "CVV must contain digits only"),
+});
+
+export type AddFundsAmountFormValues = z.infer<typeof addFundsAmountSchema>;
+export type AddFundsCardFormValues   = z.infer<typeof addFundsCardSchema>;
+export type PaymentMethod = "card" | "mobile" | null;

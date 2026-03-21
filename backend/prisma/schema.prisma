@@ -58,6 +58,11 @@ enum PaymentMethodType {
   MOBILE_PAYMENT
 }
 
+enum WithdrawType {
+  INTERAC
+  BANK_TRANSFER
+}
+
 enum PricingStatus {
   ACTIVE
   INACTIVE
@@ -164,15 +169,14 @@ model Address {
 }
 
 model Material {
-  materialId  String   @id @default(uuid())
-  name        String   @unique
-  type        String
-  photoUrl    String?
+  materialId String   @id @default(uuid())
+  name       String   @unique
+  type       String
+  photoUrl   String?
+  co2Saved   Float?
+  waterSaved Float?
+  createdAt  DateTime @default(now())
   description String?
-  co2Saved    Float?
-  waterSaved  Float?
-  createdAt   DateTime @default(now())
-
   collectorPricings CollectorPricing[]
   pickupItems       PickupItem[]
   pickupSnapshots   PickupSnapshot[]
@@ -331,9 +335,17 @@ model PaymentMethod {
 model WithdrawRequest {
   withdrawId         String   @id @default(uuid())
   userId             String?
-  interacEmail       String
+  
+  interacEmail       String?  
   securityQuestion   String?
   securityAnswer     String?
+
+  bankName           String?
+  accountHolderName  String?
+  accountNumber      String?  
+  routingNumber      String?
+
+  withdrawType       WithdrawType @default(INTERAC) 
   amount             Decimal  @db.Decimal(14,2)
   status             TxStatus @default(PENDING)
   requestedAt        DateTime @default(now())
@@ -362,12 +374,13 @@ model Notification {
 }
 
 model Tip {
-  tipId       String   @id @default(uuid())
+  tipId       String    @id @default(uuid())
+  title       String?   
   content     String
   startDate   DateTime?
   endDate     DateTime?
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
 
   @@map("tips")
   @@index([active])

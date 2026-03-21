@@ -175,7 +175,16 @@ function LearnPage() {
                     <div className="h-3 bg-yellow-100 rounded w-3/4" />
                   </div>
                 ) : tipResult?.data ? (
-                  <p className="text-foreground text-xs leading-5">{tipResult.data.content}</p>
+                  <>
+                    {tipResult.data.title && (
+                      <p className="text-foreground text-sm font-semibold mb-1">
+                        {tipResult.data.title}
+                      </p>
+                    )}
+                    <p className="text-foreground text-xs leading-5">
+                      {tipResult.data.content}
+                    </p>
+                  </>
                 ) : (
                   <p className="text-xs leading-5 text-muted-foreground">
                     No tip available today.
@@ -187,7 +196,6 @@ function LearnPage() {
               </div>
             </motion.div>
 
-            {/* Right Content */}
             <div className="flex-1 min-w-0 flex flex-col gap-6">
               <motion.div
                 className="bg-white rounded-xl border border-border p-4 flex flex-col gap-4"
@@ -226,7 +234,6 @@ function LearnPage() {
                 </div>
               </motion.div>
 
-              {/* Error State */}
               {materialsError && (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
                   <p className="text-red-500 text-sm font-medium">
@@ -242,7 +249,6 @@ function LearnPage() {
                 </div>
               )}
 
-              {/* Initial Loading Skeletons */}
               {materialsLoading && page === 1 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                   {Array.from({ length: LIMIT }).map((_, i) => (
@@ -251,7 +257,6 @@ function LearnPage() {
                 </div>
               )}
 
-              {/* Cards Grid */}
               {!materialsError && allItems.length > 0 && (
                 <div className="flex flex-col gap-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -260,7 +265,6 @@ function LearnPage() {
                     ))}
                   </div>
 
-                  {/* Loading more skeletons */}
                   {materialsLoading && page > 1 && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                       {Array.from({ length: 3 }).map((_, i) => (
@@ -269,7 +273,6 @@ function LearnPage() {
                     </div>
                   )}
 
-                  {/* Sentinel for infinite scroll */}
                   <div ref={sentinelRef} className="h-4" />
 
                   {/* End of results */}
@@ -281,7 +284,6 @@ function LearnPage() {
                 </div>
               )}
 
-              {/* Empty State */}
               {!materialsLoading && !materialsError && allItems.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
                   <p className="text-muted-foreground text-base">

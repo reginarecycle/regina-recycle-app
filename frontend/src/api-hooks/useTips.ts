@@ -2,6 +2,7 @@ import { useGetList, useGetOne } from "@/lib/queryHelpers";
 
 export interface Tip {
   tipId: string;
+  title?: string;
   content: string;
   startDate?: string;
   endDate?: string;
