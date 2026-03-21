@@ -14,6 +14,8 @@ const CollectorRequests     = lazy(() => import("@/views/collector/requests"));
 const CollectorSettingsPage = lazy(() => import("@/views/collector/settings"));
 const NotificationsPage     = lazy(() => import("@/views/notifications"));
 const CollectorWalletPage   = lazy(() => import("@/views/collector/wallet/WalletManagement"));
+const CustomerHistoryPage = lazy(() => import("@/views/customer/history/RecycleHistory"));
+
 
 const UserDashboardGuard         = addPermissions(UserDashboard, ["customer"]);
 const CollectorDashboardGuard    = addPermissions(CollectorDashboard, ["collector"]);
@@ -26,6 +28,7 @@ const CollectorSettingsGuard     = addPermissions(CollectorSettingsPage, ["colle
 const CustomerNotificationsGuard = addPermissions(NotificationsPage, ["customer"]);
 const CollectorNotificationsGuard = addPermissions(NotificationsPage, ["collector"]);
 const CollectorWalletGuard = addPermissions(CollectorWalletPage, ["collector"]);
+const CustomerHistoryGuard = addPermissions(CustomerHistoryPage, ["customer"]);
 
 export const dashboardRoutes = (): RouteObject[] => [
   {
