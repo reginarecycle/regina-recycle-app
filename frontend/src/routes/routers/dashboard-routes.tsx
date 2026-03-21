@@ -14,53 +14,62 @@ const CollectorRequests     = lazy(() => import("@/views/collector/requests"));
 const CollectorSettingsPage = lazy(() => import("@/views/collector/settings"));
 const NotificationsPage     = lazy(() => import("@/views/notifications"));
 
-export const dashboardRoutes = () => {
-  return [
-    {
-      path: Routes.dashboard,
-      element: addPermissions(UserDashboard, ["customer"])    },
-    {
-      path: Routes.schedulePickup,
-      element: addPermissions(SchedulePickupView, ["customer"]) 
-    },
-    {
-      path: Routes.schedulePickupTime,
-      element: addPermissions(SchedulePickupTime, ["customer"]) 
-    },
-    {
-      path: Routes.schedulePickupLoc,
-      element: addPermissions(SchedulePickupLoc, ["customer"]) 
-    },
-    {
-      path: Routes.profile,
-      element: addPermissions(CustomerProfile, ["customer"]) 
-    },
-    {
-      path: Routes.notifications,
-      element: addPermissions(NotificationsPage, ["customer"], { userRole: "customer" }) 
-    },
-    {
-      path: Routes.collectorapp,
-      element: <Outlet />,
-      children: [
-        {
-          path: Routes.collectordashboard,
-          element: addPermissions(CollectorDashboard, ["collector"])
-        },
-        {
-          path: Routes.collectorsettings,
-          element: addPermissions(CollectorSettingsPage, ["collector"])
-        },
-        {
-          path: Routes.collectornotifications,
-          element: addPermissions(NotificationsPage, ["collector"], { userRole: "collector" })
-        },
-        {
-          path: Routes.requests,
-          element: addPermissions(CollectorRequests, ["collector"])
-        },
-      ],
-    },
-  
-  ] as RouteObject[];
-};
+const UserDashboardGuard         = addPermissions(UserDashboard, ["customer"]);
+const CollectorDashboardGuard    = addPermissions(CollectorDashboard, ["collector"]);
+const CustomerProfileGuard       = addPermissions(CustomerProfile, ["customer"]);
+const SchedulePickupViewGuard    = addPermissions(SchedulePickupView, ["customer"]);
+const SchedulePickupTimeGuard    = addPermissions(SchedulePickupTime, ["customer"]);
+const SchedulePickupLocGuard     = addPermissions(SchedulePickupLoc, ["customer"]);
+const CollectorRequestsGuard     = addPermissions(CollectorRequests, ["collector"]);
+const CollectorSettingsGuard     = addPermissions(CollectorSettingsPage, ["collector"]);
+const CustomerNotificationsGuard = addPermissions(NotificationsPage, ["customer"]);
+const CollectorNotificationsGuard = addPermissions(NotificationsPage, ["collector"]);
+
+export const dashboardRoutes = (): RouteObject[] => [
+  {
+    path: Routes.dashboard,
+    element: <UserDashboardGuard />,
+  },
+  {
+    path: Routes.schedulePickup,
+    element: <SchedulePickupViewGuard />,
+  },
+  {
+    path: Routes.schedulePickupTime,
+    element: <SchedulePickupTimeGuard />,
+  },
+  {
+    path: Routes.schedulePickupLoc,
+    element: <SchedulePickupLocGuard />,
+  },
+  {
+    path: Routes.profile,
+    element: <CustomerProfileGuard />,
+  },
+  {
+    path: Routes.notifications,
+    element: <CustomerNotificationsGuard />,
+  },
+  {
+    path: Routes.collectorapp,
+    element: <Outlet />,
+    children: [
+      {
+        path: Routes.collectordashboard,
+        element: <CollectorDashboardGuard />,
+      },
+      {
+        path: Routes.collectorsettings,
+        element: <CollectorSettingsGuard />,
+      },
+      {
+        path: Routes.collectornotifications,
+        element: <CollectorNotificationsGuard />,
+      },
+      {
+        path: Routes.requests,
+        element: <CollectorRequestsGuard />,
+      },
+    ],
+  },
+];
