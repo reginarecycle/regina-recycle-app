@@ -6,8 +6,9 @@ import { WalletBalanceCard } from "./WalletBalanceCard";
 import { WalletStatsRow } from "./WalletStatsRow";
 import { TransactionRow, TX_GRID } from "./TransactionRow";
 import { TransactionHistoryPage } from "./TransactionHistoryPage";
-import { AddFundsModal } from "./AddFundsModal";
-import { WithdrawFundsModal } from "./WithdrawFundsModal";
+import { WithdrawFundsModal } from "./Modals/withdraw/Withdrawfundsmodal";
+import { AddFundsModal } from "./Modals/AddFunds/AddFundsModal";
+
 
 const WalletManagement: React.FC<WalletManagementProps> = ({
   balance = 4850.0,
