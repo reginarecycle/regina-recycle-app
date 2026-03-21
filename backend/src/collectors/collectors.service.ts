@@ -7,6 +7,7 @@ import { UpdateMaterialSettingsDto } from './dto/update-material-settings.dto';
 import { BadRequestException } from '@nestjs/common';
 import { MaterialPricingFactory } from "../materials/pricing/material-pricing-factory";
 import { CreateMaterialPricingDto} from './dto/create-material-pricing.dto';
+import { Material } from '../materials/pricing/material';
 
 @Injectable()
 export class CollectorsService {
@@ -662,21 +663,30 @@ export class CollectorsService {
     throw new Error('Collector pricing not found for this material');
   }
 
-  const factory = new MaterialPricingFactory();
-  const material = factory.createMaterial(
-    collectorPricing.material.type.toLowerCase(),
-  );
+  const material = new Material(
+  materialId,
+  collectorPricing.material.name,
+  collectorPricing.material.type,
+  Number(collectorPricing.basePrice ?? 0),
+  Number(collectorPricing.bulkPrice ?? 0),
+);
 
-  if (collectorPricing.basePrice !== null) {
-    material.setBasePrice(Number(collectorPricing.basePrice));
-  }
+const factory = new MaterialPricingFactory();
+const strategy = factory.createStrategy(
+  material.getType().toLowerCase(),
+);
 
-  if (collectorPricing.bulkPrice !== null) {
-    material.setBulkRate(Number(collectorPricing.bulkPrice));
-  }
+const estimatedCost = strategy.estimateCost(
+  quantity,
+  material.getBasePrice(),
+  material.getBulkRate(),
+);
 
-  const estimatedCost = material.estimateCost(quantity);
-  const recommendedPrice = material.getRecommendedPrice(quantity);
+const recommendedPrice = strategy.getRecommendedPrice(
+  quantity,
+  material.getBasePrice(),
+  material.getBulkRate(),
+);
 
   return {
     collectorId,

@@ -1,13 +1,13 @@
-export abstract class Material {
+export class Material {
 
-protected materialId: number;
+protected materialId: string;
 protected name: string;
 protected type: string;
 protected basePrice: number;
 protected bulkRate: number;
 
 constructor (
-materialId: number,
+materialId: string,
 name: string,
 type: string,
 basePrice: number,
@@ -20,18 +20,8 @@ this.basePrice = basePrice;
 this.bulkRate = bulkRate;
 }
 
-abstract estimateCost(qty: number): number;
-
-validate(qty: number): boolean {
-return qty > 0;
-}
-
-getRecommendedPrice(qty: number): number {
-return this.estimateCost(qty);
-}
-
 // Getters
-getMaterialId(): number {
+getMaterialId(): string {
 return this.materialId;
 }
 

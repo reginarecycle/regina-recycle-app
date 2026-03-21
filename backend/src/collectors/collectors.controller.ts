@@ -163,7 +163,7 @@ export class CollectorsController {
     return this.collectorsService.updateMaterialSettings(user.userId, dto);
   }
 
-  @Get(':collectorId/material-pricing/:materialId/calculate')
+  @Get('material-pricing/:materialId/calculate')
   @Auth()
   calculateMaterialPrice(
   @CurrentUser() user: CurrentUserPayload,

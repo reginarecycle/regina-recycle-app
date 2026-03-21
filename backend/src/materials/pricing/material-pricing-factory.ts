@@ -1,18 +1,17 @@
-import { Material } from "./material";
-import { Glass } from "./glass";
-import { Batteries } from "./batteries";
+import { PricingStrategy } from "./pricing-strategy";
+import { StandardPricing } from "./standard-pricing";
+import { HazardousPricing } from "./hazardous-pricing";
+
 export class MaterialPricingFactory {
+  createStrategy(type: string): PricingStrategy {
+    if (type === "glass") {
+      return new StandardPricing();
+    }
 
-createMaterial(type: string): Material {
+    if (type === "batteries") {
+      return new HazardousPricing();
+    }
 
-if (type === "glass") {
-return new Glass();
-}
-
-if (type === "batteries") {
-return new Batteries();
-}
-
-throw new Error("Unknown material type");
-}
+    throw new Error("Unknown material type");
+  }
 }
