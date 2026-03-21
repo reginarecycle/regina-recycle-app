@@ -11,61 +11,55 @@ let initPromise: Promise<INestApplication> | null = null;
 
 async function createApp(): Promise<INestApplication> {
   if (app) return app;
+  if (initPromise) return initPromise;
 
-  const instance = await NestFactory.create(AppModule, {
-    bodyParser: true,
-    logger: ['error', 'warn'],
-  });
+  initPromise = (async () => {
+    const instance = await NestFactory.create(AppModule, {
+      bodyParser: true,
+      logger: process.env.VERCEL ? ['error', 'warn'] : ['log', 'fatal', 'error', 'warn', 'debug', 'verbose'],
+    });
 
-  instance.setGlobalPrefix('api');
+    instance.setGlobalPrefix('api');
 
-  instance.enableCors({
-    origin: (origin, callback) => {
-      const allowed = [
-        'http://localhost:5173',
-        'https://reginarecycle.vercel.app',
-        'https://regina-recycle-staging.vercel.app',
-      ];
-        if (!origin || allowed.includes(origin) || origin.endsWith('.vercel.app')) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: true,
-  });
+    instance.enableCors({
+      origin: true,
+      credentials: true,
+    });
 
-  instance.useGlobalPipes(
-    new ValidationPipe({ whitelist: true, transform: true }),
-  );
-  instance.useGlobalInterceptors(new ResponseInterceptor());
-  instance.useGlobalFilters(new HttpExceptionFilter());
+    instance.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
+    instance.useGlobalInterceptors(new ResponseInterceptor());
+    instance.useGlobalFilters(new HttpExceptionFilter());
 
-  const config = new DocumentBuilder()
-    .setTitle('ReginaRecycle API')
-    .setDescription('ReginaRecycle backend API documentation')
-    .setVersion('1.0')
-    .addBearerAuth(
-      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
-      'JWT-auth',
-    )
-    .build();
+    const config = new DocumentBuilder()
+      .setTitle('ReginaRecycle API')
+      .setDescription('ReginaRecycle backend API documentation')
+      .setVersion('1.0')
+      .addBearerAuth(
+        { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+        'JWT-auth',
+      )
+      .build();
 
-  const document = SwaggerModule.createDocument(instance, config);
-  SwaggerModule.setup('docs', instance, document, {
-    customCssUrl:
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css',
-    customJs: [
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-standalone-preset.min.js',
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.min.js',
-    ],
-    swaggerOptions: { persistAuthorization: true },
-    customSiteTitle: 'ReginaRecycle API Docs',
-  });
+    const document = SwaggerModule.createDocument(instance, config);
+    SwaggerModule.setup('docs', instance, document, {
+      customCssUrl:
+        'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css',
+      customJs: [
+        'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-standalone-preset.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.min.js',
+      ],
+      swaggerOptions: { persistAuthorization: true },
+      customSiteTitle: 'ReginaRecycle API Docs',
+    });
 
-  await instance.init();
-  app = instance;
-  return app;
+    await instance.init();
+    app = instance;
+    return app;
+  })();
+
+  return initPromise;
 }
 
 // Local dev
