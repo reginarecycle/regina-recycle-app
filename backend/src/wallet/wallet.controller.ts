@@ -15,14 +15,14 @@ import { CurrentUser } from '../auth/decorator/current-user.decorator';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { WalletTransactionQueryDto } from './dto/wallettransaction.dto';
 import { TopUpRequestsDto } from './dto/topuprequest.dto';
-import { CustomerWithdrawFundsDto } from './dto/customerwithdrawfunds.dto';
-import { CollectorWithdrawFundsDto } from './dto/collectorwithdrawfunds.dto';
+import { CustomerWithdrawFundsDto } from './dto/customerWithdrawFunds.dto';
+import { CollectorWithdrawFundsDto } from './dto/collectorWithdrawFunds.dto';
 
 @ApiTags('Wallet')
 @ApiBearerAuth('JWT-auth')
 @Controller('wallet')
 export class WalletController {
-  constructor(private readonly walletService: WalletService) {}
+  constructor(private readonly walletService: WalletService) { }
 
   // ── Customer wallet ───────────────────────────────────────────────────────────
 
