@@ -4,14 +4,13 @@ import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptor/response.interceptor';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { join } from 'path';
 import { INestApplication } from '@nestjs/common';
 
+// Store app instance for reuse
 let app: INestApplication | null = null;
 
 async function createApp(): Promise<INestApplication> {
   if (!app) {
-    console.log('Creating NestJS app...');
     app = await NestFactory.create(AppModule);
     
     app.setGlobalPrefix('api');
@@ -50,43 +49,31 @@ async function createApp(): Promise<INestApplication> {
       customSiteTitle: 'ReginaRecycle API Docs',
     });
     
-    if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
-      const fs = require('fs');
-      const outputPath = join(process.cwd(), 'swagger-spec.json');
-      fs.writeFileSync(outputPath, JSON.stringify(document, null, 2));
-      console.log('Swagger spec saved locally');
-    }
+    // ✅ REMOVED the writeFileSync that was causing issues
     
     await app.init();
-    console.log('NestJS app initialized');
   }
   return app;
 }
 
+// Check if we're running on Vercel
 const isVercel = process.env.VERCEL === '1';
 
-// For local development
+// For local development - listen on port
 if (!isVercel) {
   const port = process.env.PORT || 4000;
   createApp().then(app => {
     app.listen(port);
-    console.log(`✅ Application running on: http://localhost:${port}`);
-    console.log(`📚 Swagger: http://localhost:${port}/docs`);
+    console.log(`Application is running on: http://localhost:${port}`);
   }).catch(error => {
-    console.error('Failed to start:', error);
+    console.error('Failed to start application:', error);
   });
 }
 
-// For Vercel
+// For Vercel - export the app handler
 export default async function handler(req: any, res: any) {
-  console.log(`[Vercel] Request: ${req.method} ${req.url}`);
-  try {
-    const app = await createApp();
-    const httpAdapter = app.getHttpAdapter();
-    const instance = httpAdapter.getInstance();
-    instance(req, res);
-  } catch (error) {
-    console.error('[Vercel] Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+  const app = await createApp();
+  const httpAdapter = app.getHttpAdapter();
+  const instance = httpAdapter.getInstance();
+  instance(req, res);
 }
