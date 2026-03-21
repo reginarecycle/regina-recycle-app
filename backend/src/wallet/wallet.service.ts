@@ -359,7 +359,8 @@ export class WalletService {
 
     if (!paymentMethod) {
       throw new NotFoundException(ErrorMessage.PAYMENT_METHOD_NOT_FOUND);
-    }
+    } // record not found
+    // service is ok and reachable but the record is not found
 
     const user = await this.prisma.user.findUnique({
       where: { userId },
