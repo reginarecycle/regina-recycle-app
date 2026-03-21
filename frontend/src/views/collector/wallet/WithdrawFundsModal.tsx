@@ -2,7 +2,7 @@ import * as React from "react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Building2 } from "lucide-react";
-import { ModalShell, ModalFooter, StepIndicator, AmountInput, QuickAmountBtn, SuccessScreen, ModalInput } from "./shared";
+import { ModalShell, ModalFooter, StepIndicator, AmountInput, QuickAmountBtn, SuccessScreen } from "./shared";
 import { QUICK_AMOUNTS } from "./constants";
 
 interface WithdrawFundsModalProps {
