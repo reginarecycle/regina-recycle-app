@@ -7,7 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { EmailService } from '../notifications/email/email.service';
-import { EmailTemplatesService } from 'src/notifications/email/email.template.service';
+import { EmailTemplatesService } from '../notifications/email/email.template.service';
 
 @Module({
   imports: [
