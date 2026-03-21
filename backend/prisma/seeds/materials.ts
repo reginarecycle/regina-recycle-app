@@ -1,8 +1,6 @@
 
 import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
-async function main() {
-
+export default async function seedMaterials(prisma: PrismaClient) {
   await prisma.material.createMany({
     data: [
       {
@@ -56,10 +54,3 @@ async function main() {
   console.log("Seed data inserted");
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });

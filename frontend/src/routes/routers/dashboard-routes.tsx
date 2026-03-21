@@ -2,6 +2,7 @@ import { lazy } from "react";
 import { Outlet } from "react-router-dom";
 import { Routes } from "../routes";
 import type { RouteObject } from "react-router-dom";
+import addPermissions from "../route-permission";
 
 const UserDashboard         = lazy(() => import("@/views/customer/home"));
 const CollectorDashboard    = lazy(() => import("@/views/collector/dashboard"));
@@ -17,19 +18,26 @@ export const dashboardRoutes = () => {
   return [
     {
       path: Routes.dashboard,
-      element: <UserDashboard />,
-    },
+      element: addPermissions(UserDashboard, ["customer"])    },
     {
       path: Routes.schedulePickup,
-      element: <SchedulePickupView />,
+      element: addPermissions(SchedulePickupView, ["customer"]) 
     },
     {
       path: Routes.schedulePickupTime,
-      element: <SchedulePickupTime />,
+      element: addPermissions(SchedulePickupTime, ["customer"]) 
     },
     {
       path: Routes.schedulePickupLoc,
-      element: <SchedulePickupLoc />,
+      element: addPermissions(SchedulePickupLoc, ["customer"]) 
+    },
+    {
+      path: Routes.profile,
+      element: addPermissions(CustomerProfile, ["customer"]) 
+    },
+    {
+      path: Routes.notifications,
+      element: addPermissions(NotificationsPage, ["customer"], { userRole: "customer" }) 
     },
     {
       path: Routes.collectorapp,
@@ -37,29 +45,22 @@ export const dashboardRoutes = () => {
       children: [
         {
           path: Routes.collectordashboard,
-          element: <CollectorDashboard />,
+          element: addPermissions(CollectorDashboard, ["collector"])
         },
         {
           path: Routes.collectorsettings,
-          element: <CollectorSettingsPage />,
+          element: addPermissions(CollectorSettingsPage, ["collector"])
         },
         {
           path: Routes.collectornotifications,
-          element: <NotificationsPage userRole="collector" />,
+          element: addPermissions(NotificationsPage, ["collector"], { userRole: "collector" })
         },
         {
           path: Routes.requests,
-          element: <CollectorRequests />,
+          element: addPermissions(CollectorRequests, ["collector"])
         },
       ],
     },
-    {
-      path: Routes.profile,
-      element: <CustomerProfile />,
-    },
-    {
-      path: Routes.notifications,
-      element: <NotificationsPage userRole="customer" />,
-    },
+  
   ] as RouteObject[];
 };

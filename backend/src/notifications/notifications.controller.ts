@@ -2,14 +2,12 @@ import { Controller, Get, Patch, Param, Query, Body, Post } from '@nestjs/common
 import { NotificationsService } from './notifications.service';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { UpdateNotificationPreferenceDto } from './dto/update-notification-preference.dto';
-import { Auth } from 'src/common/decorator/auth.decorator';
-import { CurrentUser } from 'src/auth/decorator/current-user.decorator';
+import { Auth } from '../common/decorator/auth.decorator';
 import { NotificationQueryDto } from './dto/notification-query.dto';
 import type { User } from '@prisma/client';
 import { NotificationGatewayService } from './notifications.gateway.service';
-import { NotificationEventType } from './interface/observer.interface';
 import { NotificationsCronService } from './notifications.cron.service';
-
+import { CurrentUser } from '../auth/decorator/current-user.decorator'
 @ApiTags('Notifications')
 @ApiBearerAuth('JWT-auth')
 @Controller('notifications')

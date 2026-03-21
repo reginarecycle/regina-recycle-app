@@ -206,12 +206,15 @@ model Pickup {
   collectorUserId String?
   scheduledAt     DateTime
   addressId       String?
+  photoUrl        String?
   address         Address?   @relation(fields: [addressId], references: [addressId], onDelete: SetNull)
   status          PickupStatus @default(PENDING)
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
   estimatedEarning Decimal?    @db.Decimal(14, 2)
   actualEarning   Decimal?   @db.Decimal(14,2)
+  estimatedCost   Decimal?   @db.Decimal(14, 2)
+  note            String?
   items     PickupItem[]
   snapshots PickupSnapshot[]
   requester       User?      @relation("requester", fields: [requesterUserId], references: [userId], onDelete: SetNull)
