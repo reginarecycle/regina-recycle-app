@@ -64,6 +64,10 @@ export const dashboardRoutes = () => {
           path: Routes.collectorwallet,
           element: addPermissions(CollectorWalletPage, ["collector"])
         },
+        {
+          path: Routes.collectorwallet,
+          element: <CollectorWalletPage/> 
+        }
       ],
     },
   
