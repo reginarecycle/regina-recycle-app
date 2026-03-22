@@ -1,10 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { Notification, NotificationCategory, ViewMode, UserRole } from "@/types/notification";
 import { customerNotifications, collectorNotifications } from "@/constants/data";
 import { groupByDate } from "@/lib/utils";
+import { usePusherNotifications } from "@/hooks/usePusherNotifications";
 
-export function useNotifications(userRole: UserRole) {
+export function useNotifications(userRole: UserRole, userId?: string) {
   const initial = userRole === "customer" ? customerNotifications : collectorNotifications;
 
   const [searchParams]                    = useSearchParams();
@@ -13,6 +14,12 @@ export function useNotifications(userRole: UserRole) {
   const [notifications, setNotifications] = useState<Notification[]>(initial);
   const [viewMode,      setViewMode]      = useState<ViewMode>("all");
   const [sortBy,        setSortBy]        = useState<"newest" | "oldest">("newest");
+
+  const handleIncoming = useCallback((n: Notification) => {
+    setNotifications((prev) => [n, ...prev]);
+  }, []);
+
+  usePusherNotifications(userId, handleIncoming);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
