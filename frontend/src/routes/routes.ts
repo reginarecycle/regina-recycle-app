@@ -21,8 +21,6 @@ export enum Routes {
     wallet = "/app/wallet",
     transactionhistory= "/app/wallet/history",
     schedulePickup = "/app/schedule",
-    schedulePickupTime = "/app/schedule/pickupTime",
-    schedulePickupLoc = "/app/schedule/pickupLoc",
     collectorapp = "/app/collector",
     collectordashboard = "/app/collector/dashboard",
     collectorsettings = "/app/collector/settings",

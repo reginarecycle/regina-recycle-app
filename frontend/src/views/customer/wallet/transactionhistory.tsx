@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import TransactionDetailsModal from "../../components/modals/transactiondetailmodal";
-import type { TransactionDetails } from "../../components/modals/transactiondetailmodal";
+import TransactionDetailsModal from "../../../components/modals/transactiondetailmodal";
+import type { TransactionDetails } from "../../../components/modals/transactiondetailmodal";
 
 import DataTable, { type Column } from "@/components/ui/data-table";
 

@@ -47,7 +47,7 @@ const InputField: FC<InputFieldProps> = ({
   )}
 </FieldLabel>
 
-      <FieldLabel htmlFor={fieldId} className={labelClassName}>{label}</FieldLabel>
+      
       <div className="relative">
         <Input
           {...register}

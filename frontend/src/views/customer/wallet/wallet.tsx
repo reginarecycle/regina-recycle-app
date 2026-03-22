@@ -313,7 +313,7 @@ export default function CustomerWallet() {
                       dataKey="earnings"
                       fill="var(--color-earnings)"
                       radius={4}
-                      barSize={30}
+                      barSize={80}
                     />
                   </BarChart>
                 </ChartContainer>

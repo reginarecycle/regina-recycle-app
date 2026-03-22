@@ -8,7 +8,6 @@ export interface RecycleRecord {
   materials: MaterialType[];
   date: string;
   status: RecycleStatus;
-  // detail fields
   referenceNumber: string;
   collectorName: string;
   collectorId: string;
