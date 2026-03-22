@@ -1,34 +1,115 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Request,
+  UseGuards,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { PickupsService } from './pickups.service';
 import { CreatePickupDto } from './dto/create-pickup.dto';
 import { UpdatePickupDto } from './dto/update-pickup.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Auth } from 'src/common/decorator/auth.decorator';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
+@ApiTags('Pickups')
+@UseGuards(JwtAuthGuard)
 @Controller('pickups')
 export class PickupsController {
-  constructor(private readonly pickupsService: PickupsService) {}
+  constructor(
+    private readonly pickupsService: PickupsService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
+  // USER: Schedule a pickup
+  @ApiOperation({ summary: 'Schedule a pickup' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        photo: { type: 'string', format: 'binary' },
+        data: { type: 'string', description: 'JSON string of CreatePickupDto' },
+      },
+    },
+  })
   @Post()
-  create(@Body() createPickupDto: CreatePickupDto) {
-    return this.pickupsService.create(createPickupDto);
+  @Auth('CUSTOMER')
+  @UseInterceptors(FileInterceptor('photo', { limits: { fileSize: 5 * 1024 * 1024 } }))
+  async createPickup(
+    @Request() req,
+    @UploadedFile() file: Express.Multer.File,
+    @Body('data') data: string,
+  ) {
+    let photoUrl: string | undefined = undefined;
+    if (file) {
+      photoUrl = await this.cloudinaryService.uploadImage(file);
+    }
+    const createPickupDto: CreatePickupDto = JSON.parse(data);
+    return this.pickupsService.create(req.user.userId, createPickupDto, photoUrl);
   }
 
+  // USER: Get their own pickups
+  @ApiOperation({ summary: 'Get all pickups for logged in user' })
   @Get()
-  findAll() {
-    return this.pickupsService.findAll();
+  @Auth('CUSTOMER')
+  getUserPickups(@Request() req) {
+    return this.pickupsService.findAll(req.user.userId);
   }
 
+  // COLLECTOR: Get all PENDING requests
+  @ApiOperation({ summary: 'Get all pending pickup requests (collector)' })
+  @Get('requests')
+  @Auth()
+  getRequests() {
+    return this.pickupsService.getRequests();
+  }
+
+  // Get a single pickup by ID
+  @ApiOperation({ summary: 'Get a pickup by ID' })
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.pickupsService.findOne(+id);
+  @Auth()
+  getPickupById (@Param('id') id: string) {
+    return this.pickupsService.findOne(id);
   }
 
+  // COLLECTOR: Accept a pickup
+  @ApiOperation({ summary: 'Accept a pickup (collector)' })
+  @Patch(':id/accept')
+  @Auth('COLLECTOR')
+  acceptPickup(@Param('id') id: string, @Request() req) {
+    return this.pickupsService.accept(id, req.user.userId);
+  }
+
+  // COLLECTOR: Complete a pickup
+  @ApiOperation({ summary: 'Complete a pickup (collector)' })
+  @Patch(':id/complete')
+  @Auth('COLLECTOR')
+  completePickup(@Param('id') id: string, @Request() req) {
+    return this.pickupsService.complete(id, req.user.userId);
+  }
+
+  // USER: Update a pickup (only while PENDING)
+  @ApiOperation({ summary: 'Update a pickup (customer only, PENDING only)' })
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePickupDto: UpdatePickupDto) {
-    return this.pickupsService.update(+id, updatePickupDto);
+  @Auth('CUSTOMER')
+  updatePickup(@Param('id') id: string, @Request() req, @Body() updatePickupDto: UpdatePickupDto) {
+    return this.pickupsService.update(id, req.user.userId, updatePickupDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.pickupsService.remove(+id);
+  // USER: Cancel a pickup
+  @ApiOperation({ summary: 'Cancel a pickup' })
+  @Delete(':id/cancel')
+  @Auth()
+  cancelPickup(@Param('id') id: string, @Request() req) {
+    return this.pickupsService.cancel(id, req.user.userId);
   }
 }

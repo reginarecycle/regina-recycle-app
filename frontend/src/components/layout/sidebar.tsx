@@ -13,6 +13,12 @@ interface SidebarProps {
   userAvatar?: string;
   activePath?: string;
   isLoading?: boolean;
+  onNavigate?: () => void;
+}
+
+function formatRole(role?: string) {
+  if (!role) return "Verified User";
+  return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase() + " User";
 }
 
 export function Sidebar({
@@ -22,6 +28,7 @@ export function Sidebar({
   userAvatar,
   activePath,
   isLoading = false,
+  onNavigate,
 }: SidebarProps) {
   const location = useLocation();
   const navItems = isCollectorMode ? collectorNavItems : userNavItems;
@@ -64,7 +71,7 @@ export function Sidebar({
             const Icon = item.icon;
 
             return (
-              <Link key={item.href} to={item.href}>
+              <Link key={item.href} to={item.href} onClick={onNavigate}>
                 <div
                   className={cn(
                     "flex items-center w-full justify-start px-2 py-3 rounded gap-3 text-foreground hover:bg-primary/10 hover:text-primary [&_svg]:hover:text-primary",
@@ -111,7 +118,7 @@ export function Sidebar({
                 {userName}
               </span>
               <span className="text-xs text-muted-foreground leading-tight">
-                {userRole}
+                {formatRole(userRole)}
               </span>
             </div>
           </div>
