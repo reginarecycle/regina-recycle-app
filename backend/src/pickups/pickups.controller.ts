@@ -21,7 +21,7 @@ import { Auth } from 'src/common/decorator/auth.decorator';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @ApiTags('Pickups')
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 @UseGuards(JwtAuthGuard)
 @Controller('pickups')
 export class PickupsController {
