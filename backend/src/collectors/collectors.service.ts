@@ -682,19 +682,12 @@ const estimatedCost = strategy.estimateCost(
   material.getBulkRate(),
 );
 
-const recommendedPrice = strategy.getRecommendedPrice(
-  quantity,
-  material.getBasePrice(),
-  material.getBulkRate(),
-);
-
   return {
     collectorId,
     materialId,
     materialName: collectorPricing.material.name,
     quantity,
     estimatedCost,
-    recommendedPrice,
   };
 }
 }

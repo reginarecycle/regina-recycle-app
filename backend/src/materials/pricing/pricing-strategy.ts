@@ -11,13 +11,4 @@ export abstract class PricingStrategy {
     basePrice: number,
     bulkRate: number
   ): number;
-
-  // Default implementation (can be overridden if needed)
-  getRecommendedPrice(
-    qty: number,
-    basePrice: number,
-    bulkRate: number
-  ): number {
-    return this.estimateCost(qty, basePrice, bulkRate);
-  }
 }
