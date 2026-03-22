@@ -21,7 +21,6 @@ export default function Step3Location({ onBack }: Props) {
 
   const [addressOption, setAddressOption] = useState<AddressOption>("current");
 
-  // Populate address in context whenever "current" is active and we have the user address
   useEffect(() => {
     if (addressOption === "current" && currentAddressLabel) {
       updateScheduleData({ address: currentAddressLabel });
