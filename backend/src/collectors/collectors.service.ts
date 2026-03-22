@@ -639,6 +639,42 @@ export class CollectorsService {
   });
 }
 
+async calculateMaterialPayout(
+  collectorId: string,
+  materialId: string,
+  quantity: number,
+) {
+  await this.ensureCollectorExists(collectorId);
+
+  const collectorPricing = await this.prisma.collectorPricing.findUnique({
+    where: {
+      collectorUserId_materialId: {
+        collectorUserId: collectorId,
+        materialId,
+      },
+    },
+    include: {
+      material: true,
+    },
+  });
+
+  if (!collectorPricing) {
+    throw new Error('Collector pricing not found for this material');
+  }
+
+  const unitPrice = Number(collectorPricing.basePrice ?? 0);
+  const estimatedPayout = quantity * unitPrice;
+
+  return {
+    collectorId,
+    materialId,
+    materialName: collectorPricing.material.name,
+    quantity,
+    unitPrice,
+    estimatedPayout,
+  };
+}
+
 
   calculateServiceFee(
   feeType: string,
