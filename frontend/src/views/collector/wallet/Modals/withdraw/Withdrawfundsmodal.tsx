@@ -1,10 +1,12 @@
 import * as React from "react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { WithdrawAmountStep } from "./Withdrawamountstep";
 import { WithdrawBankStep } from "./Withdrawbankstep";
 import { WithdrawReviewStep } from "./Withdrawreviewstep";
 import { ModalShell, StepIndicator, SuccessScreen } from "../../shared";
 import type { WithdrawBankFormValues } from "@/lib/validation";
+import { useCollectorWithdraw } from "@/api-hooks/useWallet";
 
 interface WithdrawFundsModalProps {
   open: boolean;
@@ -26,6 +28,8 @@ export const WithdrawFundsModal: React.FC<WithdrawFundsModalProps> = ({
     routingNumber: "",
   });
 
+  const { mutateAsync: withdraw, isPending } = useCollectorWithdraw();
+
   const handleClose = () => {
     onClose();
     setTimeout(() => {
@@ -35,6 +39,21 @@ export const WithdrawFundsModal: React.FC<WithdrawFundsModalProps> = ({
     }, 300);
   };
 
+  const handleConfirm = async () => {
+    try {
+      await withdraw({
+        accountHolderName: bankData.accountHolder,
+        bankName: bankData.bankName,
+        accountNumber: bankData.accountNumber,
+        routingNumber: bankData.routingNumber,
+        amount: amount ?? 0,
+      });
+      setStep(4);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to process withdrawal. Please try again.");
+    }
+  };
+
   const subtitles: Record<number, string> = {
     1: "Enter the amount you want to withdraw",
     2: "Enter your bank account details",
@@ -42,9 +61,9 @@ export const WithdrawFundsModal: React.FC<WithdrawFundsModalProps> = ({
     4: "Withdrawal successful",
   };
 
-  const isSuccess    = step === 4;
-  const stepperStep  = Math.min(step, 3);
-  const totalSteps   = 3;
+  const isSuccess   = step === 4;
+  const stepperStep = Math.min(step, 3);
+  const totalSteps  = 3;
 
   return (
     <ModalShell
@@ -53,13 +72,11 @@ export const WithdrawFundsModal: React.FC<WithdrawFundsModalProps> = ({
       title="Withdraw Funds"
       subtitle={subtitles[step] ?? ""}
     >
-      {/* Stepper */}
       <div className="px-6 pt-5 shrink-0">
         <StepIndicator totalSteps={totalSteps} currentStep={stepperStep} />
       </div>
       <div className="h-px bg-border mt-4 shrink-0" />
 
-      {/* Step 1 — Amount */}
       {step === 1 && (
         <WithdrawAmountStep
           defaultAmount={amount}
@@ -69,7 +86,6 @@ export const WithdrawFundsModal: React.FC<WithdrawFundsModalProps> = ({
         />
       )}
 
-      {/* Step 2 — Bank Details */}
       {step === 2 && (
         <WithdrawBankStep
           defaultValues={bankData}
@@ -78,20 +94,19 @@ export const WithdrawFundsModal: React.FC<WithdrawFundsModalProps> = ({
         />
       )}
 
-      {/* Step 3 — Review */}
       {step === 3 && (
         <WithdrawReviewStep
           amount={amount ?? 0}
           bankData={bankData}
           onBack={() => setStep(2)}
-          onConfirm={() => setStep(4)}
+          onConfirm={handleConfirm}
+          isPending={isPending}
         />
       )}
 
-      {/* Step 4 — Success */}
       {isSuccess && (
         <SuccessScreen
-          title="Withdrawal Successfully!"
+          title="Withdrawal Successful!"
           subtitle="Your account has been debited"
           onClose={handleClose}
         />
