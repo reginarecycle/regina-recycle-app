@@ -1,12 +1,10 @@
 import { cn } from "@/lib/utils";
 
 // ── Variant styles ─────────────────────────────────────────────────────────────
-// Add new status strings here as the app grows.
-
 type BadgeVariant =
-  | "COMPLETED" | "APPROVED" | "SUCCESS"
-  | "PENDING"   | "PROCESSING" | "IN_PROGRESS"
-  | "CANCELLED" | "REJECTED"  | "FAILED"
+  | "COMPLETED" | "APPROVED" | "SUCCESS" | "CREDIT"
+  | "PENDING"   | "PROCESSING" | "IN_PROGRESS" | "UPCOMING"
+  | "CANCELLED" | "REJECTED"  | "FAILED" | "WITHDRAWAL"
   | "ACTIVE"    | "INACTIVE"
   | string; // fallback for unknown values
 
@@ -15,26 +13,52 @@ function getVariantClasses(status: string): { className: string; label: string }
     case "COMPLETED":
     case "APPROVED":
     case "SUCCESS":
-      return { label: status.charAt(0) + status.slice(1).toLowerCase(), className: "bg-green-100 text-green-700 border border-green-200" };
+    case "CREDIT":
+      return { 
+        label: status.charAt(0) + status.slice(1).toLowerCase(), 
+        className: "bg-green-100 text-green-700 border border-green-200" 
+      };
 
     case "PENDING":
     case "PROCESSING":
     case "IN_PROGRESS":
-      return { label: status.charAt(0) + status.slice(1).toLowerCase().replace("_", " "), className: "bg-yellow-100 text-yellow-600 border border-yellow-200" };
+      return { 
+        label: status.charAt(0) + status.slice(1).toLowerCase().replace("_", " "), 
+        className: "bg-yellow-100 text-yellow-600 border border-yellow-200" 
+      };
+
+    case "UPCOMING":
+      return { 
+        label: "Upcoming", 
+        className: "bg-blue-100 text-blue-600 border border-blue-200" 
+      };
 
     case "CANCELLED":
     case "REJECTED":
     case "FAILED":
-      return { label: status.charAt(0) + status.slice(1).toLowerCase(), className: "bg-red-500 text-white border border-red-500" };
+    case "WITHDRAWAL":
+      return { 
+        label: status.charAt(0) + status.slice(1).toLowerCase(), 
+        className: "bg-red-100 text-red-700 border border-red-200" 
+      };
 
     case "ACTIVE":
-      return { label: "Active", className: "bg-primary/10 text-primary border border-primary/20" };
+      return { 
+        label: "Active", 
+        className: "bg-primary/10 text-primary border border-primary/20" 
+      };
 
     case "INACTIVE":
-      return { label: "Inactive", className: "bg-muted text-muted-foreground border border-border" };
+      return { 
+        label: "Inactive", 
+        className: "bg-muted text-muted-foreground border border-border" 
+      };
 
     default:
-      return { label: status, className: "bg-muted text-muted-foreground border border-border" };
+      return { 
+        label: status, 
+        className: "bg-muted text-muted-foreground border border-border" 
+      };
   }
 }
 
