@@ -1181,6 +1181,396 @@
         ]
       }
     },
+    "CustomerWalletDto": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "example": "cm9abc123"
+        },
+        "walletId": {
+          "type": "string",
+          "example": "wallet_123"
+        },
+        "balance": {
+          "type": "number",
+          "example": 0
+        },
+        "monthlyEarnings": {
+          "type": "number",
+          "example": 0
+        },
+        "yearlyEarnings": {
+          "type": "number",
+          "example": 0
+        },
+        "pendingEarningsAmount": {
+          "type": "number",
+          "example": 0
+        },
+        "earningsChangeAmount": {
+          "type": "number",
+          "example": 0
+        }
+      },
+      "required": [
+        "userId",
+        "walletId",
+        "balance",
+        "monthlyEarnings",
+        "yearlyEarnings",
+        "pendingEarningsAmount",
+        "earningsChangeAmount"
+      ]
+    },
+    "CollectorWalletDto": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "example": "cm9abc123"
+        },
+        "walletId": {
+          "type": "string",
+          "example": "wallet_123"
+        },
+        "balance": {
+          "type": "number",
+          "example": 100
+        },
+        "monthlyPayouts": {
+          "type": "number",
+          "example": 250.5
+        },
+        "monthlyNetFlow": {
+          "type": "number",
+          "example": 120.75
+        },
+        "pendingRequestsAmount": {
+          "type": "number",
+          "example": 140
+        },
+        "pendingApprovalAmount": {
+          "type": "number",
+          "example": 12
+        }
+      },
+      "required": [
+        "userId",
+        "walletId",
+        "balance",
+        "monthlyPayouts",
+        "monthlyNetFlow",
+        "pendingRequestsAmount",
+        "pendingApprovalAmount"
+      ]
+    },
+    "WalletTransactionDto": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "example": "cm9abc123"
+        },
+        "walletId": {
+          "type": "string",
+          "example": "wallet_123"
+        },
+        "type": {
+          "$ref": "#/components/schemas/TxType"
+        },
+        "amount": {
+          "type": "number",
+          "example": 100.52
+        },
+        "status": {
+          "$ref": "#/components/schemas/TxStatus"
+        },
+        "description": {
+          "type": "string",
+          "example": "Payment for recycling"
+        },
+        "referenceType": {
+          "type": "string",
+          "example": "TOP_UP"
+        },
+        "referenceId": {
+          "type": "string",
+          "example": "cm9abc123"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2026-03-16T18:25:43.511Z"
+        },
+        "senderId": {
+          "type": "string",
+          "example": "cm9abc123"
+        },
+        "receiverId": {
+          "type": "string",
+          "example": "cm9abc123"
+        },
+        "fees": {
+          "type": "number",
+          "example": 1.25
+        }
+      },
+      "required": [
+        "walletId",
+        "type",
+        "amount",
+        "status",
+        "createdAt"
+      ]
+    },
+    "WalletTransactionQueryDto": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "number",
+          "default": 1,
+          "example": 1
+        },
+        "limit": {
+          "type": "number",
+          "default": 10,
+          "example": 10
+        },
+        "search": {
+          "type": "string",
+          "example": "Payment for tins"
+        },
+        "type": {
+          "$ref": "#/components/schemas/TxType"
+        },
+        "status": {
+          "$ref": "#/components/schemas/TxStatus"
+        },
+        "startDate": {
+          "type": "string",
+          "example": "2026-01-01"
+        },
+        "endDate": {
+          "type": "string",
+          "example": "2026-12-31"
+        }
+      }
+    },
+    "CustomerWithdrawFundsDto": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "example": "cm9abc123"
+        },
+        "interacEmail": {
+          "type": "string",
+          "example": "john@doe@gmail.com"
+        },
+        "securityQuestion": {
+          "type": "string",
+          "example": "What is your favorite color?"
+        },
+        "securityAnswer": {
+          "type": "string",
+          "example": "Green"
+        },
+        "amount": {
+          "type": "number",
+          "example": 150.75
+        },
+        "status": {
+          "$ref": "#/components/schemas/TxStatus"
+        }
+      },
+      "required": [
+        "interacEmail",
+        "amount"
+      ]
+    },
+    "PaymentMethodDto": {
+      "type": "object",
+      "properties": {
+        "paymentMethodId": {
+          "type": "string",
+          "example": "cm9abc123"
+        },
+        "userId": {
+          "type": "string",
+          "example": "cm9abc123"
+        },
+        "type": {
+          "$ref": "#/components/schemas/PaymentMethodType"
+        },
+        "cardLast4": {
+          "type": "string",
+          "example": "0000",
+          "pattern": "^\\d{4}$"
+        },
+        "cardBrand": {
+          "type": "string",
+          "example": "Visa"
+        },
+        "expMonth": {
+          "type": "integer",
+          "example": 12,
+          "minimum": 1,
+          "maximum": 12
+        },
+        "expYear": {
+          "type": "integer",
+          "example": 2030,
+          "minimum": 2000,
+          "maximum": 2060
+        },
+        "mobileProvider": {
+          "type": "string",
+          "example": "Apple"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "example": "306 231 7863",
+          "pattern": "^\\(?\\d{3}\\)?[-\\s]?\\d{3}[-\\s]?\\d{4}$"
+        },
+        "isDefault": {
+          "type": "boolean",
+          "example": true
+        }
+      },
+      "required": [
+        "paymentMethodId",
+        "userId",
+        "type"
+      ]
+    },
+    "TopUpRequestsDto": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "example": "cm9abc123"
+        },
+        "paymentMethodId": {
+          "type": "string",
+          "example": "cm9abc123"
+        },
+        "amount": {
+          "type": "number",
+          "example": 100
+        },
+        "status": {
+          "$ref": "#/components/schemas/TxStatus"
+        },
+        "paymentMethod": {
+          "$ref": "#/components/schemas/PaymentMethodDto"
+        }
+      },
+      "required": [
+        "userId",
+        "paymentMethodId",
+        "amount",
+        "paymentMethod"
+      ]
+    },
+    "WalletBalanceResponseDto": {
+      "type": "object",
+      "properties": {
+        "walletId": {
+          "type": "string",
+          "example": "wallet_123"
+        },
+        "balance": {
+          "type": "number",
+          "example": 100
+        },
+        "currency": {
+          "type": "string",
+          "example": "CAD"
+        }
+      },
+      "required": [
+        "walletId",
+        "balance",
+        "currency"
+      ]
+    },
+    "WalletStatsResponseDto": {
+      "type": "object",
+      "properties": {
+        "totalCredits": {
+          "type": "number",
+          "example": 500.25
+        },
+        "totalDebits": {
+          "type": "number",
+          "example": 120.5
+        },
+        "totalTransactions": {
+          "type": "number",
+          "example": 12
+        }
+      },
+      "required": [
+        "totalCredits",
+        "totalDebits",
+        "totalTransactions"
+      ]
+    },
+    "WithdrawResponseDto": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Withdraw request created successfully"
+        },
+        "withdrawRequest": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "message",
+        "withdrawRequest"
+      ]
+    },
+    "TopUpResponseDto": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Top up request created successfully"
+        },
+        "topUpRequest": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "message",
+        "topUpRequest"
+      ]
+    },
+    "TxType": {
+      "type": "string",
+      "enum": [
+        "CREDIT",
+        "DEBIT"
+      ]
+    },
+    "TxStatus": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "COMPLETED",
+        "FAILED"
+      ]
+    },
+    "PaymentMethodType": {
+      "type": "string",
+      "enum": [
+        "CARD",
+        "MOBILE"
+      ]
+    },
     "/tips": {
       "get": {
         "operationId": "TipsController_getTips",
@@ -1471,6 +1861,396 @@
       "UpdateMaterialDto": {
         "type": "object",
         "properties": {}
+      },
+      "CustomerWalletDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "example": "cm9abc123"
+          },
+          "walletId": {
+            "type": "string",
+            "example": "wallet_123"
+          },
+          "balance": {
+            "type": "number",
+            "example": 0
+          },
+          "monthlyEarnings": {
+            "type": "number",
+            "example": 0
+          },
+          "yearlyEarnings": {
+            "type": "number",
+            "example": 0
+          },
+          "pendingEarningsAmount": {
+            "type": "number",
+            "example": 0
+          },
+          "earningsChangeAmount": {
+            "type": "number",
+            "example": 0
+          }
+        },
+        "required": [
+          "userId",
+          "walletId",
+          "balance",
+          "monthlyEarnings",
+          "yearlyEarnings",
+          "pendingEarningsAmount",
+          "earningsChangeAmount"
+        ]
+      },
+      "CollectorWalletDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "example": "cm9abc123"
+          },
+          "walletId": {
+            "type": "string",
+            "example": "wallet_123"
+          },
+          "balance": {
+            "type": "number",
+            "example": 100
+          },
+          "monthlyPayouts": {
+            "type": "number",
+            "example": 250.5
+          },
+          "monthlyNetFlow": {
+            "type": "number",
+            "example": 120.75
+          },
+          "pendingRequestsAmount": {
+            "type": "number",
+            "example": 140
+          },
+          "pendingApprovalAmount": {
+            "type": "number",
+            "example": 12
+          }
+        },
+        "required": [
+          "userId",
+          "walletId",
+          "balance",
+          "monthlyPayouts",
+          "monthlyNetFlow",
+          "pendingRequestsAmount",
+          "pendingApprovalAmount"
+        ]
+      },
+      "WalletTransactionDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "example": "cm9abc123"
+          },
+          "walletId": {
+            "type": "string",
+            "example": "wallet_123"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TxType"
+          },
+          "amount": {
+            "type": "number",
+            "example": 100.52
+          },
+          "status": {
+            "$ref": "#/components/schemas/TxStatus"
+          },
+          "description": {
+            "type": "string",
+            "example": "Payment for recycling"
+          },
+          "referenceType": {
+            "type": "string",
+            "example": "TOP_UP"
+          },
+          "referenceId": {
+            "type": "string",
+            "example": "cm9abc123"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-03-16T18:25:43.511Z"
+          },
+          "senderId": {
+            "type": "string",
+            "example": "cm9abc123"
+          },
+          "receiverId": {
+            "type": "string",
+            "example": "cm9abc123"
+          },
+          "fees": {
+            "type": "number",
+            "example": 1.25
+          }
+        },
+        "required": [
+          "walletId",
+          "type",
+          "amount",
+          "status",
+          "createdAt"
+        ]
+      },
+      "WalletTransactionQueryDto": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "default": 1,
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "default": 10,
+            "example": 10
+          },
+          "search": {
+            "type": "string",
+            "example": "Payment for tins"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TxType"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TxStatus"
+          },
+          "startDate": {
+            "type": "string",
+            "example": "2026-01-01"
+          },
+          "endDate": {
+            "type": "string",
+            "example": "2026-12-31"
+          }
+        }
+      },
+      "CustomerWithdrawFundsDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "example": "cm9abc123"
+          },
+          "interacEmail": {
+            "type": "string",
+            "example": "john@doe@gmail.com"
+          },
+          "securityQuestion": {
+            "type": "string",
+            "example": "What is your favorite color?"
+          },
+          "securityAnswer": {
+            "type": "string",
+            "example": "Green"
+          },
+          "amount": {
+            "type": "number",
+            "example": 150.75
+          },
+          "status": {
+            "$ref": "#/components/schemas/TxStatus"
+          }
+        },
+        "required": [
+          "interacEmail",
+          "amount"
+        ]
+      },
+      "PaymentMethodDto": {
+        "type": "object",
+        "properties": {
+          "paymentMethodId": {
+            "type": "string",
+            "example": "cm9abc123"
+          },
+          "userId": {
+            "type": "string",
+            "example": "cm9abc123"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PaymentMethodType"
+          },
+          "cardLast4": {
+            "type": "string",
+            "example": "0000",
+            "pattern": "^\\d{4}$"
+          },
+          "cardBrand": {
+            "type": "string",
+            "example": "Visa"
+          },
+          "expMonth": {
+            "type": "integer",
+            "example": 12,
+            "minimum": 1,
+            "maximum": 12
+          },
+          "expYear": {
+            "type": "integer",
+            "example": 2030,
+            "minimum": 2000,
+            "maximum": 2060
+          },
+          "mobileProvider": {
+            "type": "string",
+            "example": "Apple"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "306 231 7863",
+            "pattern": "^\\(?\\d{3}\\)?[-\\s]?\\d{3}[-\\s]?\\d{4}$"
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "paymentMethodId",
+          "userId",
+          "type"
+        ]
+      },
+      "TopUpRequestsDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "example": "cm9abc123"
+          },
+          "paymentMethodId": {
+            "type": "string",
+            "example": "cm9abc123"
+          },
+          "amount": {
+            "type": "number",
+            "example": 100
+          },
+          "status": {
+            "$ref": "#/components/schemas/TxStatus"
+          },
+          "paymentMethod": {
+            "$ref": "#/components/schemas/PaymentMethodDto"
+          }
+        },
+        "required": [
+          "userId",
+          "paymentMethodId",
+          "amount",
+          "paymentMethod"
+        ]
+      },
+      "WalletBalanceResponseDto": {
+        "type": "object",
+        "properties": {
+          "walletId": {
+            "type": "string",
+            "example": "wallet_123"
+          },
+          "balance": {
+            "type": "number",
+            "example": 100
+          },
+          "currency": {
+            "type": "string",
+            "example": "CAD"
+          }
+        },
+        "required": [
+          "walletId",
+          "balance",
+          "currency"
+        ]
+      },
+      "WalletStatsResponseDto": {
+        "type": "object",
+        "properties": {
+          "totalCredits": {
+            "type": "number",
+            "example": 500.25
+          },
+          "totalDebits": {
+            "type": "number",
+            "example": 120.5
+          },
+          "totalTransactions": {
+            "type": "number",
+            "example": 12
+          }
+        },
+        "required": [
+          "totalCredits",
+          "totalDebits",
+          "totalTransactions"
+        ]
+      },
+      "WithdrawResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Withdraw request created successfully"
+          },
+          "withdrawRequest": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "message",
+          "withdrawRequest"
+        ]
+      },
+      "TopUpResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Top up request created successfully"
+          },
+          "topUpRequest": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "message",
+          "topUpRequest"
+        ]
+      },
+      "TxType": {
+        "type": "string",
+        "enum": [
+          "CREDIT",
+          "DEBIT"
+        ]
+      },
+      "TxStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "COMPLETED",
+          "FAILED"
+        ]
+      },
+      "PaymentMethodType": {
+        "type": "string",
+        "enum": [
+          "CARD",
+          "MOBILE"
+        ]
       }
     }
   }
