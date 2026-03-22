@@ -17,15 +17,14 @@ import { JwtService } from '@nestjs/jwt';
 })
 
 export class NotificationsGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
-{
+  implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
   private readonly logger = new Logger(NotificationsGateway.name); // For logging connection events
   private userSocketMap = new Map<string, string>(); // userId -> socketId, to track which user is connected to which socket
 
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(private readonly jwtService: JwtService) { }
 
   async handleConnection(client: Socket) {
     try {
@@ -34,9 +33,9 @@ export class NotificationsGateway
         client.handshake.headers?.token ||
         client.handshake.headers?.authorization?.split(' ')[1] ||
         client.handshake.query?.token;
-  
+
       if (!token) { client.disconnect(); return; }
-  
+
       const payload = this.jwtService.verify(token);
       const userId = payload.sub || payload.userId;
       this.userSocketMap.set(userId, client.id);

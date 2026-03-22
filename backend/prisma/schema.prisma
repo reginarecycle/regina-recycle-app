@@ -179,9 +179,9 @@ model Material {
   description String?
   collectorPricings CollectorPricing[]
   pickupItems       PickupItem[]
-  pickupSnapshots   PickupSnapshot[] 
+  pickupSnapshots   PickupSnapshot[]
 
-  @@map("Material")
+  @@map("materials")
   @@index([type])
 }
 
@@ -374,12 +374,13 @@ model Notification {
 }
 
 model Tip {
-  tipId       String   @id @default(uuid())
+  tipId       String    @id @default(uuid())
+  title       String?   
   content     String
   startDate   DateTime?
   endDate     DateTime?
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
 
   @@map("tips")
   @@index([active])
