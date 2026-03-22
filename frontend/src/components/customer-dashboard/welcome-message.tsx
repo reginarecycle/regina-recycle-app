@@ -1,40 +1,38 @@
-"use client";
-
-import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useRouter } from "@/routes/hooks/use-router";
+import { useCurrentUser } from "@/api-hooks/useAuth";
+import { Routes } from "@/routes/routes";
 
-type Props = {
-    name?: string;
-};
+function getGreeting(): { text: string; emoji: string } {
+  const hour = new Date().getHours();
+  if (hour < 12) return { text: "Good Morning",   emoji: "🥱" };
+  if (hour < 17) return { text: "Good Afternoon", emoji: "☀️" };
+  return              { text: "Good Evening",   emoji: "🌙" };
+}
 
-export function WelcomeMessage({
-    name = "John Doe",
-}: Props) {
+export function WelcomeMessage() {
+  const router = useRouter();
+  const { data } = useCurrentUser();
+  const user = data?.data;
+  const { text, emoji } = getGreeting();
 
-    const router = useRouter();
+  return (
+    <div className="flex justify-between flex-wrap gap-4 px-4 sm:px-6 lg:px-8 pt-6">
+      <h1 className="text-2xl font-bold">
+        {text}, {user?.name ?? ""} {emoji}
+      </h1>
 
-    const handleSchedulePickup = () => {
-        router.push("/app/schedule"); // takes the user to the schedule pickup page
-    };
-
-    return (
-        <div className="flex justify-between flex-wrap gap-4 p-8 pb-0">
-            <h1 className="text-2xl font-bold">
-                Welcome, {name}
-            </h1>
-
-            <Button
-                onClick={handleSchedulePickup}
-                className="group border-[#344E41] text-[#344E41] hover:bg-[#618171] hover:border-[#618171] hover:text-white transition-colors duration-200"
-                variant="outline"
-                size="lg"
-            >
-                <Plus className="mr-2 h-4 w-4 text-[#344E41] group-hover:text-white transition-colors duration-200" />
-                Schedule Pickup
-            </Button>
-        </div>
-    );
+      <Button
+        onClick={() => router.push(Routes.history)}
+        variant="outlineprimary"
+        size="lg"
+      >
+        <Plus className="w-4 h-4"/>
+        Schedule Pickup
+      </Button>
+    </div>
+  );
 }
 
 export default WelcomeMessage;
