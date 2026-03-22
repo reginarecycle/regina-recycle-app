@@ -11,77 +11,78 @@ let initPromise: Promise<INestApplication> | null = null;
 
 async function createApp(): Promise<INestApplication> {
   if (app) return app;
-  if (initPromise) return initPromise;
 
-  initPromise = (async () => {
-    const instance = await NestFactory.create(AppModule, {
-      bodyParser: true,
-      logger: ['error', 'warn'],
-    });
+  const instance = await NestFactory.create(AppModule, {
+    bodyParser: true,
+    logger: ['error', 'warn'],
+  });
 
-    instance.setGlobalPrefix('api');
+  instance.setGlobalPrefix('api');
 
-    instance.enableCors({
-      origin: [
+  instance.enableCors({
+    origin: (origin, callback) => {
+      const allowed = [
         'http://localhost:5173',
         'https://reginarecycle.vercel.app',
         'https://regina-recycle-staging.vercel.app',
-      ],
-      credentials: true,
-    });
+      ];
+        if (!origin || allowed.includes(origin) || origin.endsWith('.vercel.app')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  });
 
-    instance.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
-    instance.useGlobalInterceptors(new ResponseInterceptor());
-    instance.useGlobalFilters(new HttpExceptionFilter());
+  instance.useGlobalPipes(
+    new ValidationPipe({ whitelist: true, transform: true }),
+  );
+  instance.useGlobalInterceptors(new ResponseInterceptor());
+  instance.useGlobalFilters(new HttpExceptionFilter());
 
-    const config = new DocumentBuilder()
-      .setTitle('ReginaRecycle API')
-      .setDescription('ReginaRecycle backend API documentation')
-      .setVersion('1.0')
-      .addBearerAuth(
-        { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
-        'JWT-auth',
-      )
-      .build();
+  const config = new DocumentBuilder()
+    .setTitle('ReginaRecycle API')
+    .setDescription('ReginaRecycle backend API documentation')
+    .setVersion('1.0')
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      'JWT-auth',
+    )
+    .build();
 
-    const document = SwaggerModule.createDocument(instance, config);
-    SwaggerModule.setup('docs', instance, document, {
-      customCssUrl: 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css',
-      customJs: [
-        'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-standalone-preset.min.js',
-        'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.min.js',
-      ],
-      swaggerOptions: { persistAuthorization: true },
-      customSiteTitle: 'ReginaRecycle API Docs',
-    });
+  const document = SwaggerModule.createDocument(instance, config);
+  SwaggerModule.setup('docs', instance, document, {
+    customCssUrl:
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css',
+    customJs: [
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-standalone-preset.min.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.min.js',
+    ],
+    swaggerOptions: { persistAuthorization: true },
+    customSiteTitle: 'ReginaRecycle API Docs',
+  });
 
-    await instance.init();
-    app = instance;
-    return app;
-  })();
-
-  return initPromise;
+  await instance.init();
+  app = instance;
+  return app;
 }
 
-// Local dev — spin up a real HTTP server
+// Local dev
 if (!process.env.VERCEL) {
   const port = process.env.PORT || 4000;
-  createApp().then(instance => {
+  createApp().then((instance) => {
     instance.listen(port, () =>
       console.log(`Running on http://localhost:${port}`),
     );
   });
 }
 
-// Vercel serverless — raw Node handler, no Express/Fastify
+// Vercel serverless
 export default async function handler(
   req: IncomingMessage,
   res: ServerResponse,
 ) {
   const nestApp = await createApp();
-
-  // NestJS wraps Node's http server internally.
-  // We pull the underlying http.Server and emit the request directly into it.
-  const httpServer = nestApp.getHttpServer(); // returns http.Server (Node built-in)
-  httpServer.emit('request', req, res);
+  nestApp.getHttpServer().emit('request', req, res);
 }
