@@ -5,9 +5,9 @@ import { PrismaService } from '../prisma/prisma.service';
 import { UpdateMaterialPricingDto } from './dto/update-material-pricing.dto';
 import { UpdateMaterialSettingsDto } from './dto/update-material-settings.dto';
 import { BadRequestException } from '@nestjs/common';
-import { MaterialPricingFactory } from "../materials/pricing/material-pricing-factory";
+import { ServiceFeeFactory } from '../materials/pricing/service-fee-factory';
 import { CreateMaterialPricingDto} from './dto/create-material-pricing.dto';
-import { Material } from '../materials/pricing/material';
+
 
 @Injectable()
 export class CollectorsService {
@@ -640,54 +640,13 @@ export class CollectorsService {
 }
 
 
-  async calculateMaterialPrice(
+  calculateServiceFee(
+  feeType: string,
+  feeValue: number,
   collectorId: string,
-  materialId: string,
-  quantity: number,
-) {
-  await this.ensureCollectorExists(collectorId);
-
-  const collectorPricing = await this.prisma.collectorPricing.findUnique({
-    where: {
-      collectorUserId_materialId: {
-        collectorUserId: collectorId,
-        materialId,
-      },
-    },
-    include: {
-      material: true,
-    },
-  });
-
-  if (!collectorPricing) {
-    throw new Error('Collector pricing not found for this material');
-  }
-
-  const material = new Material(
-  materialId,
-  collectorPricing.material.name,
-  collectorPricing.material.type,
-  Number(collectorPricing.basePrice ?? 0),
-  Number(collectorPricing.bulkPrice ?? 0),
-);
-
-const factory = new MaterialPricingFactory();
-const strategy = factory.createStrategy(
-  material.getType().toLowerCase(),
-);
-
-const estimatedCost = strategy.estimateCost(
-  quantity,
-  material.getBasePrice(),
-  material.getBulkRate(),
-);
-
-  return {
-    collectorId,
-    materialId,
-    materialName: collectorPricing.material.name,
-    quantity,
-    estimatedCost,
-  };
+  amount: number
+): number {
+  const serviceFee = ServiceFeeFactory.create(feeType, feeValue, collectorId);
+  return serviceFee.calculate(amount);
 }
 }

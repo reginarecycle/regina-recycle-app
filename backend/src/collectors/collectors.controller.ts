@@ -165,7 +165,7 @@ export class CollectorsController {
 
   @Get('material-pricing/:materialId/calculate')
   @Auth()
-  calculateMaterialPrice(
+  calculateMaterialPayout(
   @CurrentUser() user: CurrentUserPayload,
   @Param('materialId') materialId: string,
   @Query('quantity') quantity: string,
@@ -176,7 +176,7 @@ export class CollectorsController {
     throw new BadRequestException('Quantity must be a number greater than 0');
   }
 
-  return this.collectorsService.calculateMaterialPrice(
+  return this.collectorsService.calculateMaterialPayout(
     user.userId,
     materialId,
     qty,
