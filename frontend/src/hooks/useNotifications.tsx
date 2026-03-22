@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import { usePusherNotifications } from "./usePusherNotifications";
 import {
@@ -6,7 +6,7 @@ import {
     useUnreadNotificationCount,
     type NotificationItem,
     type NotificationQueryParams,
-} from "@/api-hooks/useNotifcationsAPI";
+} from "@/api-hooks/useNotifcationsAPI"
 import type { Notification } from "@/types/notification";
 
 function mapToFrontend(n: NotificationItem): Notification {
@@ -30,18 +30,21 @@ function mapToFrontend(n: NotificationItem): Notification {
         message: n.message,
         timestamp: new Date(n.createdAt),
         read: n.isRead,
-        icon: <Bell size={'16'} />,
+        icon: <Bell size={16} />,
     };
 }
 
-export function useNotifications(userId?: string, query?: NotificationQueryParams) {
+export function useNotifications(
+    userId?: string,
+    query?: NotificationQueryParams
+) {
     const { data, ...apiState } = useNotificationsApi(query);
     const { data: unreadData } = useUnreadNotificationCount();
 
     const [notifications, setNotifications] = useState<Notification[]>([]);
 
     useEffect(() => {
-        if (!data?.data) return;
+        if (!data?.data?.data) return;
         setNotifications(data.data.data.map(mapToFrontend));
     }, [data]);
 
@@ -53,9 +56,9 @@ export function useNotifications(userId?: string, query?: NotificationQueryParam
         });
     });
 
-    const unreadCount = useMemo(() => {
-        return unreadData?.data?.unreadCount ?? notifications.filter((n) => !n.read).length;
-    }, [unreadData, notifications]);
+    const unreadCount =
+        unreadData?.data?.unreadCount ??
+        notifications.filter((n) => !n.read).length;
 
     return {
         ...apiState,
