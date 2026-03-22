@@ -7,7 +7,7 @@ export class CollectorsController {
   constructor(private readonly collectorsService: CollectorsService) {}
 
   @Get('stats')
-  @UseGuards()
+  @UseGuards() 
   getStats(/* @CurrentUser() user: User */) {
     const collectorId = 'temp-collector-id';
     return this.collectorsService.getStats(collectorId);

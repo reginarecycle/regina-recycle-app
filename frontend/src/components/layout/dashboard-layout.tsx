@@ -104,6 +104,7 @@ export default function DashboardLayout() {
               userRole={user?.role}
               userAvatar={undefined}
               isLoading={isLoading}
+              onNavigate={() => setMobileMenuOpen(false)}
               activePath={
                 isOnNotifications
                   ? isCollectorRoute

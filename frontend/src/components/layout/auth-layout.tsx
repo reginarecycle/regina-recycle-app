@@ -35,7 +35,7 @@ const AuthLayout = () => {
           </div>
         </div>
 
-        <div className="flex-1 bg-white flex flex-col items-center justify-center pt-52 2xl:mt-10 py-12 px-12 container overflow-y-scroll">
+        <div className="flex-1 bg-white flex flex-col items-center justify-center pt-20 sm:pt-52 2xl:mt-10 py-12 px-4 sm:px-8 lg:px-12 container overflow-y-scroll">
           <Outlet />
 
           <p className="text-sm font-medium text-center mt-12 lg:mt-4">
