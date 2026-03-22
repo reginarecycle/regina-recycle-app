@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
+import { useLocation, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { REGEXP_ONLY_DIGITS } from "input-otp";
+
 import AuthHeader from "@/components/shared/headerauth";
 import {
   InputOTP,
@@ -7,31 +11,40 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Button } from "@/components/ui/button";
-import { REGEXP_ONLY_DIGITS } from "input-otp";
-import { useLocation, useNavigate } from "react-router-dom";
 import { Routes } from "@/routes/routes";
+import {
+  useForgotPassword,
+  useResendOtp,
+  useVerifyEmail,
+} from "@/api-hooks/useAuth";
+import { maskEmail } from "@/lib/utils";
 
-type Props = {};
-
-const AccountVerification: React.FC<Props> = () => {
-  const [shakeKey] = useState(0);
+const AccountVerification: React.FC = () => {
   const [countdown, setCountdown] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
-  const purpose = location.state?.purpose; // 'password-reset' or 'account-verification'
-  const email = location.state?.email;
+
+  const purpose = location.state?.purpose as
+    | "password-reset"
+    | "account-verification"
+    | undefined;
+  const email = location.state?.email as string | undefined;
+
+  const { mutate: verifyEmail, isPending: isVerifying } = useVerifyEmail();
+  const { mutate: resendOtp, isPending: isResendingOtp } = useResendOtp();
+  const { mutate: forgotPassword, isPending: isResendingReset } =
+    useForgotPassword();
+
+  const isResending = isResendingOtp || isResendingReset;
 
   const {
     control,
     handleSubmit,
     setError,
-    clearErrors,
     formState: { errors, isDirty },
-  } = useForm<{ otp: string }>({
-    mode: "onSubmit",
-  });
+  } = useForm<{ otp: string }>({ mode: "onSubmit" });
 
-  const handleResend = () => {
+  const startCountdown = () => {
     setCountdown(30);
     const interval = setInterval(() => {
       setCountdown((prev) => {
@@ -42,33 +55,74 @@ const AccountVerification: React.FC<Props> = () => {
         return prev - 1;
       });
     }, 1000);
-    //  logic goes here
   };
 
-  const onSubmit = (data: { otp: string }) => {
-    if (data.otp !== "123456") {
-      setError("otp", {
-        type: "manual",
-        message: "Invalid OTP. Please try again.",
-      });
+  const handleResend = () => {
+    if (!email) return;
+
+    if (purpose === "password-reset") {
+      // Generates a fresh passwordOtp and resends the reset email
+      forgotPassword(
+        { email },
+        {
+          onSuccess: ({ message }) => {
+            toast.success(message);
+            startCountdown();
+          },
+          onError: (error) => toast.error(error.message),
+        }
+      );
     } else {
-      console.log("OTP Verified:", data.otp);
-      clearErrors("otp");
-      if (purpose === "password-reset") {
-        navigate(Routes.reset, { state: { email, verified: true } });
-      } else {
-        navigate(`${Routes.success}?type=email-verification`);
-      }
+      resendOtp(
+        { email },
+        {
+          onSuccess: ({ message }) => {
+            toast.success(message);
+            startCountdown();
+          },
+          onError: (error) => toast.error(error.message),
+        }
+      );
     }
+  };
+
+  const onSubmit = ({ otp }: { otp: string }) => {
+    if (!email) {
+      toast.error("Session expired. Please start again.");
+      return;
+    }
+
+    if (purpose === "password-reset") {
+      navigate(Routes.reset, { state: { email, otp } });
+      return;
+    }
+
+    verifyEmail(
+      { email, otp },
+      {
+        onSuccess: ({ message }) => {
+          toast.success(message);
+          navigate(`${Routes.success}?type=email-verification`);
+        },
+        onError: (error) => {
+          setError("otp", { type: "manual", message: error.message });
+        },
+      }
+    );
   };
 
   return (
     <main>
       <AuthHeader
         title="Verify Email Address"
-        subtitle="We have sent a 6-digit code to joh******e@gmail.com for verification. Please enter it below to continue."
+        subtitle={`We have sent a 6-digit code to ${
+          email ? maskEmail(email) : "your email"
+        } for verification. Please enter it below to continue.`}
       />
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-24.5">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="space-y-6 mt-24.5 w-full max-w-xl"
+      >
         <div className="space-y-2">
           <Controller
             name="otp"
@@ -82,10 +136,7 @@ const AccountVerification: React.FC<Props> = () => {
                 onChange={field.onChange}
                 containerClassName="!justify-between"
               >
-                <InputOTPGroup
-                  key={shakeKey}
-                  className={errors.otp ? "animate-shake" : ""}
-                >
+                <InputOTPGroup className={errors.otp ? "animate-shake" : ""}>
                   {Array.from({ length: 6 }, (_, i) => (
                     <InputOTPSlot
                       key={i}
@@ -103,9 +154,16 @@ const AccountVerification: React.FC<Props> = () => {
             </p>
           )}
         </div>
-        <Button type="submit" className="w-full" disabled={!isDirty}>
+
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={!isDirty || isVerifying}
+          loading={isVerifying}
+        >
           Verify
         </Button>
+
         {countdown > 0 ? (
           <p className="text-center text-muted-foreground">
             Resend code in:{" "}
@@ -116,10 +174,11 @@ const AccountVerification: React.FC<Props> = () => {
             Didn't receive the code?{" "}
             <button
               type="button"
-              className="text-primary font-medium hover:underline"
+              className="text-primary font-medium hover:underline disabled:opacity-50"
               onClick={handleResend}
+              disabled={isResending}
             >
-              Resend
+              {isResending ? "Sending…" : "Resend"}
             </button>
           </p>
         )}

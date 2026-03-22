@@ -3,7 +3,6 @@ import { MaterialsService } from './materials.service';
 import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
 import { Auth } from '../common/decorator/auth.decorator';
-import { PaginationDto } from 'src/common/pagination/pagination.dto';
 import { ApiOperation } from '@nestjs/swagger';
 import { MaterialQueryDto } from './dto/material-query.dto';
 

@@ -5,33 +5,23 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { CheckCheck, MoreVertical, Trash2 } from "lucide-react";
 import type { ViewMode } from "@/types/notification";
 
-interface NotificationHeaderProps {
-  unreadCount:    number;
-  hasNotifications: boolean;
-  viewMode:       ViewMode;
-  setViewMode:    (mode: ViewMode) => void;
-  sortBy:         "newest" | "oldest";
-  setSortBy:      (sort: "newest" | "oldest") => void;
-  onMarkAllRead:  () => void;
-  onClearRead:    () => void;
-  onClearAll:     () => void;
+interface ActionMenuProps {
+  className?: string;
+  unreadCount: number;
+  onMarkAllRead: () => void;
+  onClearRead: () => void;
+  onClearAll: () => void;
 }
 
-export function NotificationHeader({
-  unreadCount,
-  hasNotifications,
-  viewMode,
-  setViewMode,
-  sortBy,
-  setSortBy,
-  onMarkAllRead,
-  onClearRead,
-  onClearAll,
-}: NotificationHeaderProps) {
-  const ActionMenu = ({ className }: { className?: string }) => (
+function ActionMenu({ className, unreadCount, onMarkAllRead, onClearRead, onClearAll }: ActionMenuProps) {
+  return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant={className?.includes("ghost") ? "ghost" : "outline"} size="sm" className={`h-9 w-9 p-0 ${className}`}>
+        <Button
+          variant={className?.includes("ghost") ? "ghost" : "outline"}
+          size="sm"
+          className={`h-9 w-9 p-0 ${className ?? ""}`}
+        >
           <MoreVertical className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
@@ -52,7 +42,31 @@ export function NotificationHeader({
       </DropdownMenuContent>
     </DropdownMenu>
   );
+}
 
+interface NotificationHeaderProps {
+  unreadCount:      number;
+  hasNotifications: boolean;
+  viewMode:         ViewMode;
+  setViewMode:      (mode: ViewMode) => void;
+  sortBy:           "newest" | "oldest";
+  setSortBy:        (sort: "newest" | "oldest") => void;
+  onMarkAllRead:    () => void;
+  onClearRead:      () => void;
+  onClearAll:       () => void;
+}
+
+export function NotificationHeader({
+  unreadCount,
+  hasNotifications,
+  viewMode,
+  setViewMode,
+  sortBy,
+  setSortBy,
+  onMarkAllRead,
+  onClearRead,
+  onClearAll,
+}: NotificationHeaderProps) {
   return (
     <div className="p-4 sm:p-6 border-b">
       <div className="flex items-center justify-between mb-6">
@@ -74,10 +88,21 @@ export function NotificationHeader({
                   <CheckCheck className="h-4 w-4" /> Mark all read
                 </Button>
               )}
-              <ActionMenu />
+              <ActionMenu
+                unreadCount={unreadCount}
+                onMarkAllRead={onMarkAllRead}
+                onClearRead={onClearRead}
+                onClearAll={onClearAll}
+              />
             </div>
             {/* Mobile */}
-            <ActionMenu className="ghost sm:hidden" />
+            <ActionMenu
+              className="ghost sm:hidden"
+              unreadCount={unreadCount}
+              onMarkAllRead={onMarkAllRead}
+              onClearRead={onClearRead}
+              onClearAll={onClearAll}
+            />
           </>
         )}
       </div>
@@ -103,9 +128,9 @@ export function NotificationHeader({
             ))}
           </div>
 
-          {/* Sort */}
-          <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
-            <SelectTrigger className="w-full sm:w-[130px] h-8 text-sm">
+          {/* Sort — fixed any type */}
+          <Select value={sortBy} onValueChange={(v: "newest" | "oldest") => setSortBy(v)}>
+            <SelectTrigger className="w-full sm:w-32.5 h-8 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

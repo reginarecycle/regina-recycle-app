@@ -51,4 +51,27 @@ export enum ErrorMessage {
     //Tips
     TIP_NOT_FOUND = 'Tip not found',
     TIP_ALREADY_EXISTS = 'A tip with this content already exists',
+
+
+  // ── Wallet ────────────────────────────────────────────────────────────────────
+  WALLET_NOT_FOUND = 'Wallet not found',
+  WALLET_NO_ACCESS = 'You do not have access to this wallet',
+  INSUFFICIENT_BALANCE = 'Insufficient wallet balance to complete this request',
+  INVALID_AMOUNT = 'Amount must be greater than zero',
+
+  // ── Transactions ──────────────────────────────────────────────────────────────
+  TRANSACTION_NOT_FOUND = 'Transaction not found',
+  TRANSACTION_NO_ACCESS = 'You do not have access to this transaction',
+  TRANSACTION_ALREADY_PROCESSED = 'This transaction has already been processed',
+
+  // ── Payment methods ───────────────────────────────────────────────────────────
+  PAYMENT_METHOD_NOT_FOUND = 'Payment method not found',
+  PAYMENT_METHOD_ALREADY_EXISTS = 'This payment method already exists',
+  PAYMENT_METHOD_NO_ACCESS = 'You do not have access to this payment method',
+
+  // ── Withdraw & top up ─────────────────────────────────────────────────────────
+  WITHDRAW_REQUEST_NOT_FOUND = 'Withdrawal request not found',
+  WITHDRAW_REQUEST_ALREADY_PROCESSED = 'This withdrawal request has already been processed',
+  TOPUP_REQUEST_NOT_FOUND = 'Top-up request not found',
+  TOPUP_REQUEST_ALREADY_PROCESSED = 'This top-up request has already been processed',
 }

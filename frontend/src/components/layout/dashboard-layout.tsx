@@ -1,8 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Routes } from "@/routes/routes";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Toolbar } from "@/components/layout/toolbar";
+import { useCurrentUser } from "@/api-hooks/useAuth";
+import { useInactivityLogout } from "@/hooks/use-inactivity";
+import { getUserRole } from "@/lib/helper";
 
 const PAGE_TITLES: Record<string, string> = {
   "/app/dashboard":           "Dashboard",
@@ -12,99 +15,82 @@ const PAGE_TITLES: Record<string, string> = {
   "/app/profile":             "Profile",
   "/app/collector/dashboard": "Dashboard",
   "/app/collector/requests":  "Collection Requests",
-  "/app/collector/wallet":    "Wallet",
+  "/app/collector/wallet":    "Wallet Management",
   "/app/collector/users":     "Users",
   "/app/collector/settings":  "Settings",
 };
+
+function getPageTitle(pathname: string): string {
+  if (pathname.includes("/notification")) return "Notifications";
+  if (pathname.startsWith("/app/schedule")) return "Schedule Pickup";
+  return PAGE_TITLES[pathname] ?? "Dashboard";
+}
 
 export default function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [currentLocation, setCurrentLocation] = useState("123-lane");
-  const [pageTitle, setPageTitle] = useState("Dashboard");
 
-  // Determine if current path is collector route
   const isCollectorRoute = location.pathname.includes("/collector");
+  const isOnNotifications = location.pathname.includes("/notification");
 
-  // Initialize lastMainPage from localStorage or default to dashboard
-  const getInitialLastPage = () => {
-    if (location.pathname.includes("/notification")) {
-      const stored = localStorage.getItem("lastMainPage");
-      if (stored) return stored;
-      return isCollectorRoute ? Routes.collectordashboard : Routes.dashboard;
-    }
-    return location.pathname;
-  };
+  const { data: userResult, isLoading } = useCurrentUser();
+  const user = userResult?.data;
 
-  const lastMainPage = useRef(getInitialLastPage());
+  // ── Must be before any early returns (rules of hooks) ────────────────────────
+  useInactivityLogout(60 * 60 * 1000);
 
-  // Update last main page if we're not on notifications
-  useEffect(() => {
-    if (!location.pathname.includes("/notification")) {
-      lastMainPage.current = location.pathname;
-      localStorage.setItem("lastMainPage", location.pathname);
-    }
-  }, [location.pathname]);
+  // ── Role-aware redirects ──────────────────────────────────────────────────────
+  const role = getUserRole();
 
-  // Update page title when location changes
-  useEffect(() => {
-    const pathname = location.pathname;
-
-    if (pathname.includes("/notification")) {
-      setPageTitle("Notifications");
-    } else if (pathname.startsWith("/app/schedule")) {
-      setPageTitle("Schedule Pickup");
-    } else {
-      setPageTitle(PAGE_TITLES[pathname] ?? "Dashboard");
-    }
-  }, [location.pathname]);
-
-  // Redirect from /app root to user dashboard
   if (location.pathname === Routes.app) {
-    return <Navigate to={Routes.dashboard} replace />;
+    return (
+      <Navigate
+        to={role === "COLLECTOR" ? Routes.collectordashboard : Routes.dashboard}
+        replace
+      />
+    );
   }
 
-  // Redirect from /app/collector root to collector dashboard
   if (location.pathname === Routes.collectorapp) {
     return <Navigate to={Routes.collectordashboard} replace />;
   }
 
-  // Mock user data - replace with actual auth context
-  const userName = "John Doe";
-  const userRole = "Verified User";
-  const userAvatar = undefined;
+  // Collector trying to access customer routes → redirect to collector dashboard
+  if (!isCollectorRoute && role === "COLLECTOR") {
+    return <Navigate to={Routes.collectordashboard} replace />;
+  }
 
-  // Get notifications route based on current user type
-  const getNotificationsRoute = () => {
-    if (isCollectorRoute) return Routes.collectornotifications;
-    return Routes.notifications;
-  };
+  // Customer trying to access collector routes → redirect to customer dashboard
+  if (isCollectorRoute && role === "CUSTOMER") {
+    return <Navigate to={Routes.dashboard} replace />;
+  }
 
-  // Handle notification bell click
-  const handleNotificationClick = () => {
-    navigate(getNotificationsRoute());
-  };
-
-  // Get the active path for sidebar (use last main page if on notifications)
-  const sidebarActivePath = location.pathname.includes("/notification")
-    ? lastMainPage.current
-    : location.pathname;
+  const notificationsRoute = isCollectorRoute
+    ? Routes.collectornotifications
+    : Routes.notifications;
 
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Desktop Sidebar */}
+      {/* Desktop sidebar */}
       <div className="hidden lg:flex">
         <Sidebar
           isCollectorMode={isCollectorRoute}
-          userName={userName}
-          userRole={userRole}
-          userAvatar={userAvatar}
-          activePath={sidebarActivePath}
+          userName={user?.name!}
+          userRole={user?.role}
+          userAvatar={undefined}
+          isLoading={isLoading}
+          activePath={
+            isOnNotifications
+              ? isCollectorRoute
+                ? Routes.collectordashboard
+                : Routes.dashboard
+              : location.pathname
+          }
         />
       </div>
 
-      {/* Mobile Sidebar Overlay */}
+      {/* Mobile sidebar */}
       {mobileMenuOpen && (
         <>
           <div
@@ -114,28 +100,31 @@ export default function DashboardLayout() {
           <div className="fixed left-0 top-0 bottom-0 z-50 lg:hidden">
             <Sidebar
               isCollectorMode={isCollectorRoute}
-              userName={userName}
-              userRole={userRole}
-              userAvatar={userAvatar}
-              activePath={sidebarActivePath}
+              userName={user?.name!}
+              userRole={user?.role}
+              userAvatar={undefined}
+              isLoading={isLoading}
+              activePath={
+                isOnNotifications
+                  ? isCollectorRoute
+                    ? Routes.collectordashboard
+                    : Routes.dashboard
+                  : location.pathname
+              }
             />
           </div>
         </>
       )}
 
-      {/* Main Content Area */}
+      {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0">
-        {/* Toolbar */}
         <Toolbar
-          currentLocation={currentLocation}
-          onLocationChange={setCurrentLocation}
+          currentLocation={user?.addresses?.find((a) => a.isPrimary)?.line1 ?? "—"}
           notificationCount={3}
-          pageTitle={pageTitle}
+          pageTitle={getPageTitle(location.pathname)}
           onMenuClick={() => setMobileMenuOpen(true)}
-          onNotificationClick={handleNotificationClick}
+          onNotificationClick={() => navigate(notificationsRoute)}
         />
-
-        {/* Page Content */}
         <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
           <Outlet />
         </main>
