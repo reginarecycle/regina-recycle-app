@@ -20,20 +20,20 @@ import useDebounce from "@/hooks/useDebounce";
 
 const TYPE_META: Record<string, Omit<RecyclingItem, "id" | "image" | "title" | "item" | "tip" | "category">> = {
   recyclable: { label: "Recyclables", labelColor: "#618171", labelTextColor: "#fff", badgeColor: "#49B972", badgeIcon: "check" },
-  hazardous:  { label: "Hazardous",   labelColor: "#fee2e2", labelTextColor: "#991b1b", badgeColor: "#ef4444", badgeIcon: "warning" },
-  batteries:  { label: "Hazardous",   labelColor: "#fee2e2", labelTextColor: "#991b1b", badgeColor: "#ef4444", badgeIcon: "warning" },
-  compost:    { label: "Compost",     labelColor: "#ca8a04", labelTextColor: "#fff", badgeColor: "#ca8a04", badgeIcon: "compost" },
-  garbage:    { label: "Garbage",     labelColor: "#999ca0", labelTextColor: "#fff", badgeColor: "#999ca0", badgeIcon: "bin" },
+  hazardous: { label: "Hazardous", labelColor: "#fee2e2", labelTextColor: "#991b1b", badgeColor: "#ef4444", badgeIcon: "warning" },
+  batteries: { label: "Hazardous", labelColor: "#fee2e2", labelTextColor: "#991b1b", badgeColor: "#ef4444", badgeIcon: "warning" },
+  compost: { label: "Compost", labelColor: "#ca8a04", labelTextColor: "#fff", badgeColor: "#ca8a04", badgeIcon: "compost" },
+  garbage: { label: "Garbage", labelColor: "#999ca0", labelTextColor: "#fff", badgeColor: "#999ca0", badgeIcon: "bin" },
 };
 
 const LIMIT = 10;
 
 const filters: { label: string; value: Category; icon: React.ReactNode }[] = [
-  { label: "All",         value: "all",        icon: <LayoutGrid className="size-3.5" /> },
+  { label: "All", value: "all", icon: <LayoutGrid className="size-3.5" /> },
   { label: "Recyclables", value: "recyclable", icon: <BadgeAlertIcon className="size-3.5" /> },
-  { label: "Hazardous",   value: "hazardous",  icon: <AlertTriangle className="size-3.5" /> },
-  { label: "Compost",     value: "compost",    icon: <Composite className="size-3.5" /> },
-  { label: "Garbage",     value: "garbage",    icon: <Trash className="size-3.5" /> },
+  { label: "Hazardous", value: "hazardous", icon: <AlertTriangle className="size-3.5" /> },
+  { label: "Compost", value: "compost", icon: <Composite className="size-3.5" /> },
+  { label: "Garbage", value: "garbage", icon: <Trash className="size-3.5" /> },
 ];
 
 function SkeletonCard() {
@@ -92,9 +92,9 @@ function LearnPage() {
         tip: m.description ?? "",
         category: (
           meta.label === "Recyclables" ? "recyclable"
-          : meta.label === "Hazardous" ? "hazardous"
-          : meta.label === "Compost" ? "compost"
-          : "garbage"
+            : meta.label === "Hazardous" ? "hazardous"
+              : meta.label === "Compost" ? "compost"
+                : "garbage"
         ) as Category,
         ...meta,
       };
@@ -170,9 +170,9 @@ function LearnPage() {
                 </div>
                 {tipsLoading ? (
                   <div className="animate-pulse flex flex-col gap-2">
-                    <div className="h-4 bg-yellow-100 rounded w-1/2" />
-                    <div className="h-3 bg-yellow-100 rounded w-full" />
-                    <div className="h-3 bg-yellow-100 rounded w-3/4" />
+                    <div className="h-4 bg-background-gray-100 rounded w-1/2" />
+                    <div className="h-3 bg-background-gray-100 rounded w-full" />
+                    <div className="h-3 bg-background-gray-100 rounded w-3/4" />
                   </div>
                 ) : tipResult?.data ? (
                   <>
@@ -221,11 +221,10 @@ function LearnPage() {
                     <button
                       key={f.value}
                       onClick={() => handleFilterChange(f.value)}
-                      className={`flex items-center gap-1.5 px-4 h-9 rounded-full text-xs font-medium transition-colors border ${
-                        activeFilter === f.value
+                      className={`flex items-center gap-1.5 px-4 h-9 rounded-full text-xs font-medium transition-colors border ${activeFilter === f.value
                           ? "bg-primary text-primary-foreground border-primary"
                           : "bg-white text-muted-foreground border-border hover:border-primary hover:text-primary"
-                      }`}
+                        }`}
                     >
                       {activeFilter === f.value && f.icon}
                       {f.label}
