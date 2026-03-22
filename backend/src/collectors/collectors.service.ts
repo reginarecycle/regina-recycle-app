@@ -7,6 +7,9 @@ import { UpdateMaterialSettingsDto } from './dto/update-material-settings.dto';
 import { BadRequestException } from '@nestjs/common';
 import { ServiceFeeFactory } from '../materials/pricing/service-fee-factory';
 import { CreateMaterialPricingDto} from './dto/create-material-pricing.dto';
+import { CollectorQueryDto } from './dto/collectors-query.dto';
+import { getPaginationParams, paginate } from '../common/pagination/pagination-helper';
+import { PickupQueryDto } from './dto/pickup-query.dto';
 
 
 @Injectable()
@@ -217,19 +220,25 @@ export class CollectorsService {
   }
   
 
-  async getPickups(collectorId: string, status?: string, limit?: number, offset: number = 0) { // `This action returns pickups for collector with ID: ${collectorId} with status: ${status || 'all'} limit: ${limit || 'no limit'} offset: ${offset || 0}`;
-      await this.ensureCollectorExists(collectorId);
+  async getPickups(collectorId: string, query: PickupQueryDto) {
+  await this.ensureCollectorExists(collectorId);
 
-    const validStatus =
-      status && Object.values(PickupStatus).includes(status as PickupStatus)
-        ? (status as PickupStatus)
-        : undefined;
+  const { page = 1, limit = 10, status } = query;
+  const { skip, take } = getPaginationParams(page, limit);
 
-    const pickups = await this.prisma.pickup.findMany({
-      where: {
-        collectorUserId: collectorId,
-        ...(validStatus ? { status: validStatus } : {}),
-      },
+  const validStatus =
+    status && Object.values(PickupStatus).includes(status as PickupStatus)
+      ? (status as PickupStatus)
+      : undefined;
+
+  const where = {
+    collectorUserId: collectorId,
+    ...(validStatus ? { status: validStatus } : {}),
+  };
+
+  const [pickups, total] = await Promise.all([
+    this.prisma.pickup.findMany({
+      where,
       include: {
         requester: {
           select: {
@@ -249,18 +258,14 @@ export class CollectorsService {
       orderBy: {
         scheduledAt: 'asc',
       },
-      take: limit,
-      skip: offset,
-    });
+      skip,
+      take,
+    }),
+    this.prisma.pickup.count({ where }),
+  ]);
 
-    return {
-      collectorId,
-      status: status || 'all',
-      limit,
-      offset,
-      data: pickups,
-    };
-  }
+  return paginate(pickups, total, page, limit);
+}
   
 
   async getTopLocations(collectorId: string, limit?: number, period?: string) { // `This action returns top locations for collector with ID: ${collectorId} limit: ${limit || 'no limit'} period: ${period || 'all time'}`;
@@ -342,90 +347,84 @@ export class CollectorsService {
   }
  
 
-  async getCustomers(collectorId: string, search?:string, limit?: number, offset: number = 0) { // `This action returns customers for collector with ID: ${collectorId} limit: ${limit || 'no limit'} offset: ${offset || 0}`;
+  async getCustomers(collectorId: string, query: CollectorQueryDto) { // `This action returns customers for collector with ID: ${collectorId} limit: ${limit || 'no limit'} offset: ${offset || 0}`;
     await this.ensureCollectorExists(collectorId);
 
-    const pickups = await this.prisma.pickup.findMany({
-      where: {
-        collectorUserId: collectorId,
-        requesterUserId: { not: null },
-        ...(search
-          ? {
-              requester: {
-                name: {
-                  contains: search,
-                  mode: 'insensitive',
-                },
+    const { page =1 , limit =10, search } = query;
+     const { skip, take } = getPaginationParams(page, limit);
+
+  const pickups = await this.prisma.pickup.findMany({
+    where: {
+      collectorUserId: collectorId,
+      requesterUserId: { not: null },
+      ...(search
+        ? {
+            requester: {
+              name: {
+                contains: search,
+                mode: 'insensitive' as const,
               },
-            }
-          : {}),
-      },
-      include: {
-        requester: {
-          select: {
-            userId: true,
-            name: true,
-            email: true,
-            phoneNumber: true,
-          },
+            },
+          }
+        : {}),
+    },
+    include: {
+      requester: {
+        select: {
+          userId: true,
+          name: true,
+          email: true,
+          phoneNumber: true,
         },
-        items: true,
       },
-      orderBy: {
-        scheduledAt: 'desc',
-      },
-    });
+      items: true,
+    },
+    orderBy: {
+      scheduledAt: 'desc',
+    },
+  });
 
-    const grouped = pickups.reduce(
-      (acc, pickup) => {
-        if (!pickup.requester) return acc;
+  const grouped = pickups.reduce(
+    (acc, pickup) => {
+      if (!pickup.requester) return acc;
 
-        const key = pickup.requester.userId;
+      const key = pickup.requester.userId;
+      const units = pickup.items.reduce((sum, item) => sum + item.quantity, 0);
 
-        const units = pickup.items.reduce(
-          (sum, item) => sum + item.quantity,
-          0,
-        );
+      if (!acc[key]) {
+        acc[key] = {
+          customerId: pickup.requester.userId,
+          name: pickup.requester.name,
+          email: pickup.requester.email,
+          phoneNumber: pickup.requester.phoneNumber,
+          totalPickups: 0,
+          totalUnits: 0,
+        };
+      }
 
-        if (!acc[key]) {
-          acc[key] = {
-            customerId: pickup.requester.userId,
-            name: pickup.requester.name,
-            email: pickup.requester.email,
-            phoneNumber: pickup.requester.phoneNumber,
-            totalPickups: 0,
-            totalUnits: 0,
-          };
-        }
+      acc[key].totalPickups += 1;
+      acc[key].totalUnits += units;
 
-        acc[key].totalPickups += 1;
-        acc[key].totalUnits += units;
+      return acc;
+    },
+    {} as Record<
+      string,
+      {
+        customerId: string;
+        name: string;
+        email: string;
+        phoneNumber: string | null;
+        totalPickups: number;
+        totalUnits: number;
+      }
+    >,
+  );
 
-        return acc;
-      },
-      {} as Record<
-        string,
-        {
-          customerId: string;
-          name: string;
-          email: string;
-          phoneNumber: string | null;
-          totalPickups: number;
-          totalUnits: number;
-        }
-      >,
-    );
+  const customers = Object.values(grouped);
+  const pagedCustomers = customers.slice(skip, skip + take);
 
-    const customers = Object.values(grouped);
-
-    return {
-      collectorId,
-      search: search || '',
-      limit,
-      offset,
-      data: limit ? customers.slice(offset, offset + limit) : customers.slice(offset),
-    };
-  }
+  return paginate(pagedCustomers, customers.length, page, limit);
+}
   
 
   async getCustomerDetails(collectorId: string, customerId: string) {   // `This action returns details for customer with ID: ${customerId} for collector with ID: ${collectorId}`;
@@ -511,43 +510,44 @@ export class CollectorsService {
   }
   
 
-  async getPricing(collectorId: string, limit: number = 10, offset: number = 0, search?: string, status?: string,) { // `This action sets pricing for collector with ID: ${collectorId}, limit: ${limit}, offset: ${offset}, search: ${search || 'none'}, status: ${status || 'all'}`;
-   await this.ensureCollectorExists(collectorId);
+  async getPricing(collectorId: string, query: CollectorQueryDto) {
+  await this.ensureCollectorExists(collectorId);
 
-    const pricing = await this.prisma.collectorPricing.findMany({
-      where: {
-        collectorUserId: collectorId,
-        ...(search
-          ? {
-              material: {
-                name: {
-                  contains: search,
-                  mode: 'insensitive',
-                },
-              },
-            }
-          : {}),
-        ...(status ? { status: status as PricingStatus } : {}),
-      },
+  const { page = 1, limit = 10, search, status } = query;
+  const { skip, take } = getPaginationParams(page, limit);
+
+  const where = {
+    collectorUserId: collectorId,
+    ...(search
+      ? {
+          material: {
+            name: {
+              contains: search,
+              mode: 'insensitive' as const,
+            },
+          },
+        }
+      : {}),
+    ...(status ? { status: status as PricingStatus } : {}),
+  };
+
+  const [pricing, total] = await Promise.all([
+    this.prisma.collectorPricing.findMany({
+      where,
       include: {
         material: true,
       },
       orderBy: {
         createdAt: 'desc',
       },
-      take: limit,
-      skip: offset,
-    });
+      skip,
+      take,
+    }),
+    this.prisma.collectorPricing.count({ where }),
+  ]);
 
-    return {
-      collectorId,
-      limit,
-      offset,
-      search: search || '',
-      status: status || 'all',
-      data: pricing,
-    };
-  }
+  return paginate(pricing, total, page, limit);
+}
 
   async updateMaterialPricing(collectorId: string, materialId: string, dto: any) { // This action updates pricing for material with ID: ${materialId} for collector with ID: ${collectorId}, with data: ${JSON.stringify(dto)}`;
     await this.ensureCollectorExists(collectorId);

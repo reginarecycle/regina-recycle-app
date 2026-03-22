@@ -6,6 +6,8 @@ import { UpdateMaterialSettingsDto } from './dto/update-material-settings.dto';
 import { Auth } from '../common/decorator/auth.decorator';
 import { CurrentUser } from '../auth/decorator/current-user.decorator';
 import { CreateMaterialPricingDto} from './dto/create-material-pricing.dto';
+import { CollectorQueryDto } from './dto/collectors-query.dto';
+import { PickupQueryDto } from './dto/pickup-query.dto';
 
 type CurrentUserPayload = {
  userId: string;
@@ -46,17 +48,10 @@ export class CollectorsController {
   @Auth()
   getPickups(
     @CurrentUser() user: CurrentUserPayload,
-    @Query('status') status?: string,
-    @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
-  ) {
-    return this.collectorsService.getPickups(
-      user.userId,
-      status,
-      Number(limit) || 10,
-      Number(offset) || 0,
-    );
-  }
+   @Query() query: PickupQueryDto,
+) {
+  return this.collectorsService.getPickups(user.userId, query);
+}
 
   @Get('top-locations')
   @Auth()
@@ -74,18 +69,11 @@ export class CollectorsController {
   @Get('customers')
    @Auth()
   getCustomers(
-    @CurrentUser() user: CurrentUserPayload,
-    @Query('limit') limit?: string,
-    @Query('search') search?: string,
-    @Query('offset') offset?: string,
-  ) {
-    return this.collectorsService.getCustomers(
-      user.userId,
-      search,
-      Number(limit) || 10,
-      Number(offset) || 0,
-    );
-  }
+     @CurrentUser() user: CurrentUserPayload,
+  @Query() query: CollectorQueryDto,
+) {
+  return this.collectorsService.getCustomers(user.userId, query);
+}
 
   @Get('customers/:customerId')
    @Auth()
@@ -119,19 +107,10 @@ export class CollectorsController {
   @Auth()
   getPricing(
     @CurrentUser() user: CurrentUserPayload,
-    @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
-    @Query('search') search?: string,
-    @Query('status') status?: string,
-  ) {
-    return this.collectorsService.getPricing(
-      user.userId,
-      Number(limit) || 10,
-      Number(offset) || 0,
-      search,
-      status,
-    );
-  }
+     @Query() query: CollectorQueryDto,
+) {
+  return this.collectorsService.getPricing(user.userId, query);
+}
 
   @Patch('pricing/:materialId')
   @Auth()
