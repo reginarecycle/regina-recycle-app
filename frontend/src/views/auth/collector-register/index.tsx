@@ -1,3 +1,5 @@
+import { useRegister } from "@/api-hooks/useAuth";
+import { AddressAutocompleteField } from "@/components/forms/address-field";
 import CheckboxField from "@/components/forms/checkbox-field";
 import InputField from "@/components/forms/input-field";
 import AuthHeader from "@/components/shared/headerauth";
@@ -10,13 +12,17 @@ import { Routes } from "@/routes/routes";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const CollectiorRegistration = () => {
+  const {mutate, isPending} = useRegister();
   const navigate = useNavigate();
   const {
     register,
     handleSubmit,
     control,
+    setValue,
+    trigger,
     formState: { errors, isValid },
   } = useForm<CollectorRegistrationFormValues>({
     resolver: zodResolver(collectorRegistrationSchema),
@@ -24,8 +30,33 @@ const CollectiorRegistration = () => {
   });
 
   const onSubmit = (data: CollectorRegistrationFormValues) => {
-    console.log(data);
-    navigate(Routes.verification);
+    mutate(
+      {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        role: "COLLECTOR",
+        agreedToTerms: data.terms,
+        address: data.address,
+        licenseId: data.licenseID,
+      },
+      {
+        onSuccess: ({ message }) => {
+          toast.success(message);
+          navigate(Routes.verification, {
+            state: {
+              email: data.email,
+              purpose: "account-verification",
+            },
+          });
+        },
+        onError: (error) => {
+          toast.error(
+            error.message ?? "Registration failed. Please try again."
+          );
+        },
+      }
+    );
   };
 
   return (
@@ -49,17 +80,24 @@ const CollectiorRegistration = () => {
           placeholder="Enter your business email"
           required
         />
-        <InputField
-          label="Business Address"
-          register={register("address")}
-          error={errors.address?.message}
-          placeholder="123 Lane Str."
-          required
-        />
+        <AddressAutocompleteField
+             required
+             error={errors.address?.line1?.message ?? errors.address?.message}
+             onAddressSelect={(parsed) => {
+               setValue("address.line1", parsed.line1);
+               setValue("address.city", parsed.city);
+               setValue("address.province", parsed.province);
+               setValue("address.postalCode", parsed.postalCode);
+               if (parsed.latitude) setValue("address.latitude", parsed.latitude);
+               if (parsed.longitude)
+                 setValue("address.longitude", parsed.longitude);
+               trigger("address");
+             }}
+           />
         <InputField
           label="Business License ID"
-          register={register("businessLicenseID")}
-          error={errors.businessLicenseID?.message}
+          register={register("licenseID")}
+          error={errors.licenseID?.message}
           placeholder="Enter your business license ID"
           required
         />
@@ -92,7 +130,7 @@ const CollectiorRegistration = () => {
           }
         />
       </div>
-      <Button type="submit" className="w-full" disabled={!isValid}>
+      <Button type="submit" className="w-full" disabled={!isValid || isPending} loading={isPending}>
         Create Account
       </Button>
 
