@@ -26,7 +26,7 @@ export interface NotificationQueryParams {
 }
 
 export interface NotificationUnreadCount {
-    unreadCount: number;
+    count: number;
 }
 
 export interface NotificationsPreference {

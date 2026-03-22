@@ -60,6 +60,7 @@ export class NotificationsController {
     return this.notificationsService.markAllAsRead(user.userId);
   }
 
+  @Auth()
   @Patch(':notificationId/read')
   markAsRead(
     @Param('notificationId') notificationId: string,
