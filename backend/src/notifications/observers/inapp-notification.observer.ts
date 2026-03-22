@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { NotificationsGateway } from '../notifications.gateway';
+import { PusherService } from '../pusher.service';
 import { IObserver, NotificationEvent } from '../interface/observer.interface';
 import { NotificationType } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -20,7 +20,7 @@ export class InAppNotificationObserver implements IObserver {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly gateway: NotificationsGateway,
+    private readonly pusher: PusherService,
   ) { }
 
   async update(event: NotificationEvent): Promise<void> {
@@ -35,7 +35,7 @@ export class InAppNotificationObserver implements IObserver {
         },
       });
 
-      this.gateway.sendToUser(event.userId, notification);
+      await this.pusher.sendToUser(event.userId, notification);
       this.logger.log(`In-app notification created for user ${event.userId}`);
     } catch (error) {
       this.logger.error(`Failed to create in-app notification`, error);

@@ -9,7 +9,7 @@ const Learn = lazy(() => import("@/views/landing/learn"));
 export const landingRoutes = () => {
   return [
     {
-      path: Routes.base,
+      index: true,
       element: <LandingPage />,
     },
     {

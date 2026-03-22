@@ -2,13 +2,14 @@ export enum Routes {
     base = "/",
     learn = "/learn",
     about = "/about",
+    denied = "/denied",
 
     //auth
     onboarding = "/auth",
     login = "/auth/login",
     forgot = "/auth/forgot",
     reset = "/auth/reset",
-    register= "/auth/register",
+    register = "/auth/register",
     verification = "/auth/verification",
     success = "/auth/success",
     collectorRegister = "/auth/collector",
@@ -29,14 +30,13 @@ export enum Routes {
 
     //profile
     profile = "/app/profile",
-
     profileSection = "/app/profile/:section",
 
     //notifications
     notifications = "/app/notification",
-    
+
     //collector requests
     history = "/app/history",
     wallet = "/app/wallet",
-
+    transactionhistory = "/app/wallet/history",
 }

@@ -4,21 +4,24 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut } from "lucide-react";
 import { collectorNavItems, userNavItems } from "@/constants/data";
+import { Skeleton } from "../ui/skeleton";
 
 interface SidebarProps {
   isCollectorMode?: boolean;
-  userName?: string;
+  userName: string;
   userRole?: string;
   userAvatar?: string;
   activePath?: string;
+  isLoading?: boolean;
 }
 
 export function Sidebar({
   isCollectorMode = false,
-  userName = "John Doe",
-  userRole = "Verified User",
+  userName,
+  userRole,
   userAvatar,
   activePath,
+  isLoading = false,
 }: SidebarProps) {
   const location = useLocation();
   const navItems = isCollectorMode ? collectorNavItems : userNavItems;
@@ -44,7 +47,7 @@ export function Sidebar({
             ReginaRecycle
           </span>
           <span className="text-xs text-muted-foreground leading-tight">
-            {isCollectorMode ? "Collector Portal" : "User Portal"}
+            {isCollectorMode ? "Collector Portal" : "Customer Portal"}
           </span>
         </div>
       </div>
@@ -86,12 +89,21 @@ export function Sidebar({
         />
 
         {/* User Profile Card */}
+        {isLoading ? (
+           <div className="relative z-10 flex w-56 h-14.5 items-center gap-3 rounded-lg border border-primary bg-background-green-100 px-3 py-2">
+           <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+           <div className="flex flex-col gap-1.5 flex-1">
+             <Skeleton className="h-3.5 w-24 rounded" />
+             <Skeleton className="h-3 w-16 rounded" />
+           </div>
+         </div>
+        ) : (
         <div className="relative z-10 flex w-56 h-14.5 items-center justify-between rounded-lg border border-primary bg-background-green-100 backdrop-blur-[2px] px-3 py-2 hover:bg-background-green-100 transition-colors cursor-pointer">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
               <AvatarImage src={userAvatar} alt={userName} />
               <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                {getInitials(userName)}
+                {getInitials(userName )}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
@@ -103,10 +115,11 @@ export function Sidebar({
               </span>
             </div>
           </div>
-          <Button variant="ghost" size="icon" className="dark:hover:bg-card">
+          <Button variant="ghost" size="icon" className="hover:bg-destructive hover:text-white">
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
+        )}
       </div>
     </aside>
   );

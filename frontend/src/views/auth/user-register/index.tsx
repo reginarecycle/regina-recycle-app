@@ -11,12 +11,18 @@ import { Button } from "@/components/ui/button";
 import CheckboxField from "@/components/forms/checkbox-field";
 import { Routes } from "@/routes/routes";
 import { Link, useNavigate } from "react-router-dom";
+import { useRegister } from "@/api-hooks/useAuth";
+import { toast } from "sonner";
+import { AddressAutocompleteField } from "@/components/forms/address-field";
 
 const UserRegistration: React.FC = () => {
+  const { mutate, isPending } = useRegister();
   const navigate = useNavigate();
   const {
     register,
     handleSubmit,
+    setValue,
+    trigger,
     control,
     formState: { errors, isValid },
   } = useForm<UserRegistrationFormValues>({
@@ -25,8 +31,32 @@ const UserRegistration: React.FC = () => {
   });
 
   const onSubmit = (data: UserRegistrationFormValues) => {
-    console.log(data);
-    navigate(Routes.verification);
+    mutate(
+      {
+        name: data.fullName,
+        email: data.email,
+        password: data.password,
+        role: "CUSTOMER",
+        agreedToTerms: data.terms,
+        address: data.address,
+      },
+      {
+        onSuccess: ({ message }) => {
+          toast.success(message);
+          navigate(Routes.verification, {
+            state: {
+              email: data.email,
+              purpose: "account-verification",
+            },
+          });
+        },
+        onError: (error) => {
+          toast.error(
+            error.message ?? "Registration failed. Please try again."
+          );
+        },
+      }
+    );
   };
 
   return (
@@ -50,12 +80,19 @@ const UserRegistration: React.FC = () => {
           placeholder="doe@gmail.com"
           required
         />
-        <InputField
-          label="Address"
-          register={register("address")}
-          error={errors.address?.message}
-          placeholder="123 Lane Str."
+        <AddressAutocompleteField
           required
+          error={errors.address?.line1?.message ?? errors.address?.message}
+          onAddressSelect={(parsed) => {
+            setValue("address.line1", parsed.line1);
+            setValue("address.city", parsed.city);
+            setValue("address.province", parsed.province);
+            setValue("address.postalCode", parsed.postalCode);
+            if (parsed.latitude) setValue("address.latitude", parsed.latitude);
+            if (parsed.longitude)
+              setValue("address.longitude", parsed.longitude);
+            trigger("address");
+          }}
         />
         <InputField
           label="Password"
@@ -95,10 +132,14 @@ const UserRegistration: React.FC = () => {
           }
         />
       </div>
-      <Button type="submit" className="w-full" disabled={!isValid}>
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={!isValid || isPending}
+        loading={isPending}
+      >
         Create Account
       </Button>
-
       <p className="text-center mt-3 font-">
         Already have an account?{" "}
         <Link to={Routes.login} className="text-accent-foreground font-black">
