@@ -4,7 +4,11 @@ import { Input } from "@/components/ui/input";
 
 const TOKEN = import.meta.env.VITE_LOCATIONIQ_TOKEN as string;
 
-interface ParsedAddress {
+// Bounding box for Regina, Saskatchewan (lon1,lat1,lon2,lat2)
+const REGINA_VIEWBOX = "-104.73,50.37,-104.40,50.56";
+
+export interface ParsedAddress {
+  displayName: string;
   line1: string;
   line2?: string;
   city: string;
@@ -40,6 +44,7 @@ function parsesuggestion(s: LocationIQSuggestion): ParsedAddress {
   const road = a.road ?? "";
 
   return {
+    displayName: s.display_name,
     line1: [houseNumber, road].filter(Boolean).join(" ") || a.name || "",
     city: a.city ?? a.town ?? a.village ?? a.suburb ?? "",
     province: a.state ?? "",
@@ -53,14 +58,23 @@ interface AddressAutocompleteFieldProps {
   onAddressSelect: (address: ParsedAddress) => void;
   error?: string;
   required?: boolean;
+  /** Hide the "Address" label. Default: true */
+  showLabel?: boolean;
+  /** Pre-fill the input on mount */
+  initialValue?: string;
+  /** Restrict results to Regina, Saskatchewan only */
+  restrictToRegina?: boolean;
 }
 
 export function AddressAutocompleteField({
   onAddressSelect,
   error,
   required,
+  showLabel = true,
+  initialValue = "",
+  restrictToRegina = false,
 }: AddressAutocompleteFieldProps) {
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState(initialValue);
   const [suggestions, setSuggestions] = useState<LocationIQSuggestion[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -70,10 +84,7 @@ export function AddressAutocompleteField({
   // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false);
       }
     }
@@ -95,18 +106,28 @@ export function AddressAutocompleteField({
         q: query,
         limit: "5",
         dedupe: "1",
-        countrycodes: "ca", // restrict to Canada
+        countrycodes: "ca",
         addressdetails: "1",
         normalizecity: "1",
       });
 
-      const res = await fetch(
-        `https://api.locationiq.com/v1/autocomplete?${params}`
-      );
+      if (restrictToRegina) {
+        params.set("viewbox", REGINA_VIEWBOX);
+        params.set("bounded", "1");
+      }
 
+      const res = await fetch(`https://api.locationiq.com/v1/autocomplete?${params}`);
       if (!res.ok) throw new Error("Autocomplete request failed");
 
-      const data: LocationIQSuggestion[] = await res.json();
+      let data: LocationIQSuggestion[] = await res.json();
+
+      // Client-side filter: keep only Saskatchewan results
+      if (restrictToRegina) {
+        data = data.filter((s) =>
+          s.address.state?.toLowerCase().includes("saskatchewan")
+        );
+      }
+
       setSuggestions(data);
       setIsOpen(data.length > 0);
     } catch {
@@ -115,12 +136,11 @@ export function AddressAutocompleteField({
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [restrictToRegina]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setInputValue(val);
-
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => fetchSuggestions(val), 350);
   };
@@ -134,16 +154,18 @@ export function AddressAutocompleteField({
 
   return (
     <div ref={containerRef} className="space-y-1 relative">
-      <Label>
-        Address {required && <span className="text-destructive">*</span>}
-      </Label>
+      {showLabel && (
+        <Label>
+          Address {required && <span className="text-destructive">*</span>}
+        </Label>
+      )}
 
       <div className="relative">
         <Input
           value={inputValue}
           onChange={handleInputChange}
           onFocus={() => suggestions.length > 0 && setIsOpen(true)}
-          placeholder="Start typing your address…"
+          placeholder={restrictToRegina ? "Search Regina address…" : "Start typing your address…"}
           className={error ? "border-destructive" : ""}
           autoComplete="off"
         />
@@ -159,7 +181,7 @@ export function AddressAutocompleteField({
           {suggestions.map((s) => (
             <li
               key={s.place_id}
-              onMouseDown={() => handleSelect(s)} // mousedown fires before input blur
+              onMouseDown={() => handleSelect(s)}
               className="px-3 py-2 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground"
             >
               {s.display_name}
