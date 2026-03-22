@@ -1,33 +1,66 @@
-type TxStatus = "CREDIT" | "WITHDRAWAL" | "FAILED";
+import { cn } from "@/lib/utils";
 
-const statusStyles: Record<TxStatus, { badgeBg: string; badgeText: string }> = {
-  CREDIT: { badgeBg: "#DCFCE7", badgeText: "#166534" },
-  WITHDRAWAL: { badgeBg: "#EAF2FF", badgeText: "#2563EB" },
-  FAILED: { badgeBg: "#FEE2E2", badgeText: "#DC2626" },
-};
+// ── Variant styles ─────────────────────────────────────────────────────────────
+// Add new status strings here as the app grows.
 
-export function StatusBadge({ status }: { status: TxStatus }) {
-  const { badgeBg, badgeText } = statusStyles[status];
-  return (
-    <span
-      className="inline-flex items-center justify-center rounded-[34px] px-2"
-      style={{ background: badgeBg }}
-    >
-      <span
-        className="text-[10px] font-bold leading-[18px] uppercase"
-        style={{ color: badgeText }}
-      >
-        {status}
-      </span>
-    </span>
-  );
+type BadgeVariant =
+  | "COMPLETED" | "APPROVED" | "SUCCESS"
+  | "PENDING"   | "PROCESSING" | "IN_PROGRESS"
+  | "CANCELLED" | "REJECTED"  | "FAILED"
+  | "ACTIVE"    | "INACTIVE"
+  | string; // fallback for unknown values
+
+function getVariantClasses(status: string): { className: string; label: string } {
+  switch (status.toUpperCase()) {
+    case "COMPLETED":
+    case "APPROVED":
+    case "SUCCESS":
+      return { label: status.charAt(0) + status.slice(1).toLowerCase(), className: "bg-green-100 text-green-700 border border-green-200" };
+
+    case "PENDING":
+    case "PROCESSING":
+    case "IN_PROGRESS":
+      return { label: status.charAt(0) + status.slice(1).toLowerCase().replace("_", " "), className: "bg-yellow-100 text-yellow-600 border border-yellow-200" };
+
+    case "CANCELLED":
+    case "REJECTED":
+    case "FAILED":
+      return { label: status.charAt(0) + status.slice(1).toLowerCase(), className: "bg-red-500 text-white border border-red-500" };
+
+    case "ACTIVE":
+      return { label: "Active", className: "bg-primary/10 text-primary border border-primary/20" };
+
+    case "INACTIVE":
+      return { label: "Inactive", className: "bg-muted text-muted-foreground border border-border" };
+
+    default:
+      return { label: status, className: "bg-muted text-muted-foreground border border-border" };
+  }
 }
 
-export function getAmountColor(status: TxStatus): string {
-  const colors: Record<TxStatus, string> = {
-    CREDIT: "#166534",
-    WITHDRAWAL: "#DD1E1E",
-    FAILED: "#DD1E1E",
-  };
-  return colors[status];
+// ── Props ──────────────────────────────────────────────────────────────────────
+
+interface StatusBadgeProps {
+  /** Any status string — casing is normalised internally */
+  status: BadgeVariant;
+  /** Override the displayed label */
+  label?: string;
+  className?: string;
+}
+
+// ── Component ──────────────────────────────────────────────────────────────────
+
+export function StatusBadge({ status, label, className }: StatusBadgeProps) {
+  const variant = getVariantClasses(status);
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center px-3.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap",
+        variant.className,
+        className
+      )}
+    >
+      {label ?? variant.label}
+    </span>
+  );
 }
