@@ -5,5 +5,6 @@ import { TipsController } from './tips.controller';
 @Module({
   controllers: [TipsController],
   providers: [TipsService],
+  exports: [TipsService],
 })
 export class TipsModule {}

@@ -13,12 +13,16 @@ import { AddressesModule } from './addresses/addresses.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { TipsModule } from './tips/tips.module';
 import { CommonModule } from './common/common-module';
+import { CronModule } from './cron/cron.module';
 import { ConfigModule } from '@nestjs/config';
-import { ScheduleModule } from '@nestjs/schedule';
+
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }), 
-    PrismaModule, AuthModule, UsersModule, CustomersModule, CollectorsModule, AddressesModule, PickupsModule, MaterialsModule, WalletModule, NotificationsModule, TipsModule, CommonModule, ScheduleModule.forRoot()],
+    ConfigModule.forRoot({ isGlobal: true }),
+    PrismaModule, AuthModule, UsersModule, CustomersModule, CollectorsModule,
+    AddressesModule, PickupsModule, MaterialsModule, WalletModule,
+    NotificationsModule, TipsModule, CommonModule, CronModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
