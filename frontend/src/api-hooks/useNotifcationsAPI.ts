@@ -51,7 +51,7 @@ export interface NotificationActionResponse {
     message: string;
 }
 
-export function useNotifications(query?: NotificationQueryParams) {
+export function useNotificationsApi(query?: NotificationQueryParams) {
     const searchParams = new URLSearchParams();
 
     if (query?.page !== undefined) {
