@@ -21,7 +21,6 @@ import { Auth } from 'src/common/decorator/auth.decorator';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @ApiTags('Pickups')
-@ApiBearerAuth('JWT-auth')
 @UseGuards(JwtAuthGuard)
 @Controller('pickups')
 export class PickupsController {
@@ -43,9 +42,9 @@ export class PickupsController {
     },
   })
   @Post()
-  @Auth()
+  @Auth('CUSTOMER')
   @UseInterceptors(FileInterceptor('photo', { limits: { fileSize: 5 * 1024 * 1024 } }))
-  async create(
+  async createPickup(
     @Request() req,
     @UploadedFile() file: Express.Multer.File,
     @Body('data') data: string,
@@ -61,8 +60,8 @@ export class PickupsController {
   // USER: Get their own pickups
   @ApiOperation({ summary: 'Get all pickups for logged in user' })
   @Get()
-  @Auth()
-  findAll(@Request() req) {
+  @Auth('CUSTOMER')
+  getUserPickups(@Request() req) {
     return this.pickupsService.findAll(req.user.userId);
   }
 
@@ -78,31 +77,31 @@ export class PickupsController {
   @ApiOperation({ summary: 'Get a pickup by ID' })
   @Get(':id')
   @Auth()
-  findOne(@Param('id') id: string) {
+  getPickupById (@Param('id') id: string) {
     return this.pickupsService.findOne(id);
   }
 
   // COLLECTOR: Accept a pickup
   @ApiOperation({ summary: 'Accept a pickup (collector)' })
   @Patch(':id/accept')
-  @Auth()
-  accept(@Param('id') id: string, @Request() req) {
+  @Auth('COLLECTOR')
+  acceptPickup(@Param('id') id: string, @Request() req) {
     return this.pickupsService.accept(id, req.user.userId);
   }
 
   // COLLECTOR: Complete a pickup
   @ApiOperation({ summary: 'Complete a pickup (collector)' })
   @Patch(':id/complete')
-  @Auth()
-  complete(@Param('id') id: string, @Request() req) {
+  @Auth('COLLECTOR')
+  completePickup(@Param('id') id: string, @Request() req) {
     return this.pickupsService.complete(id, req.user.userId);
   }
 
   // USER: Update a pickup (only while PENDING)
   @ApiOperation({ summary: 'Update a pickup (customer only, PENDING only)' })
   @Patch(':id')
-  @Auth()
-  update(@Param('id') id: string, @Request() req, @Body() updatePickupDto: UpdatePickupDto) {
+  @Auth('CUSTOMER')
+  updatePickup(@Param('id') id: string, @Request() req, @Body() updatePickupDto: UpdatePickupDto) {
     return this.pickupsService.update(id, req.user.userId, updatePickupDto);
   }
 
@@ -110,7 +109,7 @@ export class PickupsController {
   @ApiOperation({ summary: 'Cancel a pickup' })
   @Delete(':id/cancel')
   @Auth()
-  cancel(@Param('id') id: string, @Request() req) {
+  cancelPickup(@Param('id') id: string, @Request() req) {
     return this.pickupsService.cancel(id, req.user.userId);
   }
 }
