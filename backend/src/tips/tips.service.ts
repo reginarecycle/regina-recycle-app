@@ -1,5 +1,4 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTipDto } from './dto/create-tip.dto';
 import { UpdateTipDto } from './dto/update-tip.dto';
@@ -9,57 +8,32 @@ import { ErrorMessage } from '../common/error-message';
 export class TipsService {
   constructor(private prisma: PrismaService) {}
 
-  // In-memory store for the current day's tip
-  private dailyTip: {
-    tip: any;
-    date: string;
-  } | null = null;
+  // Called by the Vercel cron job daily at midnight — no-op now, selection
+  // happens deterministically in getRandomActiveTip().
+  async refreshDailyTip(): Promise<void> {
+    // no-op: kept for backwards compatibility with CronController
+  }
 
-  // Runs every day at midnight to pick a new tip
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-  async refreshDailyTip() {
+  // Returns the same tip for the whole day using a deterministic day-based index.
+  // Safe for serverless — no in-memory state required.
+  async getRandomActiveTip() {
     const now = new Date();
     const activeTips = await this.prisma.tip.findMany({
       where: {
         active: true,
-        OR: [
-          { startDate: null },
-          { startDate: { lte: now } },
-        ],
-        AND: [
-          {
-            OR: [
-              { endDate: null },
-              { endDate: { gte: now } },
-            ],
-          },
-        ],
+        OR: [{ startDate: null }, { startDate: { lte: now } }],
+        AND: [{ OR: [{ endDate: null }, { endDate: { gte: now } }] }],
       },
+      orderBy: { createdAt: 'asc' },
     });
 
-    if (activeTips.length > 0) {
-      const randomTip = activeTips[Math.floor(Math.random() * activeTips.length)];
-      this.dailyTip = {
-        tip: randomTip,
-        date: now.toISOString().split('T')[0], // e.g. "2026-03-17"
-      };
-    }
-  }
-
-  // Public: returns the tip of the day (same tip for the whole day)
-  async getRandomActiveTip() {
-    const today = new Date().toISOString().split('T')[0];
-
-    // If no daily tip yet or it's from a previous day, refresh it
-    if (!this.dailyTip || this.dailyTip.date !== today) {
-      await this.refreshDailyTip();
-    }
-
-    if (!this.dailyTip) {
+    if (!activeTips.length) {
       throw new NotFoundException(ErrorMessage.TIP_NOT_FOUND);
     }
 
-    return this.dailyTip.tip;
+    // Same tip all day: day-of-epoch mod tip count
+    const dayIndex = Math.floor(now.getTime() / (24 * 60 * 60 * 1000));
+    return activeTips[dayIndex % activeTips.length];
   }
 
   // Create a tip

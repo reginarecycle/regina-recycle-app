@@ -172,16 +172,16 @@ model Material {
   materialId String   @id @default(uuid())
   name       String   @unique
   type       String
+  description String?
   photoUrl   String?
   co2Saved   Float?
   waterSaved Float?
   createdAt  DateTime @default(now())
-  description String?
   collectorPricings CollectorPricing[]
   pickupItems       PickupItem[]
-  pickupSnapshots   PickupSnapshot[] 
+  pickupSnapshots   PickupSnapshot[]
 
-  @@map("Material")
+  @@map("materials")
   @@index([type])
 }
 
@@ -211,12 +211,15 @@ model Pickup {
   collectorUserId String?
   scheduledAt     DateTime
   addressId       String?
+  photoUrl        String?
   address         Address?   @relation(fields: [addressId], references: [addressId], onDelete: SetNull)
   status          PickupStatus @default(PENDING)
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
   estimatedEarning Decimal?    @db.Decimal(14, 2)
   actualEarning   Decimal?   @db.Decimal(14,2)
+  estimatedCost   Decimal?   @db.Decimal(14, 2)
+  note            String?
   items     PickupItem[]
   snapshots PickupSnapshot[]
   requester       User?      @relation("requester", fields: [requesterUserId], references: [userId], onDelete: SetNull)
@@ -374,12 +377,13 @@ model Notification {
 }
 
 model Tip {
-  tipId       String   @id @default(uuid())
+  tipId       String    @id @default(uuid())
+  title       String?   
   content     String
   startDate   DateTime?
   endDate     DateTime?
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
 
   @@map("tips")
   @@index([active])

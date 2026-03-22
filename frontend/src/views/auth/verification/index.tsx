@@ -121,7 +121,7 @@ const AccountVerification: React.FC = () => {
       />
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="space-y-6 mt-24.5 w-full max-w-xl"
+        className="space-y-6 mt-8 sm:mt-16 w-full max-w-xl"
       >
         <div className="space-y-2">
           <Controller

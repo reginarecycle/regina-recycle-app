@@ -1,0 +1,181 @@
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import { Search, SlidersHorizontal } from "lucide-react";
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+export type DateRange = "today" | "7days" | "30days" | "alltime";
+
+export interface TableFilterState<TStatus extends string = string> {
+  statuses: TStatus[];
+  dateRange: DateRange;
+}
+
+export const DEFAULT_TABLE_FILTERS: TableFilterState = {
+  statuses: [],
+  dateRange: "alltime",
+};
+
+export interface StatusOption<TStatus extends string = string> {
+  key: TStatus;
+  label: string;
+}
+
+// ── Filter Panel ──────────────────────────────────────────────────────────────
+
+const DATE_OPTIONS: { key: DateRange; label: string }[] = [
+  { key: "today",   label: "Today"        },
+  { key: "7days",   label: "Last 7 Days"  },
+  { key: "30days",  label: "Last 30 Days" },
+  { key: "alltime", label: "All Time"     },
+];
+
+interface FilterPanelProps<TStatus extends string> {
+  filters: TableFilterState<TStatus>;
+  onChange: (f: TableFilterState<TStatus>) => void;
+  statusOptions: StatusOption<TStatus>[];
+  showDateRange?: boolean;
+}
+
+function FilterPanel<TStatus extends string>({
+  filters,
+  onChange,
+  statusOptions,
+  showDateRange = true,
+}: FilterPanelProps<TStatus>) {
+  const toggleStatus = (s: TStatus) => {
+    const has = filters.statuses.includes(s);
+    onChange({
+      ...filters,
+      statuses: has ? filters.statuses.filter((x) => x !== s) : [...filters.statuses, s],
+    });
+  };
+
+  return (
+    <div className="bg-white border border-border rounded-2xl p-5 w-72 shadow-xl shadow-black/5">
+      <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.12em] mb-3">
+        Status
+      </p>
+      <div className="flex flex-wrap gap-2 mb-5">
+        {statusOptions.map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => toggleStatus(key)}
+            className={cn(
+              "px-4 py-2 rounded-xl text-sm font-semibold transition-all",
+              filters.statuses.includes(key)
+                ? "bg-primary text-primary-foreground"
+                : "bg-primary text-primary-foreground opacity-60 hover:opacity-100"
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {showDateRange && (
+        <>
+          <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.12em] mb-3">
+            Date Range
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {DATE_OPTIONS.map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => onChange({ ...filters, dateRange: key })}
+                className={cn(
+                  "px-4 py-2 rounded-xl text-sm font-semibold border transition-all",
+                  filters.dateRange === key
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-white text-foreground border-border hover:border-primary/30"
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── DataTableHeaderControls ────────────────────────────────────────────────────
+
+export interface DataTableHeaderControlsProps<TStatus extends string = string> {
+  /** Controlled search value */
+  search: string;
+  onSearchChange: (v: string) => void;
+  searchPlaceholder?: string;
+  /** Controlled filter state */
+  filters: TableFilterState<TStatus>;
+  onFiltersChange: (f: TableFilterState<TStatus>) => void;
+  /** Status pills shown in the filter panel */
+  statusOptions: StatusOption<TStatus>[];
+  /** Hide the date-range section of the filter panel */
+  showDateRange?: boolean;
+}
+
+export function DataTableHeaderControls<TStatus extends string = string>({
+  search,
+  onSearchChange,
+  searchPlaceholder = "Search...",
+  filters,
+  onFiltersChange,
+  statusOptions,
+  showDateRange = true,
+}: DataTableHeaderControlsProps<TStatus>) {
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <>
+      {/* Search */}
+      <div className="flex items-center gap-2 border border-border rounded-xl px-3 py-2 bg-white w-64 focus-within:border-primary transition-colors">
+        <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+        <input
+          type="text"
+          placeholder={searchPlaceholder}
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className="text-sm bg-transparent outline-none flex-1 text-foreground placeholder:text-muted-foreground"
+        />
+      </div>
+
+      {/* Filter toggle */}
+      <div className="relative" ref={ref}>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className={cn(
+            "w-9 h-9 rounded-xl border flex items-center justify-center transition-colors",
+            open
+              ? "border-primary bg-background-green-100 text-primary"
+              : "border-border text-muted-foreground hover:border-primary/40"
+          )}
+        >
+          <SlidersHorizontal className="w-4 h-4" />
+        </button>
+
+        {open && (
+          <div className="absolute right-0 top-11 z-50">
+            <FilterPanel
+              filters={filters}
+              onChange={onFiltersChange}
+              statusOptions={statusOptions}
+              showDateRange={showDateRange}
+            />
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
