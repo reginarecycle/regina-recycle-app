@@ -1,12 +1,10 @@
-// src/pickups/dto/update-pickup.dto.ts
 import {
   IsString,
   IsOptional,
   IsDateString,
-  IsEnum,
+  IsNumber,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { PickupStatus } from '@prisma/client';
 
 export class UpdatePickupDto {
   @ApiPropertyOptional({ example: '2026-04-01T10:00:00.000Z' })
@@ -14,8 +12,13 @@ export class UpdatePickupDto {
   @IsOptional()
   scheduledAt?: string;
 
-  @ApiPropertyOptional({ enum: PickupStatus })
-  @IsEnum(PickupStatus)
+  @ApiPropertyOptional({ example: 30.00 })
+  @IsNumber()
   @IsOptional()
-  status?: PickupStatus;
+  estimatedCost?: number;
+
+  @ApiPropertyOptional({ example: 'Updated note: added more items' })
+  @IsString()
+  @IsOptional()
+  note?: string;
 }

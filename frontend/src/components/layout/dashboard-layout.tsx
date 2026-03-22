@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Toolbar } from "@/components/layout/toolbar";
 import { useCurrentUser } from "@/api-hooks/useAuth";
 import { useInactivityLogout } from "@/hooks/use-inactivity";
+import { getUserRole } from "@/lib/helper";
 
 const PAGE_TITLES: Record<string, string> = {
   "/app/dashboard":           "Dashboard",
@@ -14,7 +15,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/app/profile":             "Profile",
   "/app/collector/dashboard": "Dashboard",
   "/app/collector/requests":  "Collection Requests",
-  "/app/collector/wallet":    "Wallet",
+  "/app/collector/wallet":    "Wallet Management",
   "/app/collector/users":     "Users",
   "/app/collector/settings":  "Settings",
 };
@@ -33,40 +34,63 @@ export default function DashboardLayout() {
   const isCollectorRoute = location.pathname.includes("/collector");
   const isOnNotifications = location.pathname.includes("/notification");
 
-  const { data: userResult, isLoading} = useCurrentUser();
-  const currentuser=  useCurrentUser()
-  console.log(currentuser)
+  const { data: userResult, isLoading } = useCurrentUser();
   const user = userResult?.data;
 
+  // ── Must be before any early returns (rules of hooks) ────────────────────────
+  useInactivityLogout(60 * 60 * 1000);
+
+  // ── Role-aware redirects ──────────────────────────────────────────────────────
+  const role = getUserRole();
+
   if (location.pathname === Routes.app) {
-    return <Navigate to={Routes.dashboard} replace />;
+    return (
+      <Navigate
+        to={role === "COLLECTOR" ? Routes.collectordashboard : Routes.dashboard}
+        replace
+      />
+    );
   }
 
   if (location.pathname === Routes.collectorapp) {
     return <Navigate to={Routes.collectordashboard} replace />;
   }
 
+  // Collector trying to access customer routes → redirect to collector dashboard
+  if (!isCollectorRoute && role === "COLLECTOR") {
+    return <Navigate to={Routes.collectordashboard} replace />;
+  }
+
+  // Customer trying to access collector routes → redirect to customer dashboard
+  if (isCollectorRoute && role === "CUSTOMER") {
+    return <Navigate to={Routes.dashboard} replace />;
+  }
+
   const notificationsRoute = isCollectorRoute
     ? Routes.collectornotifications
     : Routes.notifications;
 
-    useInactivityLogout (60 * 60 * 1000);
   return (
     <div className="flex h-screen overflow-hidden">
+      {/* Desktop sidebar */}
       <div className="hidden lg:flex">
         <Sidebar
           isCollectorMode={isCollectorRoute}
           userName={user?.name!}
-          userRole={user?.role }
+          userRole={user?.role}
           userAvatar={undefined}
           isLoading={isLoading}
-          activePath={isOnNotifications
-            ? (isCollectorRoute ? Routes.collectordashboard : Routes.dashboard)
-            : location.pathname
+          activePath={
+            isOnNotifications
+              ? isCollectorRoute
+                ? Routes.collectordashboard
+                : Routes.dashboard
+              : location.pathname
           }
         />
       </div>
 
+      {/* Mobile sidebar */}
       {mobileMenuOpen && (
         <>
           <div
@@ -77,22 +101,26 @@ export default function DashboardLayout() {
             <Sidebar
               isCollectorMode={isCollectorRoute}
               userName={user?.name!}
-              userRole={user?.role }
+              userRole={user?.role}
               userAvatar={undefined}
               isLoading={isLoading}
-              activePath={isOnNotifications
-                ? (isCollectorRoute ? Routes.collectordashboard : Routes.dashboard)
-                : location.pathname
+              onNavigate={() => setMobileMenuOpen(false)}
+              activePath={
+                isOnNotifications
+                  ? isCollectorRoute
+                    ? Routes.collectordashboard
+                    : Routes.dashboard
+                  : location.pathname
               }
             />
           </div>
         </>
       )}
 
-      {/* Main Content */}
+      {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0">
         <Toolbar
-         currentLocation={user?.addresses?.find(a => a.isPrimary)?.line1 ?? "—"}
+          currentLocation={user?.addresses?.find((a) => a.isPrimary)?.line1 ?? "—"}
           notificationCount={3}
           pageTitle={getPageTitle(location.pathname)}
           onMenuClick={() => setMobileMenuOpen(true)}

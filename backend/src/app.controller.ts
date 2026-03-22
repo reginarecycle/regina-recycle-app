@@ -1,8 +1,21 @@
+// src/app.controller.ts
 import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
-
+  @Get('test')
+  test() {
+    return { 
+      message: 'API is working!',
+      timestamp: new Date().toISOString(),
+      env: process.env.NODE_ENV,
+      vercel: process.env.VERCEL,
+      nodeEnv: process.env.NODE_ENV
+    };
+  }
+  
+  @Get()
+  root() {
+    return { message: 'ReginaRecycle API is running' };
+  }
 }

@@ -28,7 +28,7 @@ function InputOTPGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="input-otp-group"
-      className={cn("flex items-center gap-4 xl:gap-8", className)}
+      className={cn("flex items-center gap-1.5 sm:gap-4 xl:gap-8", className)}
       {...props}
     />
   );
@@ -49,7 +49,7 @@ function InputOTPSlot({
       data-slot="input-otp-slot"
       data-active={isActive}
       className={cn(
-        "data-[active=true]:border-primary data-[active=true]:ring-primary/20 data-[active=true]:aria-invalid:ring-destructive/20 dark:data-[active=true]:aria-invalid:ring-destructive/40 aria-invalid:border-destructive data-[active=true]:aria-invalid:border-destructive dark:bg-input/30 bg-input border-ring relative flex h-18 w-18 items-center justify-center border-y border-r text-lg font-medium shadow-xs transition-all outline-none rounded-xl border data-[active=true]:z-10 data-[active=true]:ring-[3px]",
+        "data-[active=true]:border-primary data-[active=true]:ring-primary/20 data-[active=true]:aria-invalid:ring-destructive/20 dark:data-[active=true]:aria-invalid:ring-destructive/40 aria-invalid:border-destructive data-[active=true]:aria-invalid:border-destructive dark:bg-input/30 bg-input border-ring relative flex h-12 w-12 sm:h-18 sm:w-18 items-center justify-center border-y border-r text-base sm:text-lg font-medium shadow-xs transition-all outline-none rounded-xl border data-[active=true]:z-10 data-[active=true]:ring-[3px]",
         className
       )}
       {...props}

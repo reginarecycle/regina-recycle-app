@@ -1,12 +1,13 @@
-// src/pickups/dto/create-pickup.dto.ts
 import {
   IsString,
   IsNotEmpty,
   IsDateString,
   IsArray,
-  ValidateNested,
+  IsOptional,
+  IsNumber,
   IsInt,
   IsPositive,
+  ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
@@ -23,16 +24,64 @@ export class CreatePickupItemDto {
   quantity: number;
 }
 
-export class CreatePickupDto {
-  @ApiProperty({ example: 'uuid-of-address' })
+export class PickupAddressDto {
+  @ApiProperty({ example: '456 Victoria Ave' })
   @IsString()
   @IsNotEmpty()
-  addressId: string;
+  line1: string;
+
+  @ApiProperty({ example: 'Suite 12' })
+  @IsOptional()
+  @IsString()
+  line2?: string;
+
+  @ApiProperty({ example: 'Regina' })
+  @IsString()
+  @IsNotEmpty()
+  city: string;
+
+  @ApiProperty({ example: 'Saskatchewan' })
+  @IsString()
+  @IsNotEmpty()
+  province: string;
+
+  @ApiProperty({ example: 'S4N 0P1' })
+  @IsString()
+  @IsNotEmpty()
+  postalCode: string;
+
+  @ApiProperty({ example: 50.4452 })
+  @IsOptional()
+  @IsNumber()
+  latitude?: number;
+
+  @ApiProperty({ example: -104.6189 })
+  @IsOptional()
+  @IsNumber()
+  longitude?: number;
+}
+
+export class CreatePickupDto {
+  @ApiProperty({ type: PickupAddressDto })
+  @ValidateNested()
+  @Type(() => PickupAddressDto)
+  @IsNotEmpty()
+  address: PickupAddressDto;
 
   @ApiProperty({ example: '2026-04-01T10:00:00.000Z' })
   @IsDateString()
   @IsNotEmpty()
   scheduledAt: string;
+
+  @ApiProperty({ example: 25.50, required: false })
+  @IsOptional()
+  @IsNumber()
+  estimatedCost?: number;
+
+  @ApiProperty({ example: 'Please handle with care, glass items included', required: false })
+  @IsOptional()
+  @IsString()
+  note?: string;
 
   @ApiProperty({ type: [CreatePickupItemDto] })
   @IsArray()

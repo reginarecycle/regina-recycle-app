@@ -1,10 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationGatewayService } from './notifications.gateway.service';
 import { NotificationEventType } from './interface/observer.interface';
-// import { NotificationGatewayService } from './notification-gateway.service';
-// import { NotificationEventType } from './interfaces/observer.interface';
 
 const BATCH_SIZE = 500;
 
@@ -17,7 +14,6 @@ export class NotificationsCronService {
         private readonly notificationService: NotificationGatewayService,
     ) { }
 
-    @Cron(CronExpression.EVERY_DAY_AT_8AM)
     async sendPickupReminders() {
         this.logger.log('Running pickup reminder cron job...');
 
@@ -55,7 +51,6 @@ export class NotificationsCronService {
             );
 
             for (const pickup of pickups) {
-                // Customer — individual reminder per pickup
                 if (pickup.requester) {
                     await this.processCustomerReminder(pickup).catch((error) =>
                         this.logger.error(
@@ -65,7 +60,6 @@ export class NotificationsCronService {
                     );
                 }
 
-                // Collector — group pickups for summary
                 if (pickup.collector) {
                     const existing = collectorMap.get(pickup.collector.userId) ?? [];
                     collectorMap.set(pickup.collector.userId, [...existing, pickup]);
@@ -77,7 +71,6 @@ export class NotificationsCronService {
             if (pickups.length < BATCH_SIZE) break;
         }
 
-        // Send one summary notification per collector
         for (const [, pickups] of collectorMap) {
             await this.notifyCollector(pickups).catch((error) =>
                 this.logger.error(
@@ -133,9 +126,4 @@ export class NotificationsCronService {
             },
         });
     }
-
-    // Manual trigger for testing purposes
-    // async triggerManually() {
-    //     await this.sendPickupReminders();
-    // }
 }

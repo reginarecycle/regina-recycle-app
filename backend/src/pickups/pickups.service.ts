@@ -2,33 +2,39 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePickupDto } from './dto/create-pickup.dto';
 import { UpdatePickupDto } from './dto/update-pickup.dto';
+import { NotificationGatewayService } from '../notifications/notifications.gateway.service';
 
 @Injectable()
 export class PickupsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationService: NotificationGatewayService,
+  ) {}
 
-  // ----------------------------------------------------------------
+ 
   // USER: Schedule a pickup
-  // ----------------------------------------------------------------
-  async create(requesterUserId: string, createPickupDto: CreatePickupDto) {
-    const { addressId, scheduledAt, items } = createPickupDto;
+  async create(requesterUserId: string, createPickupDto: CreatePickupDto, photoUrl?: string) {
+    const { address, scheduledAt, items, estimatedCost, note } = createPickupDto;
 
-    // 1. Verify address belongs to the requesting user
-    const address = await this.prisma.address.findFirst({
-      where: { addressId, userId: requesterUserId },
-    });
-    if (!address) {
-      throw new BadRequestException(
-        'Address not found or does not belong to you',
-      );
+    if (new Date(scheduledAt) <= new Date()) {
+      throw new BadRequestException('Scheduled date must be in the future');
     }
 
-    // 2. Verify all materials exist
+    if (!items || items.length === 0) {
+      throw new BadRequestException('At least one item is required');
+    }
+
     const materialIds = items.map((i) => i.materialId);
+    const uniqueMaterialIds = new Set(materialIds);
+    if (uniqueMaterialIds.size !== materialIds.length) {
+      throw new BadRequestException('Duplicate materials are not allowed in a single pickup');
+    }
+
     const materials = await this.prisma.material.findMany({
       where: { materialId: { in: materialIds } },
     });
@@ -36,13 +42,48 @@ export class PickupsService {
       throw new BadRequestException('One or more materials are invalid');
     }
 
-    // 3. Create Pickup + PickupItems
+    for (const item of items) {
+      if (item.quantity <= 0) {
+        throw new BadRequestException('Quantity must be greater than 0');
+      }
+    }
+
+    const pickupAddress = await this.prisma.address.upsert({
+      where: {
+        userId_line1_postalCode: {
+          userId: requesterUserId,
+          line1: address.line1,
+          postalCode: address.postalCode,
+        },
+      },
+      update: {
+        line2: address.line2,
+        city: address.city,
+        province: address.province,
+        latitude: address.latitude,
+        longitude: address.longitude,
+      },
+      create: {
+        userId: requesterUserId,
+        line1: address.line1,
+        line2: address.line2,
+        city: address.city,
+        province: address.province,
+        postalCode: address.postalCode,
+        latitude: address.latitude,
+        longitude: address.longitude,
+      },
+    });
+
     const pickup = await this.prisma.pickup.create({
       data: {
         requesterUserId,
         scheduledAt: new Date(scheduledAt),
-        addressId,
+        addressId: pickupAddress.addressId,
         status: 'PENDING',
+        photoUrl,
+        estimatedCost,
+        note,
         items: {
           create: items.map((item) => ({
             materialId: item.materialId,
@@ -56,15 +97,27 @@ export class PickupsService {
       },
     });
 
+    const user = await this.prisma.user.findUnique({
+      where: { userId: requesterUserId },
+      select: { email: true },
+    });
+
+    if (user) {
+      await this.notificationService.notifyPickupScheduled({
+        userId: requesterUserId,
+        recipientEmail: user.email,
+        pickupId: pickup.pickupId,
+        scheduledDate: scheduledAt,
+      });
+    }
+
     return {
       message: 'Pickup scheduled successfully',
       pickup,
     };
   }
 
-  // ----------------------------------------------------------------
   // COLLECTOR: Get all PENDING pickup requests
-  // ----------------------------------------------------------------
   async getRequests() {
     return this.prisma.pickup.findMany({
       where: { status: 'PENDING' },
@@ -84,9 +137,8 @@ export class PickupsService {
     });
   }
 
-  // ----------------------------------------------------------------
+  
   // USER: Get all their own pickups
-  // ----------------------------------------------------------------
   async findAll(requesterUserId: string) {
     return this.prisma.pickup.findMany({
       where: { requesterUserId },
@@ -98,9 +150,8 @@ export class PickupsService {
     });
   }
 
-  // ----------------------------------------------------------------
+
   // Get a single pickup by ID
-  // ----------------------------------------------------------------
   async findOne(pickupId: string) {
     const pickup = await this.prisma.pickup.findUnique({
       where: { pickupId },
@@ -123,12 +174,12 @@ export class PickupsService {
     return pickup;
   }
 
-  // ----------------------------------------------------------------
+ 
   // COLLECTOR: Accept a pickup
-  // ----------------------------------------------------------------
   async accept(pickupId: string, collectorUserId: string) {
     const pickup = await this.prisma.pickup.findUnique({
       where: { pickupId },
+      include: { items: true },
     });
 
     if (!pickup) {
@@ -136,26 +187,268 @@ export class PickupsService {
     }
 
     if (pickup.status !== 'PENDING') {
-      throw new BadRequestException(`Pickup is already ${pickup.status}`);
+      throw new BadRequestException(
+        pickup.status === 'ACCEPTED'
+          ? 'This pickup has already been accepted by a collector'
+          : pickup.status === 'COMPLETED'
+            ? 'This pickup has already been completed'
+            : pickup.status === 'CANCELLED'
+              ? 'This pickup has been cancelled and cannot be accepted'
+              : `Pickup is already ${pickup.status}`,
+      );
     }
 
-    return this.prisma.pickup.update({
+    const collectorProfile = await this.prisma.collectorProfile.findUnique({
+      where: { userId: collectorUserId },
+    });
+
+    if (!collectorProfile) {
+      throw new BadRequestException('Collector profile not found. Please complete your profile setup');
+    }
+
+    const materialIds = pickup.items.map((item) => item.materialId);
+    const collectorPricings = await this.prisma.collectorPricing.findMany({
+      where: {
+        collectorUserId,
+        materialId: { in: materialIds },
+        status: 'ACTIVE',
+      },
+    });
+
+    let estimatedEarning = 0;
+    const snapshots = pickup.items.map((item) => {
+      const pricing = collectorPricings.find(
+        (p) => p.materialId === item.materialId,
+      );
+
+      const basePrice = pricing ? Number(pricing.basePrice) : 0;
+      const bulkPrice = pricing?.bulkPrice ? Number(pricing.bulkPrice) : null;
+      const bulkThreshold = collectorProfile?.bulkThreshold ?? null;
+
+      const useBulk =
+        collectorProfile?.bulkIncentiveEnabled &&
+        bulkPrice !== null &&
+        bulkThreshold !== null &&
+        item.quantity >= bulkThreshold;
+
+      const priceUsed = useBulk ? bulkPrice : basePrice;
+      estimatedEarning += item.quantity * priceUsed;
+
+      return {
+        pickupId,
+        materialId: item.materialId,
+        quantity: item.quantity,
+        basePrice,
+        bulkPrice,
+        bulkThreshold,
+        priceUsed,
+      };
+    });
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      await tx.pickupSnapshot.createMany({
+        data: snapshots,
+      });
+
+      return tx.pickup.update({
+        where: { pickupId },
+        data: {
+          collectorUserId,
+          status: 'ACCEPTED',
+          estimatedEarning,
+        },
+        include: {
+          items: { include: { material: true } },
+          address: true,
+          snapshots: true,
+        },
+      });
+    });
+
+    if (pickup.requesterUserId) {
+      const requester = await this.prisma.user.findUnique({
+        where: { userId: pickup.requesterUserId },
+        select: { email: true },
+      });
+
+      if (requester) {
+        await this.notificationService.notifyPickupStatusChanged({
+          userId: pickup.requesterUserId,
+          recipientEmail: requester.email,
+          pickupId,
+          status: 'ACCEPTED',
+        });
+      }
+    }
+
+    return {
+      message: 'Pickup accepted successfully',
+      pickup: updated,
+    };
+  }
+
+ 
+  // COLLECTOR: Complete a pickup
+  async complete(pickupId: string, collectorUserId: string) {
+    const pickup = await this.prisma.pickup.findUnique({
+      where: { pickupId },
+      include: { items: true, snapshots: true },
+    });
+
+    if (!pickup) {
+      throw new NotFoundException('Pickup not found');
+    }
+
+    if (pickup.status !== 'ACCEPTED') {
+      throw new BadRequestException(
+        pickup.status === 'PENDING'
+          ? 'This pickup must be accepted before it can be completed'
+          : pickup.status === 'COMPLETED'
+            ? 'This pickup has already been completed'
+            : pickup.status === 'CANCELLED'
+              ? 'This pickup has been cancelled and cannot be completed'
+              : `Pickup cannot be completed from status ${pickup.status}`,
+      );
+    }
+
+    // Only the collector who accepted can complete it
+    if (pickup.collectorUserId !== collectorUserId) {
+      throw new ForbiddenException('Only the assigned collector can complete this pickup');
+    }
+
+    // Calculate actual earning from snapshots
+    const actualEarning = pickup.snapshots.reduce((total, snapshot) => {
+      return total + snapshot.quantity * Number(snapshot.priceUsed);
+    }, 0);
+
+    // Complete pickup and credit customer wallet in a transaction
+    const updated = await this.prisma.$transaction(async (tx) => {
+      // Update pickup status and actual earning
+      const completedPickup = await tx.pickup.update({
+        where: { pickupId },
+        data: {
+          status: 'COMPLETED',
+          actualEarning,
+        },
+        include: {
+          items: { include: { material: true } },
+          address: true,
+          snapshots: true,
+        },
+      });
+
+      // Credit the customer's wallet
+      if (pickup.requesterUserId && actualEarning > 0) {
+        const wallet = await tx.wallet.findUnique({
+          where: { userId: pickup.requesterUserId },
+        });
+
+        if (wallet) {
+          await tx.wallet.update({
+            where: { walletId: wallet.walletId },
+            data: {
+              balance: { increment: actualEarning },
+            },
+          });
+
+          await tx.walletTransaction.create({
+            data: {
+              walletId: wallet.walletId,
+              userId: pickup.requesterUserId,
+              type: 'CREDIT',
+              amount: actualEarning,
+              status: 'COMPLETED',
+              description: `Pickup completed - ${pickup.items.length} item(s) collected`,
+              referenceType: 'PICKUP',
+              referenceId: pickupId,
+            },
+          });
+        }
+      }
+
+      return completedPickup;
+    });
+
+    // Notify the customer
+    if (pickup.requesterUserId) {
+      const requester = await this.prisma.user.findUnique({
+        where: { userId: pickup.requesterUserId },
+        select: { email: true },
+      });
+
+      if (requester) {
+        await this.notificationService.notifyPickupStatusChanged({
+          userId: pickup.requesterUserId,
+          recipientEmail: requester.email,
+          pickupId,
+          status: 'COMPLETED',
+        });
+      }
+    }
+
+    return {
+      message: 'Pickup completed successfully',
+      pickup: updated,
+      actualEarning,
+    };
+  }
+
+ 
+  // USER: Update a pickup (PENDING only, requester only)
+  async update(pickupId: string, requesterUserId: string, updatePickupDto: UpdatePickupDto) {
+    const pickup = await this.prisma.pickup.findUnique({
+      where: { pickupId },
+    });
+
+    if (!pickup) {
+      throw new NotFoundException('Pickup not found');
+    }
+
+    // Only the requester can update
+    if (pickup.requesterUserId !== requesterUserId) {
+      throw new ForbiddenException('Only the pickup requester can update this pickup');
+    }
+
+    // Can only update PENDING pickups
+    if (pickup.status !== 'PENDING') {
+      throw new BadRequestException(
+        `Cannot update a pickup with status ${pickup.status}. Only PENDING pickups can be updated.`,
+      );
+    }
+
+    // Validate rescheduled date is in the future
+    if (updatePickupDto.scheduledAt && new Date(updatePickupDto.scheduledAt) <= new Date()) {
+      throw new BadRequestException('Rescheduled date must be in the future');
+    }
+
+    const updated = await this.prisma.pickup.update({
       where: { pickupId },
       data: {
-        collectorUserId,
-        status: 'ACCEPTED',
+        ...(updatePickupDto.scheduledAt && {
+          scheduledAt: new Date(updatePickupDto.scheduledAt),
+        }),
+        ...(updatePickupDto.estimatedCost !== undefined && {
+          estimatedCost: updatePickupDto.estimatedCost,
+        }),
+        ...(updatePickupDto.note !== undefined && {
+          note: updatePickupDto.note,
+        }),
       },
       include: {
         items: { include: { material: true } },
         address: true,
       },
     });
+
+    return {
+      message: 'Pickup updated successfully',
+      pickup: updated,
+    };
   }
 
-  // ----------------------------------------------------------------
-  // Update a pickup (reschedule, update status)
-  // ----------------------------------------------------------------
-  async update(pickupId: string, updatePickupDto: UpdatePickupDto) {
+  
+  // USER: Cancel a pickup
+  async cancel(pickupId: string, requesterUserId: string) {
     const pickup = await this.prisma.pickup.findUnique({
       where: { pickupId },
     });
@@ -164,37 +457,48 @@ export class PickupsService {
       throw new NotFoundException('Pickup not found');
     }
 
-    return this.prisma.pickup.update({
-      where: { pickupId },
-      data: {
-        ...(updatePickupDto.scheduledAt && {
-          scheduledAt: new Date(updatePickupDto.scheduledAt),
-        }),
-        ...(updatePickupDto.status && { status: updatePickupDto.status }),
-      },
-      include: { items: true },
-    });
-  }
-
-  // ----------------------------------------------------------------
-  // Cancel a pickup
-  // ----------------------------------------------------------------
-  async cancel(pickupId: string) {
-    const pickup = await this.prisma.pickup.findUnique({
-      where: { pickupId },
-    });
-
-    if (!pickup) {
-      throw new NotFoundException('Pickup not found');
+    // Only the requester can cancel
+    if (pickup.requesterUserId !== requesterUserId) {
+      throw new ForbiddenException('Only the pickup requester can cancel this pickup');
     }
 
     if (pickup.status === 'COMPLETED') {
       throw new BadRequestException('Cannot cancel a completed pickup');
     }
 
-    return this.prisma.pickup.update({
+    if (pickup.status === 'CANCELLED') {
+      throw new BadRequestException('This pickup is already cancelled');
+    }
+
+    const cancelled = await this.prisma.pickup.update({
       where: { pickupId },
       data: { status: 'CANCELLED' },
+      include: {
+        items: { include: { material: true } },
+        address: true,
+      },
     });
+
+    // Notify on cancellation
+    if (pickup.requesterUserId) {
+      const requester = await this.prisma.user.findUnique({
+        where: { userId: pickup.requesterUserId },
+        select: { email: true },
+      });
+
+      if (requester) {
+        await this.notificationService.notifyPickupStatusChanged({
+          userId: pickup.requesterUserId,
+          recipientEmail: requester.email,
+          pickupId,
+          status: 'CANCELLED',
+        });
+      }
+    }
+
+    return {
+      message: 'Pickup cancelled successfully',
+      pickup: cancelled,
+    };
   }
 }
