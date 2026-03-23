@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import DataTable, { type Column } from "@/components/ui/data-table";
-import { ChevronRight, ListFilter, Search } from "lucide-react";
+import { ChevronRight, ChevronsUpDown, ListFilter, Search } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RequestDetailsModal } from "./request-details-modal";
 import { RequestAcceptedModal } from "./request-accepted-modal";
@@ -78,11 +78,11 @@ export default function RequestsTable() {
         getCollectorPickups("ACCEPTED", 1, 0),
         getCollectorPickups("COMPLETED", 1, 0),
       ]);
-      console.log(incomingRes);
+      //console.log("incoming res",acceptedRes);
       setTabCounts({
-        incoming: incomingRes.data?.total ?? 0,
-        accepted: acceptedRes.data?.total ?? 0,
-        completed: completedRes.data?.total ?? 0,
+        incoming: incomingRes.data?.meta?.total ?? 0,
+        accepted: acceptedRes.data?.meta?.total ?? 0,
+        completed: completedRes.data?.meta?.total ?? 0,
       });
     } catch (error) {
       console.error("Failed to fetch tab counts:", error);
@@ -133,8 +133,10 @@ export default function RequestsTable() {
 
       const responseData = result.data ?? {};
       const backendRows = responseData.data ?? [];
-      const total = responseData.total ?? 0;
-      const pageLimit = responseData.limit ?? 10;
+      const total = responseData.meta?.total ?? 0;
+      const pageLimit = responseData.meta?.limit ?? 10;
+      //
+      console.log("result",pageLimit);
 
       setTotalPages(Math.max(1, Math.ceil(total / pageLimit)));
 
