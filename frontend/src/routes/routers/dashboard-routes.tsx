@@ -8,6 +8,8 @@ const UserDashboard         = lazy(() => import("@/views/customer/home"));
 const CollectorDashboard    = lazy(() => import("@/views/collector/dashboard"));
 const CustomerProfile       = lazy(() => import("@/views/customer/profile"));
 const SchedulePickupView    = lazy(() => import("@/views/customer/schedule_pickup_view/index"));
+const CustomerWallet         = lazy(() => import("@/views/customer/wallet"));
+const WalletTransactionHistory    = lazy(() => import ("@/views/customer/wallet/transactionhistory"));
 const CollectorRequests     = lazy(() => import("@/views/collector/requests"));
 const CollectorSettingsPage = lazy(() => import("@/views/collector/settings"));
 const NotificationsPage     = lazy(() => import("@/views/notifications"));
@@ -19,6 +21,9 @@ const UserDashboardGuard         = addPermissions(UserDashboard, ["customer"]);
 const CollectorDashboardGuard    = addPermissions(CollectorDashboard, ["collector"]);
 const CustomerProfileGuard       = addPermissions(CustomerProfile, ["customer"]);
 const SchedulePickupViewGuard    = addPermissions(SchedulePickupView, ["customer"]);
+const CustomerWalletGuard        = addPermissions(CustomerWallet, ["customer"]);
+const TransactionHistoryGuard    = addPermissions(WalletTransactionHistory, ["customer"]);
+
 const CollectorRequestsGuard     = addPermissions(CollectorRequests, ["collector"]);
 const CollectorSettingsGuard     = addPermissions(CollectorSettingsPage, ["collector"]);
 const CustomerNotificationsGuard = addPermissions(NotificationsPage, ["customer"]);
@@ -36,6 +41,15 @@ export const dashboardRoutes = (): RouteObject[] => [
     element: <SchedulePickupViewGuard />,
   },
   {
+    path: Routes.wallet,
+    element: <CustomerWalletGuard />
+  },
+{
+  path: Routes.transactionhistory,
+    element: <TransactionHistoryGuard/>
+  },
+
+  {
     path: Routes.profile,
     element: <CustomerProfileGuard />,
   },
@@ -51,26 +65,11 @@ export const dashboardRoutes = (): RouteObject[] => [
     path: Routes.collectorapp,
     element: <Outlet />,
     children: [
-      {
-        path: Routes.collectordashboard,
-        element: <CollectorDashboardGuard />,
-      },
-      {
-        path: Routes.collectorsettings,
-        element: <CollectorSettingsGuard />,
-      },
-      {
-        path: Routes.collectornotifications,
-        element: <CollectorNotificationsGuard />,
-      },
-      {
-        path: Routes.requests,
-        element: <CollectorRequestsGuard />,
-      },
-      {
-        path: Routes.collectorwallet,
-        element: <CollectorWalletGuard />,
-      },
+      { path: Routes.collectordashboard,     element: <CollectorDashboardGuard /> },
+      { path: Routes.collectorsettings,      element: <CollectorSettingsGuard /> },
+      { path: Routes.collectornotifications, element: <CollectorNotificationsGuard /> },
+      { path: Routes.requests,               element: <CollectorRequestsGuard /> },
+      { path: Routes.collectorwallet,        element: <CollectorWalletGuard /> },
     ],
   },
 ];
