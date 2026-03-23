@@ -2,6 +2,8 @@ import { useGetOne } from "@/lib/queryHelpers";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/apiFetch";
 
+export type PickupStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "ACCEPTED" | "CANCELLED";
+
 export interface TimeSlot {
     id: string;
     label: string;
@@ -44,34 +46,18 @@ export interface Pickup {
 
 export interface CustomerPickupsQuery {
   search?: string;
-  type?: string;
+  status?: PickupStatus;
   page?: number;
   limit?: number;
-}
-
-export interface CollectorPickupsQuery {
-  search?: string;
-  type?: string;
-  page?: number;
-  limit?: number;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface CustomerPaginatedPickups {
-  search?: string;
-  status?: string;    
-  startDate?: string;   
-  endDate?: string;  
-  page?: number;
-  limit?: number;
-}
-
-export interface CollectorPaginatedPickups {
-  search?: string;
-  status?: string;   
-  startDate?: string;    
-  endDate?: string;     
-  page?: number;
-  limit?: number;
+  data: Pickup[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 export const useGetAvailableSlots = (month: number, year: number) =>
@@ -94,4 +80,23 @@ export const useCreatePickup = () => {
             queryClient.invalidateQueries({ queryKey: ["pickups"] });
         },
     });
+};
+
+export const useGetCustomerPickups = (query?: CustomerPickupsQuery) => {
+  const params = new URLSearchParams();
+
+  if (query?.page) params.append("page", String(query.page));
+  if (query?.limit) params.append("limit", String(query.limit));
+  if (query?.search) params.append("search", query.search);
+  if (query?.status) params.append("status", query.status);
+  if (query?.startDate) params.append("startDate", query.startDate);
+  if (query?.endDate) params.append("endDate", query.endDate);
+
+  const queryString = params.toString();
+  const endpoint = queryString ? `/pickups?${queryString}` : "/pickups";
+
+  return useGetOne<CustomerPaginatedPickups>(
+    ["pickups", "customer", query ?? {}],
+    endpoint
+  );
 };
