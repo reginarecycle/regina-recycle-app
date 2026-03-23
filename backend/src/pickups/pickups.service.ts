@@ -8,6 +8,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreatePickupDto } from './dto/create-pickup.dto';
 import { UpdatePickupDto } from './dto/update-pickup.dto';
 import { NotificationGatewayService } from '../notifications/notifications.gateway.service';
+import { PickupQueryDto } from './dto/pickup-query.dto';
+import { paginate, getPaginationParams } from '../common/pagination/pagination-helper';
 
 @Injectable()
 export class PickupsService {
@@ -118,37 +120,87 @@ export class PickupsService {
   }
 
   // COLLECTOR: Get all PENDING pickup requests
-  async getRequests() {
-    return this.prisma.pickup.findMany({
-      where: { status: 'PENDING' },
+  async getRequests(query: PickupQueryDto) {
+  const { page = 1, limit = 10, search, status, startDate, endDate } = query;
+  const { skip, take } = getPaginationParams(page, limit);
+
+  const where: any = { status: status ?? 'PENDING' };
+
+  if (startDate || endDate) {
+    where.scheduledAt = {
+      ...(startDate && { gte: new Date(startDate) }),
+      ...(endDate && { lte: new Date(endDate) }),
+    };
+  }
+
+  if (search) {
+    where.OR = [
+      { requester: { name: { contains: search, mode: 'insensitive' } } },
+      { requester: { email: { contains: search, mode: 'insensitive' } } },
+      { address: { line1: { contains: search, mode: 'insensitive' } } },
+    ];
+  }
+
+  const [pickups, total] = await Promise.all([
+    this.prisma.pickup.findMany({
+      where,
       include: {
         items: { include: { material: true } },
         address: true,
         requester: {
-          select: {
-            userId: true,
-            name: true,
-            email: true,
-            phoneNumber: true,
-          },
+          select: { userId: true, name: true, email: true, phoneNumber: true },
         },
       },
       orderBy: { scheduledAt: 'asc' },
-    });
-  }
+      skip,
+      take,
+    }),
+    this.prisma.pickup.count({ where }),
+  ]);
+
+  return paginate(pickups, total, page, limit);
+}
 
 
   // USER: Get all their own pickups
-  async findAll(requesterUserId: string) {
-    return this.prisma.pickup.findMany({
-      where: { requesterUserId },
+ async findAll(requesterUserId: string, query: PickupQueryDto) {
+  const { page = 1, limit = 10, search, status, startDate, endDate } = query;
+  const { skip, take } = getPaginationParams(page, limit);
+
+  const where: any = { requesterUserId };
+
+  if (status) where.status = status;
+
+  if (startDate || endDate) {
+    where.scheduledAt = {
+      ...(startDate && { gte: new Date(startDate) }),
+      ...(endDate && { lte: new Date(endDate) }),
+    };
+  }
+
+  if (search) {
+    where.OR = [
+      { address: { line1: { contains: search, mode: 'insensitive' } } },
+      { note: { contains: search, mode: 'insensitive' } },
+    ];
+  }
+
+  const [pickups, total] = await Promise.all([
+    this.prisma.pickup.findMany({
+      where,
       include: {
         items: { include: { material: true } },
         address: true,
       },
       orderBy: { createdAt: 'desc' },
-    });
-  }
+      skip,
+      take,
+    }),
+    this.prisma.pickup.count({ where }),
+  ]);
+
+  return paginate(pickups, total, page, limit);
+}
 
 
   // Get a single pickup by ID
