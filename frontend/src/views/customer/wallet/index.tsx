@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, ArrowUpRight, ChevronRight } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Routes } from "@/routes/routes";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
@@ -12,56 +13,67 @@ import type { ChartConfig } from "@/components/ui/chart";
 import WithdrawModal from "@/components/modals/withdrawmodal";
 import TransactionDetailsModal from "@/components/modals/transactiondetailmodal";
 import type { TransactionDetails } from "@/components/modals/transactiondetailmodal";
+import { useGetCustomerWallet } from "@/api-hooks/useCustomerWallet";
+import { useGetWalletTransactions } from "@/api-hooks/useWallet";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type TxStatus = "CREDIT" | "WITHDRAWAL" | "FAILED";
+type TxStatusUI = "CREDIT" | "WITHDRAWAL" | "FAILED";
 
 type RecentTx = {
   id: string;
   date: string;
-  status: TxStatus;
+  status: TxStatusUI;
   desc: string;
   amount: string;
 };
 
-// ── Static data ───────────────────────────────────────────────────────────────
+// ── Mapper ────────────────────────────────────────────────────────────────────
+// Backend sends "CREDIT" | "DEBIT" — we translate to what the UI expects
 
-const BALANCE = 3000500;
+function mapTransaction(tx: {
+  walletId: string;
+  type: string;
+  amount: number;
+  status: string;
+  description?: string;
+  referenceType?: string;
+  referenceId?: string;
+  createdAt: string;
+}): RecentTx {
+  const statusUI: TxStatusUI =
+    tx.type === "CREDIT"
+      ? "CREDIT"
+      : tx.status === "FAILED"
+      ? "FAILED"
+      : "WITHDRAWAL";
 
-const RECENT_TX: RecentTx[] = [
-  { id: "WALLET-TX-1", date: "14, Jan 2023", status: "CREDIT",     desc: "Payment for plastic recyclables", amount: "CAD 1,558" },
-  { id: "WALLET-TX-2", date: "14, Jan 2023", status: "WITHDRAWAL", desc: "Withdrew via Interac",             amount: "CAD 1,558" },
-  { id: "WALLET-TX-3", date: "14, Jan 2023", status: "CREDIT",     desc: "Payment for tins",                amount: "CAD 1,558" },
-  { id: "WALLET-TX-4", date: "14, Jan 2023", status: "WITHDRAWAL", desc: "Withdrew via Interac",             amount: "CAD 1,558" },
-  { id: "WALLET-TX-5", date: "14, Jan 2023", status: "CREDIT",     desc: "Payment for tins",                amount: "CAD 1,558" },
-];
+  return {
+    id: tx.referenceId ?? `${tx.createdAt}-${tx.amount}`,
+    date: new Date(tx.createdAt).toLocaleDateString("en-CA", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }),
+    status: statusUI,
+    desc: tx.description ?? "Wallet transaction",
+    amount: `CAD ${tx.amount.toFixed(2)}`,
+  };
+}
 
+// ── Skeleton ──────────────────────────────────────────────────────────────────
 
-const WEEKLY_DATA = [
-  { label: "Sun", earnings: 0   },
-  { label: "Mon", earnings: 80  },
-  { label: "Tue", earnings: 45  },
-  { label: "Wed", earnings: 120 },
-  { label: "Thu", earnings: 0   },
-  { label: "Fri", earnings: 95  },
-  { label: "Sat", earnings: 60  },
-];
+function WalletSkeleton() {
+  return (
+    <div className="flex flex-col gap-6 p-4 sm:p-6 lg:p-8 bg-muted/30 min-h-screen animate-pulse">
+      <div className="rounded-2xl bg-gray-300 h-44" />
+      <div className="rounded-2xl bg-gray-200 h-72" />
+      <div className="rounded-2xl bg-gray-200 h-64" />
+    </div>
+  );
+}
 
-const MONTHLY_DATA = [
-  { label: "JAN",  earnings: 0   },
-  { label: "FEB",  earnings: 193 },
-  { label: "MAR",  earnings: 0   },
-  { label: "APR",  earnings: 129 },
-  { label: "MAY",  earnings: 0   },
-  { label: "JUN",  earnings: 0   },
-  { label: "JUL",  earnings: 0   },
-  { label: "AUG",  earnings: 0   },
-  { label: "SEPT", earnings: 0   },
-  { label: "OCT",  earnings: 0   },
-  { label: "NOV",  earnings: 0   },
-  { label: "DEC",  earnings: 0   },
-];
+// ── Chart config ──────────────────────────────────────────────────────────────
 
 const chartConfig: ChartConfig = {
   earnings: { label: "Earnings", color: "rgba(52,78,65,0.6)" },
@@ -71,11 +83,73 @@ const chartConfig: ChartConfig = {
 
 function CustomerWallet() {
   const navigate = useNavigate();
-  const [visible, setVisible]           = useState(true);
-  const [chartTab, setChartTab]         = useState<"weekly" | "monthly">("weekly");
-  const [withdrawOpen, setWithdrawOpen] = useState(false);
-  const [openDetails, setOpenDetails]   = useState(false);
-  const [selectedDetails, setSelectedDetails] = useState<TransactionDetails | null>(null);
+
+  const [visible, setVisible]                   = useState(true);
+  const [chartTab, setChartTab]                 = useState<"weekly" | "monthly">("weekly");
+  const [withdrawOpen, setWithdrawOpen]         = useState(false);
+  const [openDetails, setOpenDetails]           = useState(false);
+  const [selectedDetails, setSelectedDetails]   = useState<TransactionDetails | null>(null);
+
+  // ── Data fetching ──────────────────────────────────────────────────────────
+
+  const {
+    data: walletResult,
+    isLoading: walletLoading,
+    isError: walletError,
+  } = useGetCustomerWallet();
+
+  const {
+    data: txResult,
+    isLoading: txLoading,
+    isError: txError,
+  } = useGetWalletTransactions({ page: 1, limit: 5 });
+
+  // Surface errors via toast (same pattern as collector)
+  if (walletError) toast.error("Failed to load wallet. Please refresh.");
+  if (txError)     toast.error("Failed to load transactions. Please refresh.");
+
+  // ── Derived state ──────────────────────────────────────────────────────────
+
+  // useGetOne<CustomerWallet> unwraps one level — same as collector does:
+  // const wallet = walletResult?.data  (the API response body)
+  const wallet = walletResult?.data;
+
+  // useGetOne<PaginatedTransactions> → txResult is the raw response
+  // PaginatedTransactions shape: { data: WalletTransaction[], meta: {...} }
+  // so the array is at txResult?.data?.data  — same as collector
+  const transactions = useMemo(
+    () => (txResult?.data?.data ?? []).map(mapTransaction),
+    [txResult]
+  );
+
+  // Chart data driven from wallet summary fields
+  const WEEKLY_DATA = [
+    { label: "This Month", earnings: wallet?.monthlyEarnings ?? 0 },
+    { label: "Pending",    earnings: wallet?.pendingEarningsAmount ?? 0 },
+  ];
+
+  const MONTHLY_DATA = [
+    { label: "This Year",  earnings: wallet?.yearlyEarnings ?? 0 },
+    { label: "This Month", earnings: wallet?.monthlyEarnings ?? 0 },
+  ];
+
+  const chartData = chartTab === "weekly" ? WEEKLY_DATA : MONTHLY_DATA;
+
+  // ── Guards ─────────────────────────────────────────────────────────────────
+
+  if (walletLoading) return <WalletSkeleton />;
+
+  if (!wallet) {
+    return (
+      <div className="flex items-center justify-center min-h-screen p-8">
+        <p className="text-sm text-muted-foreground">
+          Failed to load wallet. Please refresh.
+        </p>
+      </div>
+    );
+  }
+
+  // ── Handlers ───────────────────────────────────────────────────────────────
 
   const handleViewMore = (tx: RecentTx) => {
     setSelectedDetails({
@@ -92,11 +166,15 @@ function CustomerWallet() {
     setOpenDetails(true);
   };
 
+  // ── Columns ────────────────────────────────────────────────────────────────
+
   const columns: ColumnDef<RecentTx>[] = [
     {
       key: "date",
       header: "Date",
-      cell: (row) => <span className="text-sm font-semibold text-foreground">{row.date}</span>,
+      cell: (row) => (
+        <span className="text-sm font-semibold text-foreground">{row.date}</span>
+      ),
     },
     {
       key: "status",
@@ -106,13 +184,18 @@ function CustomerWallet() {
     {
       key: "desc",
       header: "Description",
-      cell: (row) => <span className="text-sm text-foreground">{row.desc}</span>,
+      cell: (row) => (
+        <span className="text-sm text-foreground">{row.desc}</span>
+      ),
     },
     {
       key: "amount",
       header: "Amount (CAD)",
       cell: (row) => (
-        <span className="text-sm font-semibold" style={{ color: getAmountColor(row.status) }}>
+        <span
+          className="text-sm font-semibold"
+          style={{ color: getAmountColor(row.status) }}
+        >
           {row.amount}
         </span>
       ),
@@ -132,12 +215,12 @@ function CustomerWallet() {
     },
   ];
 
-  const chartData = chartTab === "weekly" ? WEEKLY_DATA : MONTHLY_DATA;
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div className="flex flex-col gap-6 p-4 sm:p-6 lg:p-8 bg-muted/30 min-h-screen">
 
-      {/* Balance card */}
+      {/* ── Balance card ── */}
       <div className="w-full rounded-2xl border-2 border-primary bg-linear-to-b from-[#618171] to-[#344E41] px-6 py-5 text-white">
         <div className="flex items-center gap-2 mb-1">
           <span className="text-sm font-bold">Available Balance</span>
@@ -153,9 +236,14 @@ function CustomerWallet() {
         <div className="mt-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div className="flex items-baseline gap-2">
             <span className="text-4xl font-bold">
-            {visible ? `$${BALANCE.toFixed(2)}` : (
-              <>$<span className="text-2xl self-center tracking-widest leading-none">*******</span></>
-            )}
+              {visible
+                ? `$${wallet.balance.toFixed(2)}`
+                : (
+                  <>
+                    $<span className="text-2xl self-center tracking-widest leading-none">*******</span>
+                  </>
+                )
+              }
             </span>
             <span className="text-sm font-bold">CAD</span>
           </div>
@@ -171,15 +259,19 @@ function CustomerWallet() {
         </div>
       </div>
 
-      {/* Earnings chart */}
+      {/* ── Earnings chart ── */}
       <div className="w-full rounded-2xl border border-border bg-white p-5 sm:p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-base font-semibold text-foreground">Earnings Overview</h2>
             <p className="text-xs text-muted-foreground">
-              {chartTab === "weekly" ? "Sun – Sat earnings" : "Jan – Dec earnings (2026)"}
+              {chartTab === "weekly"
+                ? `Monthly: $${wallet.monthlyEarnings.toFixed(2)} | Pending: $${wallet.pendingEarningsAmount.toFixed(2)}`
+                : `Yearly: $${wallet.yearlyEarnings.toFixed(2)} | This Month: $${wallet.monthlyEarnings.toFixed(2)}`
+              }
             </p>
           </div>
+
           <div className="inline-flex items-center gap-1 rounded-lg bg-muted p-1">
             {(["weekly", "monthly"] as const).map((tab) => (
               <button
@@ -202,16 +294,25 @@ function CustomerWallet() {
         <ChartContainer config={chartConfig} className="h-65 w-full">
           <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
             <CartesianGrid vertical={false} stroke="#CFCFCF" />
-            <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={10} tick={{ fontSize: 11 }} />
-            <ChartTooltip cursor={{ fill: "rgba(0,0,0,0.04)" }} content={<ChartTooltipContent />} />
+            <XAxis
+              dataKey="label"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={10}
+              tick={{ fontSize: 11 }}
+            />
+            <ChartTooltip
+              cursor={{ fill: "rgba(0,0,0,0.04)" }}
+              content={<ChartTooltipContent />}
+            />
             <Bar dataKey="earnings" fill="var(--color-earnings)" radius={4} />
           </BarChart>
         </ChartContainer>
       </div>
 
-      {/* Recent transactions */}
+      {/* ── Recent transactions ── */}
       <DataTable
-        data={RECENT_TX}
+        data={txLoading ? [] : transactions}
         columns={columns}
         rowKey={(r) => r.id}
         title="Recent Transaction"
@@ -221,21 +322,31 @@ function CustomerWallet() {
             onClick={() => navigate(Routes.transactionhistory)}
             className="text-sm font-semibold text-primary hover:underline flex items-center gap-1 whitespace-nowrap"
           >
-            View All <ChevronRight className="w-4 h-4"/>
+            View All <ChevronRight className="w-4 h-4" />
           </button>
         }
         showTabs={false}
         showPagination={false}
+        emptyText={txLoading ? "Loading..." : "No transactions yet"}
         minHeight="0px"
       />
 
-      <WithdrawModal isOpen={withdrawOpen} onClose={() => setWithdrawOpen(false)} />
+      {/* ── Modals ── */}
+      <WithdrawModal
+        isOpen={withdrawOpen}
+        onClose={() => setWithdrawOpen(false)}
+      />
+
       <TransactionDetailsModal
         open={openDetails}
-        onClose={() => { setOpenDetails(false); setSelectedDetails(null); }}
+        onClose={() => {
+          setOpenDetails(false);
+          setSelectedDetails(null);
+        }}
         details={selectedDetails}
       />
     </div>
   );
 }
-export default CustomerWallet
+
+export default CustomerWallet;
