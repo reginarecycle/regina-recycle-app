@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ChevronLeft } from "lucide-react";
+import { DataTable, type ColumnDef } from "@/components/ui/data-table";
+import { StatusBadge, getAmountColor } from "@/components/ui/status-badge";
+import { DataTableHeaderControls, type TableFilterState } from "@/components/ui/data-table-header-controls";
+import TransactionDetailsModal from "@/components/modals/transactiondetailmodal";
+import type { TransactionDetails } from "@/components/modals/transactiondetailmodal";
 
-import TransactionDetailsModal from "../../../components/modals/transactiondetailmodal";
-import type { TransactionDetails } from "../../../components/modals/transactiondetailmodal";
-
-import DataTable, { type Column } from "@/components/ui/data-table";
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 type TxStatus = "CREDIT" | "WITHDRAWAL" | "FAILED";
 
@@ -14,192 +17,103 @@ type Transaction = {
   status: TxStatus;
   description: string;
   amount: string;
-  amountColor: string;
-  badgeBg: string;
-  badgeText: string;
 };
 
-const mockData: Transaction[] = [
-  {
-    id: "TX-1001",
-    date: "14, Jan 2023",
-    status: "CREDIT",
-    description: "Payment for plastic recyclables",
-    amount: "CAD 1,558",
-    amountColor: "#166534",
-    badgeBg: "#DCFCE7",
-    badgeText: "#166534",
-  },
-  {
-    id: "TX-1002",
-    date: "14, Jan 2023",
-    status: "WITHDRAWAL",
-    description: "Withdraw via Interac",
-    amount: "CAD 1,558",
-    amountColor: "#DD1E1E",
-    badgeBg: "#EAF2FF",
-    badgeText: "#2563EB",
-  },
-  {
-    id: "TX-1003",
-    date: "14, Jan 2023",
-    status: "CREDIT",
-    description: "Payment for tins",
-    amount: "CAD 1,558",
-    amountColor: "#166534",
-    badgeBg: "#DCFCE7",
-    badgeText: "#166534",
-  },
-  {
-    id: "TX-1004",
-    date: "14, Jan 2023",
-    status: "FAILED",
-    description: "Withdraw via Interac",
-    amount: "CAD 1,558",
-    amountColor: "#DD1E1E",
-    badgeBg: "#FEE2E2",
-    badgeText: "#DC2626",
-  },
-  {
-    id: "TX-1005",
-    date: "14, Jan 2023",
-    status: "CREDIT",
-    description: "Payment for tins",
-    amount: "CAD 1,558",
-    amountColor: "#166534",
-    badgeBg: "#DCFCE7",
-    badgeText: "#166534",
-  },
-  {
-    id: "TX-1006",
-    date: "14, Jan 2023",
-    status: "CREDIT",
-    description: "Payment for tins",
-    amount: "CAD 1,558",
-    amountColor: "#166534",
-    badgeBg: "#DCFCE7",
-    badgeText: "#166534",
-  },
-  {
-    id: "TX-1007",
-    date: "14, Jan 2023",
-    status: "CREDIT",
-    description: "Payment for glass",
-    amount: "CAD 1,558",
-    amountColor: "#166534",
-    badgeBg: "#DCFCE7",
-    badgeText: "#166534",
-  },
-  {
-    id: "TX-1008",
-    date: "14, Jan 2023",
-    status: "CREDIT",
-    description: "Payment for plastics",
-    amount: "CAD 1,558",
-    amountColor: "#166534",
-    badgeBg: "#DCFCE7",
-    badgeText: "#166534",
-  },
+// ── Static data ───────────────────────────────────────────────────────────────
+
+const PAGE_SIZE = 8;
+
+const MOCK_DATA: Transaction[] = [
+  { id: "TX-1001", date: "14, Jan 2023", status: "CREDIT",     description: "Payment for plastic recyclables", amount: "CAD 1,558" },
+  { id: "TX-1002", date: "14, Jan 2023", status: "WITHDRAWAL", description: "Withdrew via Interac",             amount: "CAD 1,558" },
+  { id: "TX-1003", date: "14, Jan 2023", status: "CREDIT",     description: "Payment for tins",                amount: "CAD 1,558" },
+  { id: "TX-1004", date: "14, Jan 2023", status: "FAILED",     description: "Withdrew via Interac",             amount: "CAD 1,558" },
+  { id: "TX-1005", date: "14, Jan 2023", status: "CREDIT",     description: "Payment for tins",                amount: "CAD 1,558" },
+  { id: "TX-1006", date: "14, Jan 2023", status: "CREDIT",     description: "Payment for tins",                amount: "CAD 1,558" },
+  { id: "TX-1007", date: "14, Jan 2023", status: "CREDIT",     description: "Payment for glass",               amount: "CAD 1,558" },
+  { id: "TX-1008", date: "14, Jan 2023", status: "CREDIT",     description: "Payment for plastics",            amount: "CAD 1,558" },
 ];
 
-const DETAILS_BY_ID: Record<string, TransactionDetails> = {
-  "TX-1001": {
-    amount: "$150.00",
-    currency: "CAD",
-    status: "WITHDRAWAL",
-    date: "01-12-2026",
-    time: "10:00am",
-    sender: "Shahnaz Recycle",
-    receiver: "Jane Doe",
-    fees: "0.00CAD",
-    reference: "20005487594",
-  },
-  "TX-1004": {
-    amount: "$150.00",
-    currency: "CAD",
-    status: "FAILED",
-    date: "01-12-2026",
-    time: "10:00am",
-    sender: "Shahnaz Recycle",
-    receiver: "Jane Doe",
-    fees: "0.00CAD",
-    reference: "20005487594",
-  },
-};
+const STATUS_OPTIONS = [
+  { key: "CREDIT" as TxStatus,     label: "Credit"     },
+  { key: "WITHDRAWAL" as TxStatus, label: "Withdrawal" },
+  { key: "FAILED" as TxStatus,     label: "Failed"     },
+];
+
+
+const DEFAULT_FILTERS: TableFilterState<TxStatus> = { statuses: [], dateRange: "alltime" };
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export default function TransactionHistory() {
   const navigate = useNavigate();
-
+  const [search, setSearch]           = useState("");
+  const [filters, setFilters]         = useState<TableFilterState<TxStatus>>(DEFAULT_FILTERS);
+  const [page, setPage]               = useState(1);
   const [openDetails, setOpenDetails] = useState(false);
-  const [selectedDetails, setSelectedDetails] =
-    useState<TransactionDetails | null>(null);
+  const [selectedDetails, setSelectedDetails] = useState<TransactionDetails | null>(null);
 
   const handleViewMore = (tx: Transaction) => {
-    const details = DETAILS_BY_ID[tx.id];
-    if (!details) return;
-
-    setSelectedDetails(details);
+    setSelectedDetails({
+      amount: tx.amount,
+      currency: "CAD",
+      status: tx.status,
+      date: tx.date,
+      time: "10:00am",
+      sender: "Shahnaz Recycle",
+      receiver: "Jane Doe",
+      fees: "0.00 CAD",
+      reference: tx.id,
+    });
     setOpenDetails(true);
   };
 
-  const columns: Column<Transaction>[] = [
+  const filtered = MOCK_DATA.filter((tx) => {
+    const matchesSearch =
+      search.trim() === "" ||
+      tx.id.toLowerCase().includes(search.toLowerCase()) ||
+      tx.description.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus =
+      filters.statuses.length === 0 || filters.statuses.includes(tx.status);
+    return matchesSearch && matchesStatus;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const columns: ColumnDef<Transaction>[] = [
     {
       key: "date",
       header: "Date",
-      headerClassName: "w-[175px]",
-      render: (item) => (
-        <span className="font-bold text-[14px] text-foreground">
-          {item.date}
-        </span>
-      ),
+      cell: (row) => <span className="text-sm font-semibold text-foreground">{row.date}</span>,
     },
     {
       key: "status",
       header: "Status",
-      headerClassName: "w-[136px]",
-      render: (item) => (
-        <span
-          className="inline-flex px-2 rounded-full text-[10px] font-bold uppercase"
-          style={{ background: item.badgeBg, color: item.badgeText }}
-        >
-          {item.status}
-        </span>
-      ),
+      cell: (row) => <StatusBadge status={row.status} />,
     },
     {
       key: "description",
       header: "Description",
-      render: (item) => (
-        <span className="font-bold text-[14px] text-foreground">
-          {item.description}
-        </span>
-      ),
+      cell: (row) => <span className="text-sm text-foreground">{row.description}</span>,
     },
     {
       key: "amount",
       header: "Amount",
-      headerClassName: "w-[181px]",
-      render: (item) => (
-        <span
-          className="font-bold text-[14px]"
-          style={{ color: item.amountColor }}
-        >
-          {item.amount}
+      cell: (row) => (
+        <span className="text-sm font-semibold" style={{ color: getAmountColor(row.status) }}>
+          {row.amount}
         </span>
       ),
     },
     {
       key: "action",
       header: "Action",
-      headerClassName: "w-[205px]",
-      render: (item) => (
+      cell: (row) => (
         <button
           type="button"
-          className="font-bold text-[14px] cursor-pointer text-foreground"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleViewMore(item);
-          }}
+          onClick={() => handleViewMore(row)}
+          className="text-sm font-semibold text-foreground hover:text-primary transition-colors"
         >
           View More
         </button>
@@ -208,66 +122,49 @@ export default function TransactionHistory() {
   ];
 
   return (
-    <div className="w-full bg-card">
-      <div className="mx-auto w-full max-w-[1512px] min-h-[1086px] px-6 py-6">
-        <div className="mb-4">
-          <div
-            onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 text-[16px] font-bold text-foreground cursor-pointer"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-            >
-              <path
-                d="M15 18L9 12L15 6"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            Back
-          </div>
-        </div>
+    <div className="flex flex-col gap-6 p-4 sm:p-6 lg:p-8 bg-muted/30 min-h-screen">
 
-        <section className="w-full max-w-[1208px] rounded-[8px] border border-border bg-white">
-          <div className="flex items-center justify-between px-6 py-4">
-            <div className="text-[16px] font-bold text-foreground">
-              Transaction History
-            </div>
+      {/* Back */}
+      <button
+        type="button"
+        onClick={() => navigate(-1)}
+        className="inline-flex items-center gap-1 text-sm font-semibold text-foreground hover:text-primary transition-colors w-fit"
+      >
+        <ChevronLeft className="w-4 h-4" />
+        Back
+      </button>
 
-            <input
-              placeholder="Search for transaction id.."
-              className="w-[300px] h-[36px] px-3 border border-border rounded-[8px]"
-            />
-          </div>
-
-          <DataTable
-            data={mockData}
-            columns={columns}
-            keyExtractor={(item) => item.id}
-            pagination={{
-              currentPage: 1,
-              totalPages: 10,
-              onPageChange: (page) => console.log(page),
-              showText: "Showing 1 to 8 of 8",
-            }}
+      <DataTable
+        data={paginated}
+        columns={columns}
+        rowKey={(r) => r.id}
+        title="Transaction History"
+        headerRight={
+          <DataTableHeaderControls
+            search={search}
+            onSearchChange={(v) => { setSearch(v); setPage(1); }}
+            searchPlaceholder="Search for transaction id..."
+            filters={filters}
+            onFiltersChange={(f) => { setFilters(f); setPage(1); }}
+            statusOptions={STATUS_OPTIONS}
+            showDateRange={true}
           />
-        </section>
+        }
+        showTabs={false}
+        page={page}
+        totalPages={totalPages}
+        totalItems={filtered.length}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+        emptyText="No transactions found"
+        minHeight="300px"
+      />
 
-        <TransactionDetailsModal
-          open={openDetails}
-          onClose={() => {
-            setOpenDetails(false);
-            setSelectedDetails(null);
-          }}
-          details={selectedDetails}
-        />
-      </div>
+      <TransactionDetailsModal
+        open={openDetails}
+        onClose={() => { setOpenDetails(false); setSelectedDetails(null); }}
+        details={selectedDetails}
+      />
     </div>
   );
 }

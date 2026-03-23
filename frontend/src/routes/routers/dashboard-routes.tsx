@@ -8,8 +8,8 @@ const UserDashboard         = lazy(() => import("@/views/customer/home"));
 const CollectorDashboard    = lazy(() => import("@/views/collector/dashboard"));
 const CustomerProfile       = lazy(() => import("@/views/customer/profile"));
 const SchedulePickupView    = lazy(() => import("@/views/customer/schedule_pickup_view/index"));
-const CustomerWallet                = lazy(() => import ("@/views/customer/wallet/wallet")); 
-const TransactionHistory    = lazy(() => import ("@/views/customer/wallet/transactionhistory"));
+const CustomerWallet         = lazy(() => import("@/views/customer/wallet"));
+const WalletTransactionHistory    = lazy(() => import ("@/views/customer/wallet/transactionhistory"));
 const CollectorRequests     = lazy(() => import("@/views/collector/requests"));
 const CollectorSettingsPage = lazy(() => import("@/views/collector/settings"));
 const NotificationsPage     = lazy(() => import("@/views/notifications"));
@@ -22,7 +22,7 @@ const CollectorDashboardGuard    = addPermissions(CollectorDashboard, ["collecto
 const CustomerProfileGuard       = addPermissions(CustomerProfile, ["customer"]);
 const SchedulePickupViewGuard    = addPermissions(SchedulePickupView, ["customer"]);
 const CustomerWalletGuard        = addPermissions(CustomerWallet, ["customer"]);
-const TransactionHistoryGuard        = addPermissions(TransactionHistory, ["customer"]);
+const TransactionHistoryGuard    = addPermissions(WalletTransactionHistory, ["customer"]);
 
 const CollectorRequestsGuard     = addPermissions(CollectorRequests, ["collector"]);
 const CollectorSettingsGuard     = addPermissions(CollectorSettingsPage, ["collector"]);
