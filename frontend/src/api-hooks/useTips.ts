@@ -1,19 +1,26 @@
-import { useGetList, useGetOne } from "@/lib/queryHelpers";
+import { useGetOne } from "@/lib/queryHelpers";
+
+// ─── Type ─────────────────────────────────────────────────────────────────────
 
 export interface Tip {
-  tipId: string;
-  title?: string;
-  content: string;
+  tipId:     string;
+  title?:    string;
+  content:   string;
+  active?:   boolean;
   startDate?: string;
-  endDate?: string;
-  active?: boolean;
+  endDate?:   string;
 }
 
+// ─── Query keys ───────────────────────────────────────────────────────────────
+
+export const tipKeys = {
+  daily: () => ["tips", "daily"] as const,
+};
+
+// ─── Hook ─────────────────────────────────────────────────────────────────────
+
+/** Returns the tip of the day — same tip all day, deterministic from backend */
 export const useGetTip = () =>
-  useGetOne<Tip>(["tips", "list"], "/tips");
-
-export const useGetTips = () =>
-  useGetList<Tip>(["tips"], "/tips/all");
-
-export const useGetTipById = (id: string) =>
-  useGetOne<Tip>(["tips", "detail", id], `/tips/${id}`, { enabled: Boolean(id) });
+  useGetOne<Tip>(tipKeys.daily(), "/tips", {
+    staleTime: 1000 * 60 * 60, // 1 hour — tip only changes daily
+  });
