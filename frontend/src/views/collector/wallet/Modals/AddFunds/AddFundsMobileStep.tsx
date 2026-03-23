@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Smartphone } from "lucide-react";
-import { ModalFooter } from "../../shared";
+import { ModalFooter } from "../../components";
 
 interface AddFundsMobileStepProps {
   onBack: () => void;
