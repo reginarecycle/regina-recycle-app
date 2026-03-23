@@ -1,9 +1,8 @@
 import * as React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AmountInput, QuickAmountBtn, ModalFooter } from "../../components";
-
-const QUICK_AMOUNTS = [25, 50, 100, 200, 500, 1000];
+import { AmountInput, QuickAmountBtn, ModalFooter } from "../../shared";
+import { QUICK_AMOUNTS } from "../../constants";
 import { addFundsAmountSchema, type AddFundsAmountFormValues } from "@/lib/validation";
 
 interface AddFundsAmountStepProps {
@@ -76,3 +75,91 @@ export const AddFundsAmountStep: React.FC<AddFundsAmountStepProps> = ({
     </form>
   );
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

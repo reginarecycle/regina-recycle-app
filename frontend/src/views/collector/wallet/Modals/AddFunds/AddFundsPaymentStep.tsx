@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { CreditCard, Smartphone } from "lucide-react";
-import { ModalFooter } from "../../components";
+import { ModalFooter } from "../../shared";
 import type { PaymentMethod } from "@/lib/validation";
 
 interface AddFundsPaymentStepProps {
@@ -75,3 +75,91 @@ export const AddFundsPaymentStep: React.FC<AddFundsPaymentStepProps> = ({
     <ModalFooter onBack={onBack} onContinue={onContinue} continueDisabled={!selected} />
   </div>
 );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

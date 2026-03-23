@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Building2 } from "lucide-react";
 import InputField from "@/components/forms/input-field";
 import { withdrawBankSchema, type WithdrawBankFormValues } from "@/lib/validation";
-import { ModalFooter } from "../../components";
+import { ModalFooter } from "../../shared";
 
 interface WithdrawBankStepProps {
   defaultValues: Partial<WithdrawBankFormValues>;
@@ -88,3 +88,91 @@ export const WithdrawBankStep: React.FC<WithdrawBankStepProps> = ({
     </form>
   );
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

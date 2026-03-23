@@ -1,13 +1,12 @@
 import type { WithdrawBankFormValues } from "@/lib/validation";
 import * as React from "react";
-import { ModalFooter } from "../../components";
+import { ModalFooter } from "../../shared";
 
 interface WithdrawReviewStepProps {
   amount: number;
   bankData: WithdrawBankFormValues;
   onBack: () => void;
   onConfirm: () => void;
-  isPending?: boolean;
 }
 
 export const WithdrawReviewStep: React.FC<WithdrawReviewStepProps> = ({
@@ -15,7 +14,6 @@ export const WithdrawReviewStep: React.FC<WithdrawReviewStepProps> = ({
   bankData,
   onBack,
   onConfirm,
-  isPending = false,
 }) => (
   <div className="flex-1 flex flex-col">
     <div className="flex-1 px-6 py-5">
@@ -73,11 +71,94 @@ export const WithdrawReviewStep: React.FC<WithdrawReviewStepProps> = ({
       </div>
     </div>
 
-    <ModalFooter
-      onBack={onBack}
-      onContinue={onConfirm}
-      continueLabel={isPending ? "Processing..." : "Confirm"}
-      continueDisabled={isPending}
-    />
+    <ModalFooter onBack={onBack} onContinue={onConfirm} continueLabel="Confirm" />
   </div>
 );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
