@@ -7,6 +7,7 @@ import { Suspense } from "react";
 function App() {
   return (
     <AppProvider>
+
       <Suspense
         fallback={
           <div className="max-sm:h-dvh h-screen flex items-center justify-center">
@@ -16,6 +17,7 @@ function App() {
       >
         <RouterProvider router={routes} />
       </Suspense>
+
     </AppProvider>
   );
 }

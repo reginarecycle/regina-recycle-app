@@ -17,6 +17,9 @@ export enum Routes {
     //dashboard
     app = "/app",
     dashboard = "/app/dashboard",
+
+    wallet = "/app/wallet",
+    transactionhistory= "/app/wallet/history",
     schedulePickup = "/app/schedule",
     collectorapp = "/app/collector",
     collectordashboard = "/app/collector/dashboard",
@@ -35,5 +38,5 @@ export enum Routes {
 
     //collector requests
     history = "/app/history",
-    wallet = "/app/wallet",
+
 }
