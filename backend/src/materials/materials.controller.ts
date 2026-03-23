@@ -19,7 +19,7 @@ export class MaterialsController {
 
   @Get()
   @ApiOperation({summary: 'Get all materials'})
- getAllMaterials(
+  getAllMaterials(
   @Query() query: MaterialQueryDto,
 ) {
   return this.materialsService.getAllMaterials(
@@ -28,7 +28,6 @@ export class MaterialsController {
 }
 
   @Get(':id')
-  
   getMaterialById(@Param('id') id: string) {
     return this.materialsService.getMaterialById(id);
   }
