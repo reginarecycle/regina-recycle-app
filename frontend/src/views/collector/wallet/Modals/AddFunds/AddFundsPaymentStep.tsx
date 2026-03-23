@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { CreditCard, Smartphone } from "lucide-react";
-import { ModalFooter } from "../../shared";
+import { ModalFooter } from "../../components";
 import type { PaymentMethod } from "@/lib/validation";
 
 interface AddFundsPaymentStepProps {
