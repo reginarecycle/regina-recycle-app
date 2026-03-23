@@ -1,13 +1,11 @@
 import type { ReactNode } from "react";
-import { Layers, CalendarDays, Check, Lock } from "lucide-react";
+import { Layers, CalendarDays, Check, Lock, Loader2 } from "lucide-react";
 import { useSchedule } from "./ScheduleContext";
 import ThresholdProgress from "./progressBar";
 import { Button } from "@/components/ui/button";
-import GoldCoins from "@/assets/goldcoins.svg?react"
+import GoldCoins from "@/assets/goldcoins.svg?react";
 
 const THRESHOLD = 5.0;
-
-// ── Sub-components ────────────────────────────────────────────────────────────
 
 function Divider() {
   return <div className="hidden sm:block h-10 w-px shrink-0 bg-border" />;
@@ -25,20 +23,20 @@ function SummaryItem({ label, icon, children }: { label: string; icon: ReactNode
   );
 }
 
-// ── Footer ────────────────────────────────────────────────────────────────────
-
 type Props = {
   step: number;
   onConfirm: () => void;
+  isPending?: boolean;
 };
 
-export function ScheduleFooter({ step, onConfirm }: Props) {
+export function ScheduleFooter({ step, onConfirm, isPending = false }: Props) {
   const { scheduleData } = useSchedule();
 
   const canConfirm =
     step === 3 &&
     scheduleData.estCost >= THRESHOLD &&
-    scheduleData.address.trim() !== "";
+    scheduleData.address.trim() !== "" &&
+    !isPending;
 
   const confirmBtn = (
     <Button
@@ -47,14 +45,23 @@ export function ScheduleFooter({ step, onConfirm }: Props) {
       onClick={onConfirm}
       className="shrink-0 h-13 min-w-40 sm:min-w-50 flex items-center gap-2 bg-primary text-primary-foreground text-[15px] font-semibold disabled:opacity-70 disabled:cursor-not-allowed"
     >
-      Confirm Pickup
-      {canConfirm ? <Check className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+      {isPending ? (
+        <>
+          Scheduling...
+          <Loader2 className="w-4 h-4 animate-spin" />
+        </>
+      ) : (
+        <>
+          Confirm Pickup
+          {canConfirm ? <Check className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+        </>
+      )}
     </Button>
   );
 
   return (
     <div className="fixed bottom-0 right-0 left-0 sm:left-65 z-40 border-t border-border bg-white px-4 sm:px-6 py-4">
-      {/* Mobile: compact — just cost + confirm button */}
+      {/* Mobile */}
       <div className="flex sm:hidden items-center justify-between gap-3">
         <div>
           <p className="text-[11px] font-semibold uppercase text-muted-foreground">Est. Cost</p>
@@ -68,7 +75,7 @@ export function ScheduleFooter({ step, onConfirm }: Props) {
         {confirmBtn}
       </div>
 
-      {/* Desktop: full summary */}
+      {/* Desktop */}
       <div className="hidden sm:flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-wrap flex-1 items-start gap-6 min-w-0 overflow-hidden">
           <SummaryItem label="Items" icon={<Layers className="w-5 h-5 text-primary" />}>
