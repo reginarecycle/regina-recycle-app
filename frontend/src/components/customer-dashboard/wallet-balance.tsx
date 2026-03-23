@@ -4,31 +4,34 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "@/routes/hooks/use-router";
 import { Routes } from "@/routes/routes";
+import { formatCurrency } from "@/lib/utils";
 import GreenArrow from "@/assets/green-arrow.svg";
 import CashMultiple from "@/assets/cash-multiple.svg";
 
 type Props = {
-  balance?: number;
-  currency?: string;
-  stats?: number;
-  change?: "+" | "-";
+  balance?:   number;
+  currency?:  string;
+  stats?:     number;
+  change?:    "+" | "-";
+  isLoading?: boolean;
 };
 
 export function WalletBalance({
-  balance = 45.5,
-  currency = "CAD",
-  stats = 12.05,
-  change = "+",
+  balance   = 0,
+  currency  = "CAD",
+  stats     = 0,
+  change    = "+",
+  isLoading = false,
 }: Props) {
-  const router = useRouter();
+  const router     = useRouter();
   const [visible, setVisible] = useState(true);
   const isPositive = change === "+";
 
   return (
     <Card className="w-full rounded-2xl border border-border bg-white shadow-none overflow-hidden py-4!">
-       <CardHeader className="border-b border-border px-6 py-1!">
+      <CardHeader className="border-b border-border px-6 py-1!">
         <p className="text-base font-bold text-foreground">Wallet Balance</p>
-       </CardHeader>
+      </CardHeader>
 
       <CardContent className="px-4 flex flex-col gap-4">
         <div className="flex items-center gap-2">
@@ -46,22 +49,30 @@ export function WalletBalance({
         </div>
 
         {/* Balance */}
-        <div className="flex items-end gap-1">
-          <span className="text-4xl font-bold tracking-tight text-foreground inline-flex items-center gap-0.5">
-            {visible ? `$${balance.toFixed(2)}` : (
-              <>$<span className="text-2xl self-center tracking-widest leading-none">*******</span></>
-            )}
-          </span>
-          <span className="mb-1 text-lg font-semibold text-foreground">{currency}</span>
-        </div>
+        {isLoading ? (
+          <div className="h-10 w-40 rounded bg-gray-100 animate-pulse" />
+        ) : (
+          <div className="flex items-end gap-1">
+            <span className="text-4xl font-bold tracking-tight text-foreground inline-flex items-center gap-0.5">
+              {visible
+                ? formatCurrency(balance, currency)
+                : <>$<span className="text-2xl self-center tracking-widest leading-none">*******</span></>
+              }
+            </span>
+          </div>
+        )}
 
         {/* Monthly change */}
-        <div className="flex items-center gap-1">
-          <img src={GreenArrow} alt="" className="w-8 h-8 shrink-0" />
-          <span className={`text-sm font-semibold ${isPositive ? "text-green-600" : "text-red-600"}`}>
-            { `${change}$${stats.toFixed(2)} ${currency} this month`}
-          </span>
-        </div>
+        {isLoading ? (
+          <div className="h-4 w-48 rounded bg-gray-100 animate-pulse" />
+        ) : (
+          <div className="flex items-center gap-1">
+            <img src={GreenArrow} alt="" className="w-8 h-8 shrink-0" />
+            <span className={`text-sm font-semibold ${isPositive ? "text-green-600" : "text-red-600"}`}>
+              {`${change}${formatCurrency(stats, currency)} this month`}
+            </span>
+          </div>
+        )}
 
         {/* CTA */}
         <Button

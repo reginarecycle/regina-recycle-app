@@ -6,7 +6,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-
 export const getTypeStyles = (type: NotificationType) => {
   const styles = {
     success: { bg: "bg-green-50", iconBg: "bg-green-100", iconColor: "text-green-600", border: "border-green-200" },
@@ -69,4 +68,19 @@ export function maskEmail(email: string): string {
   if (!local || !domain) return email;
   const visible = local.slice(0, 3);
   return `${visible}${"*".repeat(Math.max(local.length - 3, 3))}@${domain}`;
+}
+
+// Formats a number as currency
+// formatCurrency(45.5)              → "$45.50 CAD"
+// formatCurrency(45.5, "CAD", false) → "45.50"
+export function formatCurrency(
+  amount: number,
+  currency: string = "CAD",
+  showSymbol: boolean = true
+): string {
+  const formatted = amount.toLocaleString("en-CA", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return showSymbol ? `$${formatted} ${currency}` : formatted;
 }
