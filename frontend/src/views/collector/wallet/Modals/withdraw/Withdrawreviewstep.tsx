@@ -1,6 +1,6 @@
 import type { WithdrawBankFormValues } from "@/lib/validation";
 import * as React from "react";
-import { ModalFooter } from "../../shared";
+import { ModalFooter } from "../../components";
 
 interface WithdrawReviewStepProps {
   amount: number;

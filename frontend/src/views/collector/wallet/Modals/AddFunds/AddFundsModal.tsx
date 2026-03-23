@@ -2,7 +2,7 @@ import type { AddFundsCardFormValues, PaymentMethod } from "@/lib/validation";
 import * as React from "react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ModalShell, StepIndicator, SuccessScreen } from "../../shared";
+import { ModalShell, StepIndicator, SuccessScreen } from "../../components";
 import { AddFundsAmountStep } from "./AddFundsAmountStep";
 import { AddFundsPaymentStep } from "./AddFundsPaymentStep";
 import { AddFundsCardStep } from "./AddFundsCardStep";

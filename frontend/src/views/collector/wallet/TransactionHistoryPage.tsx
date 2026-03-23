@@ -2,40 +2,18 @@ import * as React from "react";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { ChevronLeft } from "lucide-react";
+import { buildDateRange } from "@/lib/utils";
 import { DataTable, type ColumnDef, type DataTableTabItem } from "@/components/ui/data-table";
 import {
   DataTableHeaderControls,
   type TableFilterState,
   type StatusOption,
-  type DateRange,
   DEFAULT_TABLE_FILTERS,
 } from "@/components/ui/data-table-header-controls";
 import type { Transaction, TransactionStatus, TransactionType } from "./types";
 import { useGetWalletTransactions } from "@/api-hooks/useWallet";
 import type { TxStatus } from "@/api-hooks/useWallet";
 import useDebounce from "@/hooks/useDebounce";
-
-// ─── Date range helper ────────────────────────────────────────────────────────
-
-function buildDateRange(dateRange: DateRange): { startDate?: string; endDate?: string } {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  if (dateRange === "today") {
-    const d = today.toISOString().split("T")[0];
-    return { startDate: d, endDate: d };
-  }
-  if (dateRange === "7days") {
-    const start = new Date(today);
-    start.setDate(start.getDate() - 7);
-    return { startDate: start.toISOString().split("T")[0] };
-  }
-  if (dateRange === "30days") {
-    const start = new Date(today);
-    start.setDate(start.getDate() - 30);
-    return { startDate: start.toISOString().split("T")[0] };
-  }
-  return {};
-}
 
 // ─── Transaction mapper ───────────────────────────────────────────────────────
 
@@ -180,17 +158,23 @@ export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({ 
 
   React.useEffect(() => { setPage(1); }, [debouncedSearch, tab, filters]);
 
+  const handleTabChange = (t: string) => {
+    setTab(t as TransactionStatus | "ALL");
+    setFilters((prev) => ({ ...prev, statuses: [] }));
+  };
+
+  const handleFiltersChange = (f: TableFilterState<TransactionStatus>) => {
+    setFilters(f);
+    if (f.statuses.length > 0) setTab("ALL");
+  };
+
   const { startDate, endDate } = buildDateRange(filters.dateRange);
 
   const { data: txResult, isLoading, isError } = useGetWalletTransactions({
     page,
     limit: PAGE_SIZE,
     search: debouncedSearch || undefined,
-    status: tab !== "ALL"
-      ? tab as TxStatus
-      : filters.statuses.length === 1
-      ? filters.statuses[0] as TxStatus
-      : undefined,
+    status: (tab !== "ALL" ? tab : filters.statuses[0]) as TxStatus | undefined,
     startDate,
     endDate,
   });
@@ -228,12 +212,12 @@ export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({ 
             onSearchChange={(v) => setSearch(v)}
             searchPlaceholder="Search for transaction..."
             filters={filters}
-            onFiltersChange={(f) => setFilters(f)}
+            onFiltersChange={handleFiltersChange}
             statusOptions={STATUS_OPTIONS}
           />
         }
         tabs={TABS}
-        tabBarProps={{ mode: "none", value: tab, onChange: (t) => setTab(t as TransactionStatus | "ALL") }}
+        tabBarProps={{ mode: "none", value: tab, onChange: handleTabChange }}
         page={page}
         totalPages={totalPages}
         totalItems={totalItems}

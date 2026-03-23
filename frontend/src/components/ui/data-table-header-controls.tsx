@@ -44,11 +44,8 @@ function FilterPanel<TStatus extends string>({
   showDateRange = true,
 }: FilterPanelProps<TStatus>) {
   const toggleStatus = (s: TStatus) => {
-    const has = filters.statuses.includes(s);
-    onChange({
-      ...filters,
-      statuses: has ? filters.statuses.filter((x) => x !== s) : [...filters.statuses, s],
-    });
+    const isSelected = filters.statuses[0] === s;
+    onChange({ ...filters, statuses: isSelected ? [] : [s] });
   };
 
   return (
@@ -62,10 +59,10 @@ function FilterPanel<TStatus extends string>({
             key={key}
             onClick={() => toggleStatus(key)}
             className={cn(
-              "px-4 py-2 rounded-xl text-sm font-semibold transition-all",
-              filters.statuses.includes(key)
-                ? "bg-primary text-primary-foreground"
-                : "bg-primary text-primary-foreground opacity-60 hover:opacity-100"
+              "px-4 py-2 rounded-xl text-sm font-semibold border transition-all",
+              filters.statuses[0] === key
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-white text-foreground border-border hover:border-primary/30"
             )}
           >
             {label}

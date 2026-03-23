@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { WithdrawAmountStep } from "./Withdrawamountstep";
 import { WithdrawBankStep } from "./Withdrawbankstep";
 import { WithdrawReviewStep } from "./Withdrawreviewstep";
-import { ModalShell, StepIndicator, SuccessScreen } from "../../shared";
+import { ModalShell, StepIndicator, SuccessScreen } from "../../components";
 import type { WithdrawBankFormValues } from "@/lib/validation";
 import { useCollectorWithdraw } from "@/api-hooks/useWallet";
 

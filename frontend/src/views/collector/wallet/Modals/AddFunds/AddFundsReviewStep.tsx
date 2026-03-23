@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Check } from "lucide-react";
-import { ModalFooter } from "../../shared";
+import { ModalFooter } from "../../components";
 import type { PaymentMethod } from "@/lib/validation";
 
 interface AddFundsReviewStepProps {

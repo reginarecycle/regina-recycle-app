@@ -11,7 +11,7 @@ const SchedulePickupView    = lazy(() => import("@/views/customer/schedule_picku
 const CollectorRequests     = lazy(() => import("@/views/collector/requests"));
 const CollectorSettingsPage = lazy(() => import("@/views/collector/settings"));
 const NotificationsPage     = lazy(() => import("@/views/notifications"));
-const CollectorWalletPage   = lazy(() => import("@/views/collector/wallet/WalletManagement"));
+const CollectorWalletPage   = lazy(() => import("@/views/collector/wallet"));
 const CustomerHistoryPage = lazy(() => import("@/views/customer/history"));
 
 
