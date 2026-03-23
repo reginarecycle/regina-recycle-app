@@ -2,8 +2,7 @@ import * as React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { withdrawAmountSchema, type WithdrawAmountFormValues } from "@/lib/validation";
-import { AmountInput, ModalFooter, QuickAmountBtn } from "../../shared";
-import { QUICK_AMOUNTS } from "../../constants";
+import { AmountInput, ModalFooter, QuickAmountBtn } from "../../components";
 
 interface WithdrawAmountStepProps {
   defaultAmount: number | null;
@@ -11,7 +10,7 @@ interface WithdrawAmountStepProps {
   onBack: () => void;
   onContinue: (amount: number) => void;
 }
-
+const QUICK_AMOUNTS = [100, 250, 500, 1000, 2500, 5000];
 export const WithdrawAmountStep: React.FC<WithdrawAmountStepProps> = ({
   defaultAmount,
   availableBalance,
