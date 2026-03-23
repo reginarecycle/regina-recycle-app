@@ -111,3 +111,17 @@ export function useMarkNotificationAsRead(notificationId: string) {
         ["notifications"]
     );
 }
+
+export function useMarkNotificationAsUnread(notificationId: string) {
+    return useCreate<NotificationActionResponse, undefined>(
+        `/notifications/${notificationId}/unread`,
+        ["notifications"]
+    );
+}
+
+export function useDeleteNotification(notificationId: string) {
+    return useCreate<NotificationActionResponse, undefined>(
+        `/notifications/${notificationId}`,
+        ["notifications"]
+    );
+}
