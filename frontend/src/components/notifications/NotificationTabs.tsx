@@ -9,7 +9,6 @@ interface NotificationTabsProps {
   tabs:           NotificationTab[];
   notifications:  Notification[];
   processed:      Notification[];
-  activeTab:      string;
   onMarkAsRead:   (id: string) => void;
   onMarkAsUnread: (id: string) => void;
   onDelete:       (id: string) => void;

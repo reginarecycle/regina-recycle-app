@@ -4,7 +4,7 @@ import {
   useUpdateNotificationPreferences,
   type NotificationsPreference,
   type UpdateNotificationPreferencePayload,
-} from "@/api-hooks/useNotificationsAPI";
+} from "@/api-hooks/useNotifications";
 import type { NotificationKey, NotificationPrefs } from "@/types/notification";
 
 const DEFAULT_PREFS: NotificationPrefs = {

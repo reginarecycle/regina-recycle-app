@@ -4,7 +4,7 @@ import {
   useUpdateNotificationPreferences,
   type NotificationsPreference,
   type UpdateNotificationPreferencePayload,
-} from "@/api-hooks/useNotificationsAPI";
+} from "@/api-hooks/useNotifications";
 import type { CollectorNotificationKey } from "@/constants/data";
 
 type CollectorNotificationPrefs = Record<CollectorNotificationKey, boolean>;

@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
+import { apiClient } from "@/lib/apiFetch";
 import { usePusherNotifications } from "./usePusherNotifications";
 import {
     useNotificationsApi,
@@ -7,8 +10,8 @@ import {
     useMarkAllNotificationsAsRead,
     type NotificationItem,
     type NotificationQueryParams,
-} from "@/api-hooks/useNotificationsAPI";
-import type { Notification, UserRole } from "@/types/notification";
+} from "@/api-hooks/useNotifications";
+import type { Notification } from "@/types/notification";
 
 function mapToFrontend(n: NotificationItem): Notification {
     const typeMap: Record<string, Notification["type"]> = {
@@ -49,8 +52,10 @@ export function useNotifications(
     const { data: unreadData } = useUnreadNotificationCount();
     const markAllAsReadMutation = useMarkAllNotificationsAsRead();
 
+    const [searchParams] = useSearchParams();
+    const activeTab = searchParams.get("notif") ?? "all";
+
     const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [activeTab, setActiveTab] = useState("all");
     const [viewMode, setViewMode] = useState<"all" | "unread">("all");
     const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
 
@@ -92,21 +97,25 @@ export function useNotifications(
         return result;
     }, [notifications, activeTab, viewMode, sortBy]);
 
-    const markAsRead = (id: string) => {
-        setNotifications((prev) =>
-            prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-        );
-    };
+    const queryClient = useQueryClient();
 
-    const markAsUnread = (id: string) => {
-        setNotifications((prev) =>
-            prev.map((n) => (n.id === id ? { ...n, read: false } : n))
-        );
-    };
+    const { mutate: markAsRead } = useMutation({
+        mutationFn: (id: string) => apiClient.patch(`/notifications/${id}/read`),
+        onMutate: (id) => setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, read: true } : n)),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+    });
 
-    const deleteNotification = (id: string) => {
-        setNotifications((prev) => prev.filter((n) => n.id !== id));
-    };
+    const { mutate: markAsUnread } = useMutation({
+        mutationFn: (id: string) => apiClient.patch(`/notifications/${id}/unread`),
+        onMutate: (id) => setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, read: false } : n)),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+    });
+
+    const { mutate: deleteNotification } = useMutation({
+        mutationFn: (id: string) => apiClient.delete(`/notifications/${id}`),
+        onMutate: (id) => setNotifications((prev) => prev.filter((n) => n.id !== id)),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+    });
 
     const markAllAsRead = () => {
         markAllAsReadMutation.mutate(undefined);
@@ -125,8 +134,6 @@ export function useNotifications(
         notifications,
         processedNotifications,
         unreadCount,
-        activeTab,
-        setActiveTab,
         viewMode,
         setViewMode,
         sortBy,
