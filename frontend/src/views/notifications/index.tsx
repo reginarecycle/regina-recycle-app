@@ -13,11 +13,16 @@ interface NotificationsPageProps {
 export default function NotificationsPage({
   userRole = "customer",
 }: NotificationsPageProps) {
-  const { data: currentUserData, isLoading: isUserLoading, error: userError } =
-    useCurrentUser();
+  // 1) get authenticated user from backend
+  const {
+    data: currentUserResult,
+    isLoading: userLoading,
+    error: userError,
+  } = useCurrentUser();
 
-  const userId = currentUserData?.data?.userId;
+  const userId = currentUserResult?.data?.userId;
 
+  // 2) get notifications from backend using the user id
   const {
     notifications,
     processedNotifications,
@@ -33,17 +38,19 @@ export default function NotificationsPage({
     markAllAsRead,
     clearAll,
     clearRead,
-    isLoading,
-    error,
-  } = useNotifications(userId, { page: 1, limit: 20 })
+    isLoading: notificationsLoading,
+    error: notificationsError,
+  } = useNotifications(userRole, userId);
 
   const tabs = userRole === "customer" ? customerTabs : collectorTabs;
 
-  if (isUserLoading || isLoading) {
+  // 3) loading state
+  if (userLoading || notificationsLoading) {
     return <div className="p-4 sm:p-6 md:p-8">Loading notifications...</div>;
   }
 
-  if (userError || error) {
+  // 4) error state
+  if (userError || notificationsError) {
     return (
       <div className="p-4 sm:p-6 md:p-8">
         Failed to load notifications.
@@ -51,9 +58,10 @@ export default function NotificationsPage({
     );
   }
 
+  // 5) render backend-fetched data
   return (
     <div className="p-4 sm:p-6 md:p-8">
-      <Card className="p-0 bg-white shadow-none border-0">
+      <Card className="border-0 bg-white p-0 shadow-none">
         <NotificationHeader
           unreadCount={unreadCount}
           hasNotifications={notifications.length > 0}
@@ -65,6 +73,7 @@ export default function NotificationsPage({
           onClearRead={clearRead}
           onClearAll={clearAll}
         />
+
         <NotificationTabs
           tabs={tabs}
           notifications={notifications}
