@@ -37,4 +37,5 @@ export enum Routes {
 
     //collector requests
     history = "/app/history",
+
 }

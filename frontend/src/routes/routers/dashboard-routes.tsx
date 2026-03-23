@@ -18,7 +18,7 @@ const WalletTransactionHistory   = lazyCast(() => import("@/views/customer/walle
 const CollectorRequests          = lazyCast(() => import("@/views/collector/requests"));
 const CollectorSettingsPage      = lazyCast(() => import("@/views/collector/settings"));
 const NotificationsPage          = lazyCast(() => import("@/views/notifications"));
-const CollectorWalletPage        = lazyCast(() => import("@/views/collector/wallet/index"));
+const CollectorWalletPage        = lazyCast(() => import("@/views/collector/wallet/WalletManagement"));
 const CustomerHistoryPage        = lazyCast(() => import("@/views/customer/history/index"));
 
 const UserDashboardGuard          = addPermissions(UserDashboard,           ["customer"]);
