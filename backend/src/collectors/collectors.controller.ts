@@ -25,9 +25,8 @@ export class CollectorsController {
 
   @Get('stats')
   @Auth()
-  getStats(/* @CurrentUser() user: User */) {
-    const collectorId = 'temp-collector-id';
-    return this.collectorsService.getStats(collectorId);
+  getStats(@CurrentUser() user: CurrentUserPayload) {
+    return this.collectorsService.getStats(user.userId);
   }
 
   @Get('material-distribution')
