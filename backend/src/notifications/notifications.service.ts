@@ -6,15 +6,15 @@ import { NotificationQueryDto } from './dto/notification-query.dto';
 
 @Injectable()
 export class NotificationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async getUserNotifications(userId: string, query: NotificationQueryDto) {
     const { page = 1, limit = 20, isRead } = query;
     const { skip, take } = getPaginationParams(page, limit);
-  
+
     const where: any = { userId };
     if (isRead !== undefined) where.isRead = isRead;
-  
+
     const [notifications, total] = await Promise.all([
       this.prisma.notification.findMany({
         where,
@@ -24,10 +24,10 @@ export class NotificationsService {
       }),
       this.prisma.notification.count({ where }),
     ]);
-  
+
     return paginate(notifications, total, page, limit);
   }
-   
+
 
   async getUnreadCount(userId: string) {
     const count = await this.prisma.notification.count({
@@ -70,6 +70,19 @@ export class NotificationsService {
       where: { userId },
       update: dto,
       create: { userId, ...dto },
+    });
+  }
+
+  async markAsUnread(notificationId: string, userId: string) {
+    return this.prisma.notification.update({
+      where: { notificationId, userId },
+      data: { isRead: false },
+    });
+  }
+
+  async deleteNotification(notificationId: string, userId: string) {
+    return this.prisma.notification.delete({
+      where: { notificationId, userId },
     });
   }
 }

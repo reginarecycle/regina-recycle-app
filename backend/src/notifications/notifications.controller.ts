@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Param, Query, Body, Post } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Query, Body, Post, Delete } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { UpdateNotificationPreferenceDto } from './dto/update-notification-preference.dto';
@@ -67,6 +67,24 @@ export class NotificationsController {
     @CurrentUser() user: User,
   ) {
     return this.notificationsService.markAsRead(notificationId, user.userId);
+  }
+
+  @Auth()
+  @Patch(':notificationId/unread')
+  markAsUnread(
+    @Param('notificationId') notificationId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.notificationsService.markAsUnread(notificationId, user.userId);
+  }
+
+  @Auth()
+  @Delete(':notificationId')
+  deleteNotification(
+    @Param('notificationId') notificationId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.notificationsService.deleteNotification(notificationId, user.userId);
   }
 
   // ─── Test endpoint to verify observer pattern works ───────────────────────────────
