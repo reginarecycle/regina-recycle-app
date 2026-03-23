@@ -42,7 +42,21 @@ export interface Pickup {
     note?: string;
 }
 
-export interface PaginatedCustomerPickups {
+export interface CustomerPickupsQuery {
+  search?: string;
+  type?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface CollectorPickupsQuery {
+  search?: string;
+  type?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface CustomerPaginatedPickups {
   search?: string;
   status?: string;    
   startDate?: string;   
@@ -51,7 +65,7 @@ export interface PaginatedCustomerPickups {
   limit?: number;
 }
 
-export interface PaginatedCollectorPickups {
+export interface CollectorPaginatedPickups {
   search?: string;
   status?: string;   
   startDate?: string;    
