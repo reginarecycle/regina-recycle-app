@@ -45,7 +45,7 @@ export class CollectorsController {
   }
 
   @Get('pickups')
-  @Auth()
+  @Auth('COLLECTOR')
   getPickups(
     @CurrentUser() user: CurrentUserPayload,
    @Query() query: PickupQueryDto,

@@ -59,13 +59,13 @@ export function CompleteRequestModal({
     setNote,
     items = defaultItems,
 }: CompleteRequestModalProps) {
-    const [editableItems, setEditableItems] = useState<CollectionItem[]>(() => items);
+    const [editableItems, setEditableItems] = useState<CollectionItem[]>(items);
 
     useEffect(() => {
         if (isOpen) {
             setEditableItems(items);
         }
-    }, [isOpen]);
+    }, [isOpen, items]);
 
     if (!isOpen) return null;
 
