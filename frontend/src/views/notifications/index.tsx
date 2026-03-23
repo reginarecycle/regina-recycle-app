@@ -13,7 +13,6 @@ interface NotificationsPageProps {
 export default function NotificationsPage({
   userRole = "customer",
 }: NotificationsPageProps) {
-  // 1) get authenticated user from backend
   const {
     data: currentUserResult,
     isLoading: userLoading,
@@ -22,7 +21,6 @@ export default function NotificationsPage({
 
   const userId = currentUserResult?.data?.userId;
 
-  // 2) get notifications from backend using the user id
   const {
     notifications,
     processedNotifications,
@@ -44,12 +42,10 @@ export default function NotificationsPage({
 
   const tabs = userRole === "customer" ? customerTabs : collectorTabs;
 
-  // 3) loading state
   if (userLoading || notificationsLoading) {
     return <div className="p-4 sm:p-6 md:p-8">Loading notifications...</div>;
   }
 
-  // 4) error state
   if (userError || notificationsError) {
     return (
       <div className="p-4 sm:p-6 md:p-8">
@@ -58,7 +54,18 @@ export default function NotificationsPage({
     );
   }
 
-  // 5) render backend-fetched data
+  if (!notifications.length) {
+    return (
+      <div className="p-4 sm:p-6 md:p-8">
+        <Card className="border-0 bg-white p-6 shadow-none">
+          <p className="text-center text-sm text-muted-foreground">
+            No notifications yet.
+          </p>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 sm:p-6 md:p-8">
       <Card className="border-0 bg-white p-0 shadow-none">
