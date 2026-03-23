@@ -37,7 +37,7 @@ export interface Column<T> {
 interface LegacyDataTableProps<T> {
   data: T[];
   columns: Column<T>[];
-  header?: { title: string; subtitle?: string };
+  header?: { title: string; subtitle?: string; action?: ReactNode };
   pagination?: {
     currentPage: number;
     totalPages: number;
@@ -61,11 +61,14 @@ function LegacyDataTable<T>({
   return (
     <div className={`space-y-8 ${className}`}>
       {header && (
-        <div>
-          <h2 className="text-xl font-semibold mb-1">{header.title}</h2>
-          {header.subtitle && <p className="text-sm text-muted-foreground">{header.subtitle}</p>}
-        </div>
-      )}
+  <div className="flex items-center justify-between mb-2">
+    <div>
+      <h2 className="text-xl font-semibold mb-1">{header.title}</h2>
+      {header.subtitle && <p className="text-sm text-muted-foreground">{header.subtitle}</p>}
+    </div>
+    {header.action && <div>{header.action}</div>}
+  </div>
+)}
 
       <div className="border rounded-lg overflow-hidden bg-white">
         <div className="hidden lg:block overflow-x-auto">

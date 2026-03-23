@@ -5,7 +5,7 @@ import { lazy } from "react";
 const LandingPage = lazy(() => import("@/views/landing"));
 const Learn = lazy(() => import("@/views/landing/learn"));
 
-// for the landing page
+
 export const landingRoutes = () => {
   return [
     {
