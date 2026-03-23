@@ -12,6 +12,7 @@ import {
     type NotificationQueryParams,
 } from "@/api-hooks/useNotifications";
 import type { Notification } from "@/types/notification";
+import type { ViewMode } from "@/types/notification";
 
 function mapToFrontend(n: NotificationItem): Notification {
     const typeMap: Record<string, Notification["type"]> = {
@@ -56,7 +57,7 @@ export function useNotifications(
     const activeTab = searchParams.get("notif") ?? "all";
 
     const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [viewMode, setViewMode] = useState<"all" | "unread">("all");
+    const [viewMode, setViewMode] = useState<ViewMode>("all");
     const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
 
     useEffect(() => {
