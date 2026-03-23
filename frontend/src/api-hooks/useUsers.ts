@@ -29,3 +29,33 @@ export const useGetUser    = (id: string) => useGetOne<User>(userKeys.detail(id)
 export const useCreateUser = ()           => useCreate<User, Omit<User, "id">>("/users", userKeys.lists());
 export const useUpdateUser = ()           => useUpdate<User, Partial<User>>((id) => `/users/${id}`, userKeys.lists(), userKeys.detail);
 export const useDeleteUser = ()           => useRemove((id) => `/users/${id}`, userKeys.lists(), userKeys.detail);
+
+
+// --- Profile & Account Hooks ---
+
+export interface UpdateUserProfileDto {
+  name?: string;
+  email?: string;
+  phoneNumber?: string;
+}
+
+// Update profile
+export const useUpdateUserProfile = () =>
+  useUpdate<unknown, UpdateUserProfileDto>(
+    () => "/users/profile",
+    ["users", "profile"]
+  );
+
+// Check delete eligibility
+export const useCheckDeleteEligibility = () =>
+  useGetOne<unknown>(
+    ["users", "delete-check"],
+    "/users/delete/check"
+  );
+
+// Delete account
+export const useDeleteUserAccount = () =>
+  useRemove(
+    () => "/users/delete",
+    ["users", "profile"]
+  );
