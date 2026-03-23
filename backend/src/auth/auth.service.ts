@@ -351,10 +351,11 @@ async resetPassword(email: string, otp: string, newPassword: string) {
         customerDOB: { select: { dob: true } },
         collectorProfile: {
           select: {
-            licenseId: true,
-            serviceFee: true,
+            licenseId:            true,
+            serviceFee:           true,
+            feeType:              true,
             bulkIncentiveEnabled: true,
-            bulkThreshold: true,
+            bulkThreshold:        true,
           },
         },
         addresses: {
