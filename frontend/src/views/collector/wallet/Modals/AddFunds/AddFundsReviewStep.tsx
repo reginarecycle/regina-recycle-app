@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Check } from "lucide-react";
-import { ModalFooter } from "../../shared";
+import { ModalFooter } from "../../components";
 import type { PaymentMethod } from "@/lib/validation";
 
 interface AddFundsReviewStepProps {
@@ -8,6 +8,7 @@ interface AddFundsReviewStepProps {
   paymentMethod: PaymentMethod;
   onBack: () => void;
   onConfirm: () => void;
+  isPending?: boolean;
 }
 
 export const AddFundsReviewStep: React.FC<AddFundsReviewStepProps> = ({
@@ -15,14 +16,15 @@ export const AddFundsReviewStep: React.FC<AddFundsReviewStepProps> = ({
   paymentMethod,
   onBack,
   onConfirm,
+  isPending = false,
 }) => (
   <div className="flex-1 flex flex-col">
     <div className="flex-1 px-6 py-5 flex flex-col gap-4">
       <div className="rounded-xl bg-gray-50 border border-border p-5 flex flex-col gap-3">
         {[
-          { label: "Amount:",          value: `$${amount.toFixed(2)} CAD`                              },
-          { label: "Payment Method:",  value: paymentMethod === "card" ? "Credit/Debit Card" : "Mobile Payment" },
-          { label: "Processing Fee:",  value: "$0.00"                                                   },
+          { label: "Amount:",         value: `$${amount.toFixed(2)} CAD` },
+          { label: "Payment Method:", value: paymentMethod === "card" ? "Credit/Debit Card" : "Mobile Payment" },
+          { label: "Processing Fee:", value: "$0.00" },
         ].map(({ label, value }) => (
           <div key={label} className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">{label}</span>
@@ -46,6 +48,11 @@ export const AddFundsReviewStep: React.FC<AddFundsReviewStepProps> = ({
       </div>
     </div>
 
-    <ModalFooter onBack={onBack} onContinue={onConfirm} continueLabel="Confirm" />
+    <ModalFooter
+      onBack={onBack}
+      onContinue={onConfirm}
+      continueLabel={isPending ? "Processing..." : "Confirm"}
+      continueDisabled={isPending}
+    />
   </div>
 );

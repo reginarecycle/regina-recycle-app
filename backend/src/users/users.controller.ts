@@ -9,44 +9,40 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+
+interface AuthRequest extends Request {
+  user: { userId: string };
+}
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // GET /users/profile
-  @Get('profile')
-  getProfile(@Req() req: any) {
-    return this.usersService.getProfile(req.user.userId);
-  }
-
-  // PATCH /users/profile
   @Patch('profile')
-  updateProfile(@Req() req: any, @Body() dto: UpdateUserDto) {
+  updateProfile(@Req() req: AuthRequest, @Body() dto: UpdateUserDto) {
     return this.usersService.updateProfile(req.user.userId, dto);
   }
 
   // PATCH /users/deactivate
   @Patch('deactivate')
   @HttpCode(HttpStatus.OK)
-  deactivateAccount(@Req() req: any) {
+  deactivateAccount(@Req() req: AuthRequest) {
     return this.usersService.deactivateAccount(req.user.userId);
   }
 
-  // GET /users/delete/check
   @Get('delete/check')
-  checkDeleteEligibility(@Req() req: any) {
+  checkDeleteEligibility(@Req() req: AuthRequest) {
     return this.usersService.checkDeleteEligibility(req.user.userId);
   }
 
-  // DELETE /users/delete
   @Delete('delete')
   @HttpCode(HttpStatus.OK)
-  deleteAccount(@Req() req: any) {
+  deleteAccount(@Req() req: AuthRequest) {
     return this.usersService.deleteAccount(req.user.userId);
   }
 }

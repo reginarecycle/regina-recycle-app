@@ -26,48 +26,6 @@ export class UsersService {
     private readonly notificationService: NotificationGatewayService,
   ) {}
 
-  // ─── Get Profile ─────────────────────────────────────────────────────────────
-
-  async getProfile(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { userId },
-      select: {
-        userId:       true,
-        name:         true,
-        email:        true,
-        phoneNumber:  true,
-        role:         true,
-        status:       true,
-        emailVerified: true,
-        createdAt:    true,
-        updatedAt:    true,
-        collectorProfile: {
-          select: {
-            licenseId:  true,
-            serviceFee: true,
-          },
-        },
-        addresses: {
-          where:  { isPrimary: true },
-          take:   1,
-          select: {
-            line1:      true,
-            city:       true,
-            province:   true,
-            postalCode: true,
-          },
-        },
-      },
-    });
-
-    if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
-    }
-
-    this.logger.log(`Profile fetched for user ${userId}`);
-    return user;
-  }
-
   // ─── Update Profile ───────────────────────────────────────────────────────────
 
   async updateProfile(userId: string, dto: UpdateUserDto) {
@@ -204,10 +162,7 @@ export class UsersService {
   // ─── Delete Account ───────────────────────────────────────────────────────────
 
   async deleteAccount(userId: string) {
-    const user = await this.prisma.user.findUnique({ where: { userId } });
-    if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
-
-    // Server-side re-check — never trust the client
+    // checkDeleteEligibility already verifies the user exists
     const eligibility = await this.checkDeleteEligibility(userId);
     if (!eligibility.canDelete) {
       const { pendingPickups, walletBalance } = eligibility as DeleteBlockers;
@@ -219,13 +174,15 @@ export class UsersService {
       );
     }
 
+    const user = await this.prisma.user.findUnique({ where: { userId }, select: { email: true } });
+
     // Send email before deleting — record won't exist after
     await this.notificationService.sendNotification({
       type:           NotificationEventType.ALERT,
       title:          'Account Deleted',
       message:        'Your account and all associated data have been permanently deleted.',
       userId,
-      recipientEmail: user.email,
+      recipientEmail: user!.email,
       metadata:       { deletedAt: new Date().toISOString() },
     }).catch((error) =>
       this.logger.error(

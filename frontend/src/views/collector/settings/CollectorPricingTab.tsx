@@ -1,13 +1,11 @@
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { AlertTriangle } from "lucide-react";
 import DataTable, { type Column } from "@/components/ui/data-table";
 import { useMaterials } from "@/components/hooks/useMaterials";
 import type { Material } from "@/types/materials";
 import { useState } from "react";
+import { FeeSettings } from "@/views/collector/settings/FeeSettings";
 
 export function CollectorPricingTab() {
   const {
@@ -111,48 +109,14 @@ export function CollectorPricingTab() {
         mobileRender={renderMobile}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Service Fees */}
-        <Card className="p-6 shadow-none border bg-white">
-          <h3 className="font-semibold text-base mb-6">💳 Service Fees</h3>
-          <div className="space-y-6">
-            <div>
-              <label className="text-base font-semibold mb-2 block">Base Service Fee (%)</label>
-              <p className="text-sm text-muted-foreground mb-4">
-                This is a percentage-based fee applied to every pickup request to cover transport and operational cost.
-              </p>
-              <div className="relative">
-                <Input value={serviceFee} onChange={(e) => setServiceFee(e.target.value)} placeholder="Input" className="h-11 pr-12 bg-white border-gray-300" />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-base font-medium">%</span>
-              </div>
-            </div>
-            <Separator />
-            <div className="flex items-start gap-3 p-4 bg-[#FFFBEB] border border-[#FDE68A] rounded-lg">
-              <AlertTriangle className="h-5 w-5 text-[#F59E0B] shrink-0" />
-              <p className="text-sm text-[#78350F]">These fees will be clearly displayed to the customers during the scheduling process.</p>
-            </div>
-          </div>
-        </Card>
-
-        {/* Bulk Incentive */}
-        <Card className="p-6 shadow-none border bg-white">
-          <h3 className="font-semibold text-base mb-2">📈 Bulk Incentive Strategy</h3>
-          <p className="text-sm text-muted-foreground mb-2">Automatically apply bulk rates when a single request exceeds the quantity threshold.</p>
-          <div className="space-y-6">
-            <div>
-              <label className="text-base font-semibold mb-2 block">Standard Bulk Threshold</label>
-              <div className="relative">
-                <Input value={bulkThreshold} onChange={(e) => setBulkThreshold(e.target.value)} className="h-11 pr-16 bg-white border-gray-300" />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">Units</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-base font-semibold">Apply Bulk to All Materials</span>
-              <Switch checked={applyBulkToAll} onCheckedChange={setApplyBulkToAll} />
-            </div>
-          </div>
-        </Card>
-      </div>
+      <FeeSettings
+        serviceFee={serviceFee}
+        onServiceFeeChange={setServiceFee}
+        bulkThreshold={bulkThreshold}
+        onBulkThresholdChange={setBulkThreshold}
+        applyBulkToAll={applyBulkToAll}
+        onApplyBulkToAllChange={setApplyBulkToAll}
+      />
     </div>
   );
 }

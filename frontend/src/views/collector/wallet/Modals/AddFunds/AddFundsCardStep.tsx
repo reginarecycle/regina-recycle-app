@@ -2,7 +2,7 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import InputField from "@/components/forms/input-field";
-import { ModalFooter } from "../../shared";
+import { ModalFooter } from "../../components";
 import { addFundsCardSchema, type AddFundsCardFormValues } from "@/lib/validation";
 
 interface AddFundsCardStepProps {
