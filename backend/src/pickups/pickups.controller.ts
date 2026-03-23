@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Request,
+  Query,
   UseGuards,
   UseInterceptors,
   UploadedFile,
@@ -19,6 +20,7 @@ import { UpdatePickupDto } from './dto/update-pickup.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Auth } from 'src/common/decorator/auth.decorator';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { PickupQueryDto } from './dto/pickup-query.dto';
 
 @ApiTags('Pickups')
 @UseGuards(JwtAuthGuard)
@@ -29,7 +31,6 @@ export class PickupsController {
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
-  // USER: Schedule a pickup
   @ApiOperation({ summary: 'Schedule a pickup' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -57,31 +58,37 @@ export class PickupsController {
     return this.pickupsService.create(req.user.userId, createPickupDto, photoUrl);
   }
 
-  // USER: Get their own pickups
   @ApiOperation({ summary: 'Get all pickups for logged in user' })
-  @Get()
-  @Auth('CUSTOMER')
-  getUserPickups(@Request() req) {
-    return this.pickupsService.findAll(req.user.userId);
-  }
+@Get()
+@Auth('CUSTOMER')
+getUserPickups(@Request() req, @Query() query: PickupQueryDto) {
+  return this.pickupsService.findAll(req.user.userId, query);
+}
 
-  // COLLECTOR: Get all PENDING requests
-  @ApiOperation({ summary: 'Get all pending pickup requests (collector)' })
-  @Get('requests')
+@ApiOperation({ summary: 'Get all pickup requests (collector)' })
+@Get('requests')
+@Auth('COLLECTOR')
+getRequests(@Query() query: PickupQueryDto) {
+  return this.pickupsService.getRequests(query);
+}
+
+  @ApiOperation({ summary: 'Get available pickup slots for a month' })
+  @Get('available-slots')
   @Auth()
-  getRequests() {
-    return this.pickupsService.getRequests();
+  getAvailableSlots(
+    @Query('month') month: string,
+    @Query('year') year: string,
+  ) {
+    return this.pickupsService.getAvailableSlots(Number(month), Number(year));
   }
 
-  // Get a single pickup by ID
   @ApiOperation({ summary: 'Get a pickup by ID' })
   @Get(':id')
   @Auth()
-  getPickupById (@Param('id') id: string) {
+  getPickupById(@Param('id') id: string) {
     return this.pickupsService.findOne(id);
   }
 
-  // COLLECTOR: Accept a pickup
   @ApiOperation({ summary: 'Accept a pickup (collector)' })
   @Patch(':id/accept')
   @Auth('COLLECTOR')
@@ -89,7 +96,6 @@ export class PickupsController {
     return this.pickupsService.accept(id, req.user.userId);
   }
 
-  // COLLECTOR: Complete a pickup
   @ApiOperation({ summary: 'Complete a pickup (collector)' })
   @Patch(':id/complete')
   @Auth('COLLECTOR')
@@ -97,7 +103,6 @@ export class PickupsController {
     return this.pickupsService.complete(id, req.user.userId);
   }
 
-  // USER: Update a pickup (only while PENDING)
   @ApiOperation({ summary: 'Update a pickup (customer only, PENDING only)' })
   @Patch(':id')
   @Auth('CUSTOMER')
@@ -105,7 +110,6 @@ export class PickupsController {
     return this.pickupsService.update(id, req.user.userId, updatePickupDto);
   }
 
-  // USER: Cancel a pickup
   @ApiOperation({ summary: 'Cancel a pickup' })
   @Delete(':id/cancel')
   @Auth()

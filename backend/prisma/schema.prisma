@@ -122,6 +122,7 @@ model CollectorProfile {
   userId             String   @unique
   licenseId          String   @unique
   serviceFee         Decimal  @db.Decimal(10,2)
+  feeType            String   @default("FLAT_FEE")
   bulkIncentiveEnabled Boolean  @default(false)
   bulkThreshold        Int      @default(100)
   createdAt          DateTime @default(now())

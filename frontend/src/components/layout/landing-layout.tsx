@@ -6,6 +6,7 @@ const LandingLayout = () => {
   return (
     <div className="bg-[#FBFBFB] min-h-screen">
       <Navbar />
+
       <Suspense fallback={<div>Loading...</div>}>
         <Outlet />
       </Suspense>
