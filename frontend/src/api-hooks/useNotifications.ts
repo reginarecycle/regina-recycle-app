@@ -1,4 +1,6 @@
 import { useCreate, useGetOne } from "@/lib/queryHelpers";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "@/lib/apiFetch";
 
 export interface NotificationItem {
     notificationId: string;
@@ -45,10 +47,6 @@ export interface UpdateNotificationPreferencePayload {
     emailPayment?: boolean;
     inAppPickupReminder?: boolean;
     inAppAlerts?: boolean;
-}
-
-export interface NotificationActionResponse {
-    message: string;
 }
 
 export function useNotificationsApi(query?: NotificationQueryParams) {
@@ -99,29 +97,9 @@ export function useUpdateNotificationPreferences() {
 }
 
 export function useMarkAllNotificationsAsRead() {
-    return useCreate<NotificationActionResponse, undefined>(
-        "/notifications/mark-all-read",
-        ["notifications"]
-    );
-}
-
-export function useMarkNotificationAsRead(notificationId: string) {
-    return useCreate<NotificationActionResponse, undefined>(
-        `/notifications/${notificationId}/read`,
-        ["notifications"]
-    );
-}
-
-export function useMarkNotificationAsUnread(notificationId: string) {
-    return useCreate<NotificationActionResponse, undefined>(
-        `/notifications/${notificationId}/unread`,
-        ["notifications"]
-    );
-}
-
-export function useDeleteNotification(notificationId: string) {
-    return useCreate<NotificationActionResponse, undefined>(
-        `/notifications/${notificationId}`,
-        ["notifications"]
-    );
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: () => apiClient.patch("/notifications/mark-all-read"),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+    });
 }

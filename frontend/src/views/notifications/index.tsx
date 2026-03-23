@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { NotificationHeader } from "@/components/notifications/NotificationHeader";
 import { NotificationTabs } from "@/components/notifications/NotificationTabs";
-import { useNotifications } from "@/components/hooks/useNotifications";
+import { useNotifications } from "@/hooks/useNotifications";
 import { useCurrentUser } from "@/api-hooks/useAuth";
 import { customerTabs, collectorTabs } from "@/constants/data";
 import type { UserRole } from "@/types/notification";
@@ -25,7 +25,6 @@ export default function NotificationsPage({
     notifications,
     processedNotifications,
     unreadCount,
-    activeTab,
     viewMode,
     setViewMode,
     sortBy,
@@ -38,7 +37,7 @@ export default function NotificationsPage({
     clearRead,
     isLoading: notificationsLoading,
     error: notificationsError,
-  } = useNotifications(userRole, userId);
+  } = useNotifications(userId);
 
   const tabs = userRole === "customer" ? customerTabs : collectorTabs;
 
@@ -85,7 +84,6 @@ export default function NotificationsPage({
           tabs={tabs}
           notifications={notifications}
           processed={processedNotifications}
-          activeTab={activeTab}
           onMarkAsRead={markAsRead}
           onMarkAsUnread={markAsUnread}
           onDelete={deleteNotification}

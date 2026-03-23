@@ -26,8 +26,7 @@ export function NotificationCard({
         ${notification.link ? "cursor-pointer hover:shadow-sm" : ""}
       `}
       onClick={() => {
-        if (notification.link && !notification.read) onMarkAsRead(notification.id);
-        // TODO: navigate to notification.link
+        if (!notification.read) onMarkAsRead(notification.id);
       }}
     >
       {/* Unread indicator */}
