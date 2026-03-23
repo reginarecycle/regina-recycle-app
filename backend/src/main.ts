@@ -22,8 +22,14 @@ async function createApp(): Promise<INestApplication> {
     instance.setGlobalPrefix('api');
 
     instance.enableCors({
-      origin: true,
+      origin: [
+        'https://regina-recycle-staging.vercel.app',
+        'https://reginarecycle.vercel.app',
+        'http://localhost:5173',
+      ],
       credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
     });
 
     instance.useGlobalPipes(
