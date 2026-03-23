@@ -42,6 +42,24 @@ export interface Pickup {
     note?: string;
 }
 
+export interface PaginatedCustomerPickups {
+  search?: string;
+  status?: string;    
+  startDate?: string;   
+  endDate?: string;  
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginatedCollectorPickups {
+  search?: string;
+  status?: string;   
+  startDate?: string;    
+  endDate?: string;     
+  page?: number;
+  limit?: number;
+}
+
 export const useGetAvailableSlots = (month: number, year: number) =>
     useGetOne<AvailableSlotsResponse>(
         ["pickups", "available-slots", month, year],
