@@ -1,79 +1,231 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
-  Search, ListFilter, Box, TrendingUp, Calendar, MapPin, Phone, Mail,
+  Search, ListFilter, Box, TrendingUp, Calendar,
+  MapPin, Phone, Mail,
 } from "lucide-react";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
+import {
+  useCollectorUsers,
+  useCollectorUsersStats,
+  useCollectorCustomerDetail,
+} from "@/api-hooks/useCollectors.ts";
+import type { CollectorUser } from "@/api-hooks/useCollectors.ts";
+import { useCurrentUser } from "@/api-hooks/useAuth.ts";
+import { formatCurrency } from "@/lib/utils";
 
-type User = {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  status: "ACTIVE" | "INACTIVE" | "NEW";
-  collections: string;
-  initials: string;
-  address: string;
-  totalCollections: number;
-  avgRevenue: string;
-  reward: string;
-  tags: string[];
-  nextCollection: string;
-};
+// ─── Status badge ─────────────────────────────────────────────────────────────
 
-const users: User[] = [
-  { id: 1, name: "Dylan White", email: "dylan.white@email.com", phone: "+1 (306) 555-0125", status: "ACTIVE", collections: "CAD 1,558", initials: "DW", address: "Downtown", totalCollections: 32, avgRevenue: "$6400", reward: "$200", tags: ["Frequent", "Metal Scraps", "Plastic"], nextCollection: "Sat, Oct 28, 2023" },
-  { id: 2, name: "Sarah Keen", email: "sarah.keen@email.com", phone: "+1 (306) 555-0125", status: "INACTIVE", collections: "CAD 1,558", initials: "SK", address: "Wascana View", totalCollections: 21, avgRevenue: "$340", reward: "$120", tags: ["Paper", "Plastic"], nextCollection: "Fri, Oct 25 2025" },
-  { id: 3, name: "Emma Wilson", email: "emma.wilson@email.com", phone: "+1 (306) 555-0125", status: "NEW", collections: "CAD 1,558", initials: "EW", address: "Lakeview", totalCollections: 8, avgRevenue: "$140", reward: "$50", tags: ["New", "Glass"], nextCollection: "Mon, Oct 28 2025" },
-  { id: 4, name: "Nolan Roberts", email: "nolan.roberts@email.com", phone: "+1 (306) 555-0125", status: "ACTIVE", collections: "CAD 1,558", initials: "NR", address: "Cathedral", totalCollections: 28, avgRevenue: "$510", reward: "$180", tags: ["Metal", "Plastic"], nextCollection: "Wed, Oct 30 2025" },
-  { id: 5, name: "Marcus Chen", email: "marcus.chen@email.com", phone: "+1 (306) 555-0125", status: "ACTIVE", collections: "CAD 1,558", initials: "MC", address: "Heritage", totalCollections: 26, avgRevenue: "$500", reward: "$160", tags: ["Paper", "Glass"], nextCollection: "Thu, Nov 1 2025" },
-  { id: 6, name: "Nelson Oyi", email: "nelson.oyi@email.com", phone: "+1 (306) 555-0125", status: "ACTIVE", collections: "CAD 1,558", initials: "NO", address: "Heritage", totalCollections: 18, avgRevenue: "$300", reward: "$110", tags: ["Plastic"], nextCollection: "Sat, Nov 3 2025" },
-  { id: 7, name: "Marjan", email: "marjan@email.com", phone: "+1 (306) 555-0125", status: "ACTIVE", collections: "CAD 1,558", initials: "MJ", address: "Heritage", totalCollections: 17, avgRevenue: "$290", reward: "$100", tags: ["Metal"], nextCollection: "Mon, Nov 5 2025" },
-  { id: 8, name: "Sumayya", email: "sumayya@email.com", phone: "+1 (306) 555-0125", status: "NEW", collections: "CAD 1,558", initials: "SA", address: "Heritage", totalCollections: 7, avgRevenue: "$120", reward: "$40", tags: ["Plastic"], nextCollection: "Wed, Nov 7 2025" },
-];
+type UserStatus = "ACTIVE" | "INACTIVE" | "NEW";
 
-const statusClasses: Record<User["status"], string> = {
-  ACTIVE: "bg-[#DCFCE7] text-[#16A34A]",
+const statusClasses: Record<UserStatus, string> = {
+  ACTIVE:   "bg-[#DCFCE7] text-[#16A34A]",
   INACTIVE: "bg-[#E2E8F0] text-[#64748B]",
-  NEW: "bg-[#DBEAFE] text-[#2563EB]",
+  NEW:      "bg-[#DBEAFE] text-[#2563EB]",
 };
+
+// ─── Avatar ───────────────────────────────────────────────────────────────────
+
+const Avatar = ({ name }: { name: string }) => {
+  const initials = name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+  return (
+    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#5E7D68] text-[10px] font-semibold text-white shrink-0">
+      {initials}
+    </div>
+  );
+};
+
+// ─── Customer Detail Modal ────────────────────────────────────────────────────
+
+const CustomerModal = ({
+  customerId,
+  onClose,
+}: {
+  customerId: string;
+  onClose: () => void;
+}) => {
+  const { data: result, isLoading } = useCollectorCustomerDetail(customerId);
+  const detail = result?.data;
+
+  const completedPickups = detail?.pickups.filter((p) => p.status === "COMPLETED") ?? [];
+  const totalRevenue     = completedPickups.reduce((sum: number, p) =>
+    sum + (p.items?.reduce((s: number, i) => s + i.quantity, 0) ?? 0), 0);
+  const avgOrder         = completedPickups.length > 0 ? totalRevenue / completedPickups.length : 0;
+
+  const materials = [
+    ...new Set(
+      detail?.pickups.flatMap((p) => p.items?.map((i) => i.material?.name ?? "") ?? []) ?? []
+    ),
+  ].filter(Boolean);
+
+  const nextPickup = detail?.pickups
+    .filter((p) => ["PENDING", "ACCEPTED"].includes(p.status) && new Date(p.scheduledAt) >= new Date())
+    .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())[0];
+
+  const primaryAddress = detail?.customer.addresses?.[0];
+  const initials = detail
+    ? detail.customer.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()
+    : "..";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/20" onClick={onClose} />
+      <div className="relative w-[467px] overflow-hidden rounded-[8px] bg-white shadow-[0px_14px_30px_rgba(0,0,0,0.18)]">
+
+        {/* Header */}
+        <div className="flex items-center justify-between bg-[linear-gradient(180deg,#64836D_0%,#4F6D59_100%)] px-5 py-4 text-white">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-[12px] font-medium">
+              {initials}
+            </div>
+            <div className="flex flex-col">
+              <p className="text-[16px] font-semibold leading-[24px]">
+                {isLoading ? "Loading..." : detail?.customer.name}
+              </p>
+              <span className="mt-1 inline-flex w-fit rounded-full bg-[#DDFCE7] px-2 py-[2px] text-[10px] font-semibold uppercase leading-none text-[#16A34A]">
+                ACTIVE
+              </span>
+            </div>
+          </div>
+          <button type="button" onClick={onClose} className="text-[18px] leading-none text-white/90 hover:text-white">×</button>
+        </div>
+
+        {/* Body */}
+        {isLoading ? (
+          <div className="p-5 flex flex-col gap-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-5 rounded bg-gray-100 animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4 p-5">
+
+            {/* Contact */}
+            <div>
+              <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9CA3AF]">Contact Details</p>
+              <div className="flex flex-col gap-2 text-[13px] text-[#0C111D]">
+                {detail?.customer.phoneNumber && (
+                  <div className="flex items-center gap-2">
+                    <Phone size={16} className="text-[#7C7C7C]" />
+                    <span>{detail.customer.phoneNumber}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <Mail size={16} className="text-[#7C7C7C]" />
+                  <span>{detail?.customer.email}</span>
+                </div>
+                {primaryAddress && (
+                  <div className="flex items-center gap-2">
+                    <MapPin size={16} className="text-[#7C7C7C]" />
+                    <span>{primaryAddress.line1}, {primaryAddress.city}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div>
+              <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9CA3AF]">Stats</p>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="rounded-[10px] border border-[#E5E7EB] p-[13px] text-center">
+                  <p className="text-[10px] uppercase text-[#9CA3AF]">Collections</p>
+                  <p className="mt-1 text-[20px] font-medium leading-none text-[#0C111D]">{completedPickups.length}</p>
+                </div>
+                <div className="rounded-[10px] border border-[#E5E7EB] p-[13px] text-center">
+                  <p className="text-[10px] uppercase text-[#9CA3AF]">Revenue</p>
+                  <p className="mt-1 text-[20px] font-medium leading-none text-[#22C55E]">{formatCurrency(totalRevenue, "CAD", false)}</p>
+                </div>
+                <div className="rounded-[10px] border border-[#E5E7EB] p-[13px] text-center">
+                  <p className="text-[10px] uppercase text-[#9CA3AF]">Avg/Order</p>
+                  <p className="mt-1 text-[20px] font-medium leading-none text-[#F59E0B]">{formatCurrency(avgOrder, "CAD", false)}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Collected Items */}
+            {materials.length > 0 && (
+              <div>
+                <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9CA3AF]">Collected Items</p>
+                <div className="flex flex-wrap gap-2">
+                  {materials.map((tag) => (
+                    <span key={tag} className="rounded-full bg-[#EAF8EE] px-3 py-[4px] text-[11px] font-medium text-[#2E9B4B]">{tag}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Next Collection */}
+            {nextPickup && (
+              <div className="rounded-[10px] border border-[#F59E0B] bg-[#FFFBEB] p-[13px]">
+                <div className="flex items-center gap-2 text-[#0C111D]">
+                  <Calendar size={16} className="text-[#F59E0B]" />
+                  <p className="text-[13px] text-[#0C111D]">Next Collection</p>
+                </div>
+                <p className="mt-1 text-[14px] text-[#F59E0B]">
+                  {new Date(nextPickup.scheduledAt).toLocaleDateString("en-CA", {
+                    weekday: "short", month: "short", day: "numeric", year: "numeric",
+                  })}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function CollectorUsersPage() {
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<User["status"] | "ALL">("ALL");
+  const [search,         setSearch]         = useState("");
+  const [statusFilter,   setStatusFilter]   = useState<"ALL" | "ACTIVE" | "INACTIVE" | "NEW">("ALL");
   const [showFilterMenu, setShowFilterMenu] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedId,     setSelectedId]     = useState<string | null>(null);
+  const [currentPage,    setCurrentPage]    = useState(1);
 
-  const filteredUsers = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    return users.filter((user) => {
-      const matchesSearch = !query ||
-        user.name.toLowerCase().includes(query) ||
-        user.email.toLowerCase().includes(query) ||
-        user.phone.toLowerCase().includes(query) ||
-        user.address.toLowerCase().includes(query);
-      const matchesStatus = statusFilter === "ALL" || user.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    });
-  }, [search, statusFilter]);
+  const PAGE_SIZE = 8;
 
-  const columns: ColumnDef<User>[] = [
+  // ── Get collector ID from auth ─────────────────────────────────────────────
+  const { data: currentUser } = useCurrentUser();
+  const collectorId = currentUser?.data?.userId ?? "";
+
+  // ── API calls ──────────────────────────────────────────────────────────────
+  const { data: usersResult, isLoading } = useCollectorUsers(collectorId, {
+    keyword: search || undefined,
+    page:    currentPage,
+    limit:   PAGE_SIZE,
+  });
+
+  const { data: statsResult } = useCollectorUsersStats(collectorId);
+
+  const customers  = usersResult?.data?.data       ?? [];
+  const totalPages = usersResult?.data?.totalPages ?? 1;
+  const totalItems = usersResult?.data?.total      ?? 0;
+
+  // ── Stats ──────────────────────────────────────────────────────────────────
+  const totalUsers       = statsResult?.data?.totalUsers        ?? 0;
+  const avgRevenue       = statsResult?.data?.avgRevenuePerUser ?? 0;
+  const totalCollections = statsResult?.data?.totalCollection   ?? 0;
+
+  // ── Filter by status client-side ───────────────────────────────────────────
+  const filtered = statusFilter === "ALL"
+    ? customers
+    : customers.filter((c) => c.status === statusFilter);
+
+  // ── Table columns ──────────────────────────────────────────────────────────
+  const columns: ColumnDef<CollectorUser>[] = [
     {
       key: "name",
       header: "Customer",
-      cell: (user) => (
+      cell: (c) => (
         <div className="flex items-center gap-3">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#5E7D68] text-[10px] font-semibold text-white">
-            {user.initials}
-          </div>
+          <Avatar name={c.name} />
           <div>
-            <p className="text-[12px] font-medium leading-[18px] text-[#111827]">{user.name}</p>
-            <div className="mt-[1px] flex items-center gap-1 text-[12px] font-normal leading-[18px] text-[#999CA0]">
-              <MapPin size={12} className="shrink-0 text-[#999CA0]" />
-              <span>{user.address}</span>
-            </div>
+            <p className="text-[12px] font-medium leading-[18px] text-[#111827]">{c.name}</p>
+            <p className="mt-[1px] text-[11px] text-[#999CA0] truncate max-w-[160px]">
+              {c.neighborhood || c.email}
+            </p>
           </div>
         </div>
       ),
@@ -81,39 +233,42 @@ export default function CollectorUsersPage() {
     {
       key: "phone",
       header: "Contact",
-      cell: (user) => (
+      cell: (c) => (
         <div className="space-y-[1px]">
-          <p className="text-[12px] leading-[18px] text-[#111827]">{user.phone}</p>
-          <p className="text-[10px] leading-[18px] text-[#999CA0]">{user.email}</p>
+          <p className="text-[12px] leading-[18px] text-[#111827]">{c.phone ?? "—"}</p>
+          <p className="text-[10px] leading-[18px] text-[#999CA0] truncate max-w-[160px]">{c.email}</p>
         </div>
       ),
     },
     {
       key: "status",
       header: "Status",
-      cell: (user) => (
-        <span className={`inline-flex h-[18px] w-[76px] items-center justify-center rounded-[34px] px-2 text-[10px] font-bold uppercase leading-[18px] ${statusClasses[user.status]}`}>
-          {user.status}
-        </span>
-      ),
+      cell: (c) => {
+        const s = (c.status as UserStatus) in statusClasses ? (c.status as UserStatus) : "ACTIVE";
+        return (
+          <span className={`inline-flex h-[18px] w-[76px] items-center justify-center rounded-[34px] px-2 text-[10px] font-bold uppercase leading-[18px] ${statusClasses[s]}`}>
+            {s}
+          </span>
+        );
+      },
     },
     {
       key: "collections",
       header: "Collections",
-      cell: (user) => (
-        <span className={`text-[11px] font-medium ${user.name === "Sarah Keen" || user.name === "Nolan Roberts" ? "text-[#EF4444]" : "text-[#16A34A]"}`}>
-          {user.collections}
+      cell: (c) => (
+        <span className="text-[11px] font-medium text-[#16A34A]">
+          {formatCurrency(c.revenue, "CAD")}
         </span>
       ),
     },
     {
       key: "action",
       header: "Action",
-      cell: (user) => (
+      cell: (c) => (
         <button
           type="button"
-          onClick={() => { setSelectedUser(user); setIsModalOpen(true); }}
-          className="text-[11px] font-semibold text-[#111827]"
+          onClick={() => setSelectedId(c.customerId)}
+          className="text-[11px] font-semibold text-[#111827] hover:text-primary transition-colors"
         >
           View More
         </button>
@@ -134,7 +289,7 @@ export default function CollectorUsersPage() {
             <div>
               <p className="text-[10px] font-medium uppercase text-[#9CA3AF]">Total Users</p>
               <div className="mt-1 flex items-baseline gap-2">
-                <span className="text-[32px] font-semibold leading-none text-[#22C55E]">5</span>
+                <span className="text-[32px] font-semibold leading-none text-[#22C55E]">{totalUsers}</span>
                 <span className="text-[10px] uppercase text-[#9CA3AF]">Users</span>
               </div>
             </div>
@@ -149,7 +304,9 @@ export default function CollectorUsersPage() {
             <div>
               <p className="text-[10px] font-medium uppercase text-[#9CA3AF]">Avg Revenue/User</p>
               <div className="mt-1 flex items-baseline gap-2">
-                <span className="text-[32px] font-semibold leading-none text-[#F59E0B]">$2,235</span>
+                <span className="text-[32px] font-semibold leading-none text-[#F59E0B]">
+                  {formatCurrency(avgRevenue, "CAD", false)}
+                </span>
                 <span className="text-[10px] uppercase text-[#9CA3AF]">Per Customer</span>
               </div>
             </div>
@@ -164,7 +321,7 @@ export default function CollectorUsersPage() {
             <div>
               <p className="text-[10px] font-medium uppercase text-[#9CA3AF]">Total Collection</p>
               <div className="mt-1 flex items-baseline gap-2">
-                <span className="text-[32px] font-semibold leading-none text-[#A855F7]">91</span>
+                <span className="text-[32px] font-semibold leading-none text-[#A855F7]">{totalCollections}</span>
                 <span className="text-[10px] uppercase text-[#9CA3AF]">Completed</span>
               </div>
             </div>
@@ -174,10 +331,16 @@ export default function CollectorUsersPage() {
 
       {/* Table */}
       <DataTable
-        data={filteredUsers}
+        data={filtered}
         columns={columns}
-        rowKey={(item) => String(item.id)}
+        rowKey={(item) => item.customerId}
         title="Customers"
+        emptyText={isLoading ? "Loading..." : "No customers found"}
+        page={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        pageSize={PAGE_SIZE}
+        onPageChange={setCurrentPage}
         headerRight={
           <div className="flex items-center gap-2">
             <div className="relative w-[210px]">
@@ -216,81 +379,14 @@ export default function CollectorUsersPage() {
             </div>
           </div>
         }
-        page={currentPage}
-        totalPages={Math.ceil(filteredUsers.length / 8)}
-        totalItems={filteredUsers.length}
-        pageSize={8}
-        onPageChange={setCurrentPage}
       />
 
-      {/* Modal */}
-      {isModalOpen && selectedUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/20" onClick={() => setIsModalOpen(false)} />
-          <div className="relative w-[467px] overflow-hidden rounded-[8px] bg-white shadow-[0px_14px_30px_rgba(0,0,0,0.18)]">
-
-            <div className="flex items-center justify-between bg-[linear-gradient(180deg,#64836D_0%,#4F6D59_100%)] px-5 py-4 text-white">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-[12px] font-medium">
-                  {selectedUser.initials}
-                </div>
-                <div className="flex flex-col">
-                  <p className="text-[16px] font-semibold leading-[24px]">{selectedUser.name}</p>
-                  <span className="mt-1 inline-flex w-fit rounded-full bg-[#DDFCE7] px-2 py-[2px] text-[10px] font-semibold uppercase leading-none text-[#16A34A]">
-                    {selectedUser.status}
-                  </span>
-                </div>
-              </div>
-              <button type="button" onClick={() => setIsModalOpen(false)} className="text-[18px] leading-none text-white/90 hover:text-white">×</button>
-            </div>
-
-            <div className="flex flex-col gap-4 p-5">
-              <div>
-                <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9CA3AF]">Contact Details</p>
-                <div className="flex flex-col gap-2 text-[13px] text-[#0C111D]">
-                  <div className="flex items-center gap-2"><Phone size={16} className="text-[#7C7C7C]" /><span>{selectedUser.phone}</span></div>
-                  <div className="flex items-center gap-2"><Mail size={16} className="text-[#7C7C7C]" /><span>{selectedUser.email}</span></div>
-                  <div className="flex items-center gap-2"><MapPin size={16} className="text-[#7C7C7C]" /><span>824 Albert Street, {selectedUser.address}</span></div>
-                </div>
-              </div>
-
-              <div>
-                <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9CA3AF]">Stats</p>
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="rounded-[10px] border border-[#E5E7EB] p-[13px] text-center">
-                    <p className="text-[10px] uppercase text-[#9CA3AF]">Collections</p>
-                    <p className="mt-1 text-[20px] font-medium leading-none text-[#0C111D]">{selectedUser.totalCollections}</p>
-                  </div>
-                  <div className="rounded-[10px] border border-[#E5E7EB] p-[13px] text-center">
-                    <p className="text-[10px] uppercase text-[#9CA3AF]">Revenue</p>
-                    <p className="mt-1 text-[20px] font-medium leading-none text-[#22C55E]">{selectedUser.avgRevenue}</p>
-                  </div>
-                  <div className="rounded-[10px] border border-[#E5E7EB] p-[13px] text-center">
-                    <p className="text-[10px] uppercase text-[#9CA3AF]">Avg Order</p>
-                    <p className="mt-1 text-[20px] font-medium leading-none text-[#F59E0B]">{selectedUser.reward}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9CA3AF]">Collected Items</p>
-                <div className="flex flex-wrap gap-2">
-                  {selectedUser.tags.map((tag) => (
-                    <span key={tag} className="rounded-full bg-[#EAF8EE] px-3 py-[4px] text-[11px] font-medium text-[#2E9B4B]">{tag}</span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-[10px] border border-[#F59E0B] bg-[#FFFBEB] p-[13px]">
-                <div className="flex items-center gap-2 text-[#0C111D]">
-                  <Calendar size={16} className="text-[#F59E0B]" />
-                  <p className="text-[13px] text-[#0C111D]">Next Collection</p>
-                </div>
-                <p className="mt-1 text-[14px] text-[#F59E0B]">{selectedUser.nextCollection}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Detail Modal */}
+      {selectedId && (
+        <CustomerModal
+          customerId={selectedId}
+          onClose={() => setSelectedId(null)}
+        />
       )}
     </div>
   );
