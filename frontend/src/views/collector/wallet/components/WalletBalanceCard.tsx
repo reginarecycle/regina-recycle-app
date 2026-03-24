@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Eye, EyeOff, Plus, ArrowUpRight, Wallet } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface WalletBalanceCardProps {
   balance: number;
@@ -31,20 +32,20 @@ export function WalletBalanceCard({ balance, onAddFunds, onWithdraw }: WalletBal
       </div>
 
       <div className="flex gap-3">
-        <button
+        <Button
           onClick={onAddFunds}
           className="flex-1 h-12 rounded-xl bg-white text-foreground font-semibold text-sm flex items-center justify-center gap-2 hover:bg-white/90 transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add Funds
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={onWithdraw}
           className="flex-1 h-12 rounded-xl bg-primary-foreground/10 border border-primary-foreground/20 text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 hover:bg-primary-foreground/20 transition-colors"
         >
           <ArrowUpRight className="w-4 h-4" />
           Withdraw Funds
-        </button>
+        </Button>
       </div>
     </div>
   );
