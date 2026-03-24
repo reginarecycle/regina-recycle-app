@@ -1,6 +1,6 @@
 import { api } from "./client";
 
-export const getWalletBalance = async () => {
-  const response = await api.get("/wallet/balance");
-  return response.data;
+export const getCollectorWallet = async () => {
+ const response = await api.get("/wallet/collector");
+ return response.data;
 };

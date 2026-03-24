@@ -19,7 +19,7 @@ interface RequestDetailsModalProps {
   compatibilityStr: string;
   username: string;
   sourceTab: RequestTab;
-  isComaptible: boolean;
+  isCompatible: boolean;
 }
 
 export function RequestDetailsModal({
@@ -34,7 +34,7 @@ export function RequestDetailsModal({
   compatibilityStr,
   username,
   sourceTab,
-  isComaptible,
+  isCompatible,
 }: RequestDetailsModalProps) {
   if (!isOpen || !request) return null;
 
@@ -235,7 +235,7 @@ const earningsValue = isCompleted
 
                 <Button
                   onClick={onAccept}
-                  disabled={!isComaptible}
+                  disabled={!isCompatible}
                   className="min-w-[180px] flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#344E41] text-white hover:bg-[#2B4035] h-[48px]"
                 >
                   <CheckCircle2 size={18} />
