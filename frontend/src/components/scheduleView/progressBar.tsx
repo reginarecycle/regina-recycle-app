@@ -1,4 +1,5 @@
 import statusGif from "../../assets/status.gif";
+import { formatAmount } from "@/lib/utils";
 
 type ThresholdProgressProps = {
  current: number;
@@ -46,7 +47,7 @@ const ThresholdProgress = ({ current, target }: ThresholdProgressProps) => {
        </svg>
      ) : (
        <p className="text-[13px] leading-[14px] font-medium text-[#344054] whitespace-nowrap">
-         ${current.toFixed(2)} / ${target.toFixed(2)}
+         ${formatAmount(current)} / ${formatAmount(target)}
        </p>
      )}
    </div>
@@ -95,7 +96,7 @@ const ThresholdProgress = ({ current, target }: ThresholdProgressProps) => {
 
 
      <span className="text-[12px] leading-[14px] font-medium truncate">
-       Add ${remaining.toFixed(2)} more to schedule
+       Add ${formatAmount(remaining)} more to schedule
      </span>
    </div>
  )}

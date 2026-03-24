@@ -24,10 +24,10 @@ const UserRegistration: React.FC = () => {
     setValue,
     trigger,
     control,
-    formState: { errors, isValid },
+    formState: { errors, isDirty },
   } = useForm<UserRegistrationFormValues>({
     resolver: zodResolver(userRegistrationSchema),
-    mode: "onChange",
+    mode: "onBlur",
   });
 
   const onSubmit = (data: UserRegistrationFormValues) => {
@@ -135,7 +135,7 @@ const UserRegistration: React.FC = () => {
       <Button
         type="submit"
         className="w-full"
-        disabled={!isValid || isPending}
+        disabled={!isDirty || isPending}
         loading={isPending}
       >
         Create Account

@@ -1,10 +1,10 @@
 import { useGetOne, useGetList, useCreate, useUpdate, useRemove } from "@/lib/queryHelpers";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/apiFetch";
+import { apiClient } from "@/lib/apiFetch";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type PickupStatus = "PENDING" | "ACCEPTED" | "COMPLETED" | "CANCELLED";
 
 export interface PickupAddress {
   line1:      string;
@@ -53,32 +53,62 @@ export interface PickupQuery {
   limit?:     number;
 }
 
+export type PickupStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "ACCEPTED" | "CANCELLED";
+
 export interface TimeSlot {
-  id:    string;
-  label: string;
+    id: string;
+    label: string;
 }
 
 export interface AvailableSlotsResponse {
-  [date: string]: TimeSlot[];
+    [date: string]: TimeSlot[];
+}
+
+export interface PickupAddressPayload {
+    line1: string;
+    line2?: string;
+    city: string;
+    province: string;
+    postalCode: string;
+    latitude?: number;
+    longitude?: number;
 }
 
 export interface CreatePickupItemPayload {
-  materialId: string;
-  quantity:   number;
+    materialId: string;
+    quantity: number;
 }
 
 export interface CreatePickupPayload {
-  address:       PickupAddress;
-  scheduledAt:   string;
-  estimatedCost?: number;
-  note?:         string;
-  items:         CreatePickupItemPayload[];
+    address: PickupAddressPayload;
+    scheduledAt: string;
+    estimatedCost?: number;
+    note?: string;
+    items: CreatePickupItemPayload[];
 }
 
-export interface UpdatePickupPayload {
-  scheduledAt?:   string;
-  estimatedCost?: number;
-  note?:          string;
+export interface Pickup {
+    pickupId: string;
+    status: PickupStatus;
+    scheduledAt: string;
+    estimatedCost?: number;
+    note?: string;
+}
+
+export interface CustomerPickupsQuery {
+  search?: string;
+  status?: PickupStatus;
+  page?: number;
+  limit?: number;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface CustomerPaginatedPickups {
+  data: Pickup[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 // ─── Query keys ───────────────────────────────────────────────────────────────
@@ -130,75 +160,42 @@ export const useGetPickupById = (id: string) =>
   });
 
 export const useGetAvailableSlots = (month: number, year: number) =>
-  useGetOne<AvailableSlotsResponse>(
-    pickupKeys.availableSlots(month, year),
-    `/pickups/available-slots?month=${month}&year=${year}`,
-    { enabled: Boolean(month && year) },
-  );
+    useGetOne<AvailableSlotsResponse>(
+        ["pickups", "available-slots", month, year],
+        `/pickups/available-slots?month=${month}&year=${year}`,
+        { enabled: Boolean(month && year) }
+    );
 
 export const useCreatePickup = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (formData: FormData) => {
-      const response = await apiFetch<Pickup>("/pickups", {
-        method: "POST",
-        data:   formData,
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      return response;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: pickupKeys.all() });
-    },
-  });
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (formData: FormData) => {
+            const response = await apiClient.post("/pickups", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["pickups"] });
+        },
+    });
 };
 
-export const useUpdatePickup = () =>
-  useUpdate<Pickup, UpdatePickupPayload>(
-    (id) => `/pickups/${id}`,
-    pickupKeys.all(),
-    pickupKeys.detail,
-  );
-
-export const useCancelPickup = () =>
-  useRemove(
-    (id) => `/pickups/${id}/cancel`,
-    pickupKeys.all(),
-    pickupKeys.detail,
-  );
-
-// ─── Collector hooks ──────────────────────────────────────────────────────────
-
-export const useGetPickupRequests = (query?: PickupQuery) => {
+export const useGetCustomerPickups = (query?: CustomerPickupsQuery) => {
   const params = new URLSearchParams();
+
+  if (query?.page) params.append("page", String(query.page));
+  if (query?.limit) params.append("limit", String(query.limit));
+  if (query?.search) params.append("search", query.search);
   if (query?.status) params.append("status", query.status);
-  if (query?.page)   params.append("page",   String(query.page));
-  if (query?.limit)  params.append("limit",  String(query.limit));
-  const qs = params.toString();
-  return useGetOne<PaginatedPickups>(
-    pickupKeys.requests(query),
-    `/pickups/requests${qs ? `?${qs}` : ""}`,
+  if (query?.startDate) params.append("startDate", query.startDate);
+  if (query?.endDate) params.append("endDate", query.endDate);
+
+  const queryString = params.toString();
+  const endpoint = queryString ? `/pickups?${queryString}` : "/pickups";
+
+  return useGetOne<CustomerPaginatedPickups>(
+    ["pickups", "customer", query ?? {}],
+    endpoint
   );
-};
-
-export const useAcceptPickup = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) =>
-      apiFetch(`/pickups/${id}/accept`, { method: "PATCH" }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: pickupKeys.all() });
-    },
-  });
-};
-
-export const useCompletePickup = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) =>
-      apiFetch(`/pickups/${id}/complete`, { method: "PATCH" }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: pickupKeys.all() });
-    },
-  });
 };

@@ -191,6 +191,13 @@ export class PickupsService {
       include: {
         items: { include: { material: true } },
         address: true,
+        collector: {
+          select: {
+            userId: true,
+            name: true,
+            email: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
       skip,

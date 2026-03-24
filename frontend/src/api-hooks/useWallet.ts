@@ -15,22 +15,26 @@ export interface CustomerWallet {
 }
 
 export interface CollectorWallet {
-  userId:                string;
-  walletId:              string;
-  balance:               number;
-  monthlyPayouts:        number;
-  monthlyNetFlow:        number;
+  userId: string;
+  walletId: string;
+  balance: number;
+  monthlyPayouts: number;
+  monthlyPayoutsChange: number;
+  monthlyNetFlow: number;
+  monthlyNetChange: number;
   pendingRequestsAmount: number;
   pendingApprovalAmount: number;
 }
 
 export interface WalletTransaction {
-  userId?:       string;
-  walletId:      string;
-  type:          TxType;
-  amount:        number;
-  status:        TxStatus;
-  description?:  string;
+  transactionId: string;
+  referenceNumber?: string;
+  userId?: string;
+  walletId: string;
+  type: TxType;
+  amount: number;
+  status: TxStatus;
+  description?: string;
   referenceType?: string;
   referenceId?:  string;
   createdAt:     string;
@@ -74,18 +78,11 @@ export interface CollectorWithdrawPayload {
   amount:            number;
 }
 
-// ─── Customer ─────────────────────────────────────────────────────────────────
-
-export const useCustomerWallet = () =>
-  useGetOne<CustomerWallet>(["wallet", "customer"], "/wallet/customer");
-
-// ─── Collector ────────────────────────────────────────────────────────────────
-
+// GET /wallet/collector
 export const useGetCollectorWallet = () =>
   useGetOne<CollectorWallet>(["wallet", "collector"], "/wallet/collector");
 
-// ─── Shared ───────────────────────────────────────────────────────────────────
-
+// GET /wallet/transactions
 export const useGetWalletTransactions = (query?: TransactionQuery) => {
   const params = new URLSearchParams();
   if (query?.page)      params.append("page",      String(query.page));
