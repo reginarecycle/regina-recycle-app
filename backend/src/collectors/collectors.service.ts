@@ -425,11 +425,11 @@ export class CollectorsService {
     return ServiceFeeFactory.create(feeType, feeValue).calculate(amount);
   }
 
-
 async getAverageMaterialPrice(materialId: string) {
    const result = await this.prisma.collectorPricing.aggregate({
      where: {
        materialId,
+       status: PricingStatus.ACTIVE,
      },
      _min: {
        basePrice: true,
@@ -460,3 +460,4 @@ async getAverageMaterialPrice(materialId: string) {
  }
 
 }
+
