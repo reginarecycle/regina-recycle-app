@@ -152,6 +152,9 @@ export class CollectorsService {
           requester: { select: { userId: true, name: true, email: true, phoneNumber: true } },
           address: true,
           items: { include: { material: true } },
+          snapshots: {
+              include:{material: true},
+          },
         },
         orderBy: { scheduledAt: 'asc' },
         skip,
