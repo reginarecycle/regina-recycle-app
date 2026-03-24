@@ -13,9 +13,9 @@ import { useGetCollectorWallet, useGetWalletTransactions } from "@/api-hooks/use
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const TX_ICONS: Record<TransactionType, { bg: string; Icon: React.ElementType; color: string }> = {
-  payout:     { bg: "bg-yellow-100", Icon: Minus,        color: "text-yellow-600" },
-  topup:      { bg: "bg-green-100",  Icon: Plus,         color: "text-green-600"  },
-  withdrawal: { bg: "bg-blue-100",   Icon: ArrowUpRight, color: "text-blue-600"   },
+  payout: { bg: "bg-yellow-100", Icon: Minus, color: "text-yellow-600" },
+  topup: { bg: "bg-green-100", Icon: Plus, color: "text-green-600" },
+  withdrawal: { bg: "bg-blue-100", Icon: ArrowUpRight, color: "text-blue-600" },
 };
 
 function mapTransaction(tx: {
@@ -102,13 +102,13 @@ function WalletSkeleton() {
 export default function WalletManagement() {
   const [addFundsOpen, setAddFundsOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
-  const [viewAllOpen, setViewAllOpen]   = useState(false);
+  const [viewAllOpen, setViewAllOpen] = useState(false);
 
   const { data: walletResult, isLoading: walletLoading, isError: walletError } = useGetCollectorWallet();
-  const { data: txResult,     isLoading: txLoading,     isError: txError      } = useGetWalletTransactions({ page: 1, limit: 4 });
+  const { data: txResult, isLoading: txLoading, isError: txError } = useGetWalletTransactions({ page: 1, limit: 4 });
 
   if (walletError) toast.error("Failed to load wallet. Please refresh.");
-  if (txError)     toast.error("Failed to load transactions. Please refresh.");
+  if (txError) toast.error("Failed to load transactions. Please refresh.");
 
   const wallet = walletResult?.data;
   const transactions = useMemo(() => (txResult?.data?.data ?? []).map(mapTransaction), [txResult]);
@@ -130,7 +130,12 @@ export default function WalletManagement() {
         onWithdraw={() => setWithdrawOpen(true)}
       />
 
-      <WalletStats totalPayouts={wallet.monthlyPayouts} netFlow={wallet.monthlyNetFlow} />
+      <WalletStats
+        totalPayouts={wallet.monthlyPayouts}
+        netFlow={wallet.monthlyNetFlow}
+        payoutsChange={wallet.monthlyPayoutsChange}
+        netFlowChange={wallet.monthlyNetChange}
+      />
 
       <DataTable
         data={txLoading ? [] : transactions}

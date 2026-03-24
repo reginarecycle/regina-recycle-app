@@ -21,6 +21,7 @@ export const userKeys = {
   all:    ()           => ["users"]               as const,
   lists:  ()           => ["users", "list"]        as const,
   detail: (id: string) => ["users", "detail", id]  as const,
+  deleteCheck: () => ["users", "delete-check"] as const,
 };
 
 // ── 3. Hooks ──────────────────────────────────────────────────────────────────
@@ -29,3 +30,35 @@ export const useGetUser    = (id: string) => useGetOne<User>(userKeys.detail(id)
 export const useCreateUser = ()           => useCreate<User, Omit<User, "id">>("/users", userKeys.lists());
 export const useUpdateUser = ()           => useUpdate<User, Partial<User>>((id) => `/users/${id}`, userKeys.lists(), userKeys.detail);
 export const useDeleteUser = ()           => useRemove((id) => `/users/${id}`, userKeys.lists(), userKeys.detail);
+
+
+// --- Profile & Account Hooks ---
+
+export interface UpdateUserProfileDto {
+  name?: string;
+  email?: string;
+  phoneNumber?: string;
+}
+
+// Update profile
+export const useUpdateUserProfile = () =>
+  useUpdate<unknown, UpdateUserProfileDto>(
+    () => "/users/profile",
+    ["users", "profile"]
+  );
+
+// Check delete eligibility
+export interface DeleteEligibility {
+  canDelete: boolean;
+  pendingPickups?: number;
+  walletBalance?: number;
+}
+
+export const useCheckDeleteEligibility = () =>
+ useGetOne<DeleteEligibility>(userKeys.deleteCheck(), "/users/delete/check");
+// Delete account
+export const useDeleteUserAccount = () =>
+  useRemove(
+    () => "/users/delete",
+    ["users", "profile"]
+  );
