@@ -9,6 +9,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
       ? exception.getStatus()
       : HttpStatus.INTERNAL_SERVER_ERROR;
 
+    if (!(exception instanceof HttpException)) {
+      console.error('[Unhandled Exception]', exception);
+    }
+
     const exceptionRes = exception instanceof HttpException
       ? exception.getResponse()
       : null;

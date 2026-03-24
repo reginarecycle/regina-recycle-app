@@ -7,9 +7,17 @@ import {
   MapPin,
 } from "lucide-react";
 import { Button } from '@/components/ui/button';
+import { useEffect } from "react";
+import { useUpdateUserProfile } from "@/api-hooks/useUsers";
+import { useGetDefaultAddress, useUpdateAddress } from "@/api-hooks/useAddress";
+import { useCurrentUser } from "@/api-hooks/useAuth";
 
 
 const UserProfile = () => {
+    const { data: addressData } = useGetDefaultAddress();
+    const { mutate: updateUserProfile } = useUpdateUserProfile();
+    const { mutate: updateAddress } = useUpdateAddress();
+    const { data: currentUserData } = useCurrentUser();
       const {
         register: registerDetails,
         handleSubmit: handleSubmitDetails,
@@ -19,18 +27,44 @@ const UserProfile = () => {
         resolver: zodResolver(profileDetailsSchema),
         mode: "onChange",
         defaultValues: {
-          fullName: "John Doe",
-          email: "doe@gmail.com",
-          phone: "1-(306)-0000",
-          dateOfBirth: "DD-MM-YYYY",
-          address: "123 Lane Str.",
-        },
-      });
-        // Form submit handlers
+         fullName: "",
+         email: "",
+         phone: "",
+         dateOfBirth: "",
+         address: "",
+       },
+       });
+
+       useEffect(() => {
+    resetDetails({
+    fullName: currentUserData?.data?.name ?? "",
+    email: currentUserData?.data?.email ?? "",
+    phone: currentUserData?.data?.phoneNumber ?? "",
+    dateOfBirth: currentUserData?.data?.customerDOB?.dob ?? "",
+    address: addressData?.data?.address ?? "",
+  });
+}, [currentUserData, addressData, resetDetails]);
+
+    // Form submit handlers
   const onSubmitDetails = (data: ProfileDetailsFormValues) => {
-    console.log("Profile details:", data);
-    // TODO: Call API to update profile view
-  };
+  updateUserProfile({
+    id: "profile",
+    body: {
+      name: data.fullName,
+      email: data.email,
+      phoneNumber: data.phone,
+    },
+  });
+
+  if (addressData?.data?.id) {
+    updateAddress({
+      id: addressData.data.id,
+      body: {
+        address: data.address,
+      },
+    });
+  }
+};
 
     return (
         <section className="mt-0 p-8">  
@@ -51,13 +85,12 @@ const UserProfile = () => {
                         required
                     />
                     <InputField
-                        label="Email"
-                        register={registerDetails("email")}
-                        error={detailsErrors.email?.message}
-                        type="email"
-                        placeholder="doe@gmail.com"
-                        disabled
-                        required
+                       label="Email"
+                       register={registerDetails("email")}
+                       error={detailsErrors.email?.message}
+                       type="email"
+                       placeholder="doe@gmail.com"
+                       required
                     />
                 </div>
 
@@ -98,8 +131,15 @@ const UserProfile = () => {
                         variant="outline"
                         className="w-full sm:w-[174px] h-11 min-w-0 border-[rgba(221,30,30,0.60)] text-red-500 hover:bg-red-50 disabled:opacity-60"
                         disabled={!detailsIsDirty}
-                        onClick={() => resetDetails()}
-                    >
+                        onClick={() => resetDetails({
+                      fullName: currentUserData?.data?.name ?? "",
+                      email: currentUserData?.data?.email ?? "",
+                      phone: currentUserData?.data?.phoneNumber ?? "",
+                      dateOfBirth: currentUserData?.data?.customerDOB?.dob ?? "",
+                      address: addressData?.data?.address ?? "",
+                        })
+                       }
+                     >
                         Cancel
                     </Button>
                     <Button
