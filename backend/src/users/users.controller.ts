@@ -35,13 +35,6 @@ export class UsersController {
     return this.usersService.deactivateAccount(req.user.userId);
   }
 
-<<<<<<< HEAD
-  @Get('delete/check')
-  checkDeleteEligibility(@Req() req: AuthRequest) {
-    return this.usersService.checkDeleteEligibility(req.user.userId);
-  }
-
-=======
   // GET /users/delete/check
   @Get('delete/check')
   checkDeleteEligibility(@Req() req: any) {
@@ -49,7 +42,6 @@ export class UsersController {
   }
 
   // DELETE /users/delete
->>>>>>> 0ef6d8c9 (feat: collector wallet responsive + users api)
   @Delete('delete')
   @HttpCode(HttpStatus.OK)
   deleteAccount(@Req() req: AuthRequest) {
