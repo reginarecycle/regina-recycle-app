@@ -8,14 +8,9 @@ import { ErrorMessage } from '../common/error-message';
 export class TipsService {
   constructor(private prisma: PrismaService) {}
 
-  // Called by the Vercel cron job daily at midnight — no-op now, selection
-  // happens deterministically in getRandomActiveTip().
   async refreshDailyTip(): Promise<void> {
-    // no-op: kept for backwards compatibility with CronController
   }
 
-  // Returns the same tip for the whole day using a deterministic day-based index.
-  // Safe for serverless — no in-memory state required.
   async getRandomActiveTip() {
     const now = new Date();
     const activeTips = await this.prisma.tip.findMany({
