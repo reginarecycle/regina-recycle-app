@@ -163,6 +163,13 @@ export class CollectorsController {
   );
 }
 
+
+@Get('materials/:id/stats')
+@Auth()
+getAverageMaterialPrice(@Param('id') id: string) {
+   return this.collectorsService.getAverageMaterialPrice(id);
+ }
+
 }
 
 

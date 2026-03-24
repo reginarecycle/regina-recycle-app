@@ -675,7 +675,6 @@ async calculateMaterialPayout(
   };
 }
 
-
   calculateServiceFee(
   feeType: string,
   feeValue: number,
@@ -685,4 +684,30 @@ async calculateMaterialPayout(
   const serviceFee = ServiceFeeFactory.create(feeType, feeValue, collectorId);
   return serviceFee.calculate(amount);
 }
+
+
+async getAverageMaterialPrice(materialId: string) {
+   const result = await this.prisma.collectorPricing.aggregate({
+     where: {
+       materialId,
+     },
+     _min: {
+       basePrice: true,
+     },
+     _max: {
+       basePrice: true,
+     },
+     _avg: {
+       basePrice: true,
+     },
+   });
+
+
+   return {
+     minPrice: Number(result._min.basePrice ?? 0),
+     maxPrice: Number(result._max.basePrice ?? 0),
+     avgPrice: Number(result._avg.basePrice ?? 0),
+   };
+ }
+
 }
