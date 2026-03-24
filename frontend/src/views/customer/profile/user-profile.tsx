@@ -40,7 +40,7 @@ const UserProfile = () => {
     fullName: currentUserData?.data?.name ?? "",
     email: currentUserData?.data?.email ?? "",
     phone: currentUserData?.data?.phoneNumber ?? "",
-    dateOfBirth: "",
+    dateOfBirth: currentUserData?.data?.customerDOB?.dob ?? "",
     address: addressData?.data?.address ?? "",
   });
 }, [currentUserData, addressData, resetDetails]);
@@ -135,7 +135,7 @@ const UserProfile = () => {
                       fullName: currentUserData?.data?.name ?? "",
                       email: currentUserData?.data?.email ?? "",
                       phone: currentUserData?.data?.phoneNumber ?? "",
-                      dateOfBirth: "",
+                      dateOfBirth: currentUserData?.data?.customerDOB?.dob ?? "",
                       address: addressData?.data?.address ?? "",
                         })
                        }
