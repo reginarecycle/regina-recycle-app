@@ -281,16 +281,17 @@ model Wallet {
 }
 
 model WalletTransaction {
-  transactionId String   @id @default(uuid())
-  walletId      String
-  userId        String?
-  type          TxType
-  amount        Decimal  @db.Decimal(14,2)
-  status        TxStatus @default(PENDING)
-  description   String?
-  referenceType String?
-  referenceId   String?
-  createdAt     DateTime @default(now())
+  transactionId   String   @id @default(uuid())
+  referenceNumber String?  @unique
+  walletId        String
+  userId          String?
+  type            TxType
+  amount          Decimal  @db.Decimal(14,2)
+  status          TxStatus @default(PENDING)
+  description     String?
+  referenceType   String?
+  referenceId     String?
+  createdAt       DateTime @default(now())
   wallet        Wallet   @relation(fields: [walletId], references: [walletId], onDelete: Cascade) // cascade if wallet removed
   user          User?    @relation(fields: [userId], references: [userId], onDelete: SetNull) // keep transaction but null user
 

@@ -25,6 +25,7 @@ export enum Routes {
     collectorsettings = "/app/collector/settings",
     collectornotifications = "/app/collector/notification",
     collectorwallet = "/app/collector/wallet",
+    collectortransactionhistory = "/app/collector/wallet/transactions",
     collectorusers = "/app/collector/users",
     requests = "/app/collector/requests",
 

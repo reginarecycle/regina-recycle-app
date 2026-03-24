@@ -17,6 +17,8 @@ export interface CollectorWallet {
 }
 
 export interface WalletTransaction {
+  transactionId: string;
+  referenceNumber?: string;
   userId?: string;
   walletId: string;
   type: TxType;

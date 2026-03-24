@@ -25,7 +25,7 @@ const UserProfile = () => {
         reset: resetDetails,
       } = useForm<ProfileDetailsFormValues>({
         resolver: zodResolver(profileDetailsSchema),
-        mode: "onChange",
+        mode: "onBlur",
         defaultValues: {
          fullName: "",
          email: "",

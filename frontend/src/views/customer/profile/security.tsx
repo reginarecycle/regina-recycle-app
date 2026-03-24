@@ -22,7 +22,7 @@ const ProfileSecurity = () => {
     reset: resetPassword,
   } = useForm<ChangePasswordFormValues>({
     resolver: zodResolver(changePasswordSchema),
-    mode: "onChange",
+    mode: "onBlur",
   });
 
   const onSubmitPassword = (data: ChangePasswordFormValues) => {
