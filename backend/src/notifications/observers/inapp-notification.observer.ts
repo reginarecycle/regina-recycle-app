@@ -5,15 +5,17 @@ import { NotificationType } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 
 const typeMap: Record<string, NotificationType> = {
-  PICKUP_SCHEDULED: NotificationType.IN_APP_PICKUP_REMINDER,
-  PICKUP_STATUS_CHANGED: NotificationType.ALERT,
-  PICKUP_COMPLETED: NotificationType.IN_APP_PICKUP_REMINDER,
-  WALLET_UPDATED_CREDIT: NotificationType.ACCOUNT_ACTIVITY,
-  WALLET_UPDATED_DEBIT: NotificationType.ACCOUNT_ACTIVITY,
-  MATERIAL_PRICING_UPDATED: NotificationType.ALERT,
-  ALERT: NotificationType.ALERT,
+  PICKUP_SCHEDULED:        NotificationType.IN_APP_PICKUP_REMINDER,
+  PICKUP_STATUS_CHANGED:   NotificationType.ALERT,
+  PICKUP_COMPLETED:        NotificationType.IN_APP_PICKUP_REMINDER,
+  WALLET_UPDATED_CREDIT:   NotificationType.PAYMENT_ACTIVITY,
+  WALLET_UPDATED_DEBIT:    NotificationType.PAYMENT_ACTIVITY,
+  MATERIAL_PRICING_UPDATED: NotificationType.ACCOUNT_ACTIVITY,
+  CHANGE_PASSWORD:         NotificationType.ACCOUNT_ACTIVITY,
+  LOGIN:                   NotificationType.ACCOUNT_ACTIVITY,
+  SECURITY:                NotificationType.ACCOUNT_ACTIVITY,
+  ALERT:                   NotificationType.ALERT,
 };
-
 @Injectable()
 export class InAppNotificationObserver implements IObserver {
   private readonly logger = new Logger(InAppNotificationObserver.name);
