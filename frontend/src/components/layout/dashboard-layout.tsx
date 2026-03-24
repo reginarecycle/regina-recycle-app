@@ -53,10 +53,8 @@ export default function DashboardLayout() {
 
   usePusherNotifications(userId, handlePusherNotification);
 
-  // ── Must be before any early returns (rules of hooks) ────────────────────────
   useInactivityLogout(60 * 60 * 1000);
 
-  // ── Role-aware redirects ──────────────────────────────────────────────────────
   const role = getUserRole();
 
   if (location.pathname === Routes.app) {

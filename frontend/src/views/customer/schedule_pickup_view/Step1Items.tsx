@@ -233,7 +233,8 @@ export default function Step1Items({ onNext }: Props) {
                             {item.name}
                           </p>
                           <p className="text-[11px] text-muted-foreground">
-                            {item.payoutInfo}
+                            {item.payoutInfo} 
+                            {/* it should be the any the average of collectors pricing to give range */}
                           </p>
                         </div>
                       </div>
