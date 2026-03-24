@@ -28,14 +28,10 @@ export default async function seedTips(prisma: PrismaClient) {
 
   for (const tip of tips) {
     const existing = await prisma.tip.findFirst({ where: { content: tip.content } });
-    if (!existing) {
-      await prisma.tip.create({
-        data: {
-          title: tip.title,
-          content: tip.content,
-          active: true,
-        },
-      });
+    if (existing) {
+      await prisma.tip.update({ where: { tipId: existing.tipId }, data: { title: tip.title } });
+    } else {
+      await prisma.tip.create({ data: { title: tip.title, content: tip.content, active: true } });
     }
   }
 
