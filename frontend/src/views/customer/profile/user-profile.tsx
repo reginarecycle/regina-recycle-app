@@ -41,7 +41,7 @@ const UserProfile = () => {
     email: currentUserData?.data?.email ?? "",
     phone: currentUserData?.data?.phoneNumber ?? "",
     dateOfBirth: currentUserData?.data?.customerDOB?.dob ?? "",
-    address: addressData?.data?.address ?? "",
+    address: addressData?.data?.line1 ?? "",
   });
 }, [currentUserData, addressData, resetDetails]);
 
@@ -56,11 +56,11 @@ const UserProfile = () => {
     },
   });
 
-  if (addressData?.data?.id) {
+  if (addressData?.data?.addressId) {
     updateAddress({
-      id: addressData.data.id,
+      id: addressData.data.addressId,
       body: {
-        address: data.address,
+        line1: data.address,
       },
     });
   }
@@ -136,7 +136,7 @@ const UserProfile = () => {
                       email: currentUserData?.data?.email ?? "",
                       phone: currentUserData?.data?.phoneNumber ?? "",
                       dateOfBirth: currentUserData?.data?.customerDOB?.dob ?? "",
-                      address: addressData?.data?.address ?? "",
+                      address: addressData?.data?.line1 ?? "",
                         })
                        }
                      >

@@ -2,8 +2,15 @@ import { useGetOne, useUpdate } from "../lib/queryHelpers";
 
 // Type
 export interface Address {
-  id: string;
-  address: string;
+  addressId: string;
+  line1: string;
+  line2?: string;
+  city?: string;
+  province?: string;
+  postalCode?: string;
+  latitude?: number;
+  longitude?: number;
+  isPrimary?: boolean;
 }
 
 // Query keys
