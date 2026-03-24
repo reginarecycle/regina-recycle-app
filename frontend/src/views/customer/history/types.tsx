@@ -1,4 +1,4 @@
-export type RecycleStatus = "COMPLETED" | "PENDING" | "CANCELLED";
+export type RecycleStatus = "COMPLETED" | "PENDING" | "CANCELLED" | "ACCEPTED";
 export type MaterialType = "Glass" | "Plastic" | "Carton" | "Metal" | "Paper";
 export type HistoryTab = "ALL" | RecycleStatus;
  
