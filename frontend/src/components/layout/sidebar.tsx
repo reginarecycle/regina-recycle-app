@@ -13,6 +13,7 @@ interface SidebarProps {
   userAvatar?: string;
   isLoading?: boolean;
   onNavigate?: () => void;
+  activePath?: string;
 }
 
 function formatRole(role?: string) {
@@ -31,6 +32,7 @@ export function Sidebar({
   userAvatar,
   isLoading = false,
   onNavigate,
+  activePath: _activePath,
 }: SidebarProps) {
   const { pathname } = useLocation();
   const navItems = isCollectorMode ? collectorNavItems : userNavItems;
