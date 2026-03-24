@@ -18,7 +18,7 @@ import { PickupsService } from './pickups.service';
 import { CreatePickupDto } from './dto/create-pickup.dto';
 import { UpdatePickupDto } from './dto/update-pickup.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { Auth } from 'src/common/decorator/auth.decorator';
+import { Auth } from '../common/decorator/auth.decorator';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { PickupQueryDto } from './dto/pickup-query.dto';
 
