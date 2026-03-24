@@ -38,6 +38,9 @@ export interface UpdateUserProfileDto {
   name?: string;
   email?: string;
   phoneNumber?: string;
+  address? : string;
+  dateOfBirth?: string;
+
 }
 
 // Update profile

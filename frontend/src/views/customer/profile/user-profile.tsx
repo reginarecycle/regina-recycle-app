@@ -53,6 +53,8 @@ const UserProfile = () => {
       name: data.fullName,
       email: data.email,
       phoneNumber: data.phone,
+      address: data.address,
+      dateOfBirth: data.dateOfBirth,
     },
   });
 
