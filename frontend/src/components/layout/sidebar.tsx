@@ -1,10 +1,13 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { clearAuth } from "@/lib/helper";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut } from "lucide-react";
 import { collectorNavItems, userNavItems } from "@/constants/data";
 import { Skeleton } from "../ui/skeleton";
+import { Routes } from "@/routes/routes";
 
 interface SidebarProps {
   isCollectorMode?: boolean;
@@ -32,13 +35,23 @@ export function Sidebar({
   userAvatar,
   isLoading = false,
   onNavigate,
-  activePath: _activePath,
+  activePath,
 }: SidebarProps) {
- const { pathname } = useLocation();
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const handleLogout = () => {
+    clearAuth();
+    queryClient.clear();
+    navigate(Routes.login);
+  };
+
+  const effectivePath = activePath ?? pathname;
   const navItems = isCollectorMode ? collectorNavItems : userNavItems;
 
   const isActive = (href: string) =>
-    pathname === href || pathname.startsWith(href + "/");
+    effectivePath === href || effectivePath.startsWith(href + "/");
   
   return (
     <aside className="flex h-screen w-64 flex-col border-r bg-white dark:bg-gray-950">
@@ -102,7 +115,7 @@ export function Sidebar({
                   <span className="text-xs text-muted-foreground leading-tight">{formatRole(userRole)}</span>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" className="hover:bg-destructive hover:text-white">
+              <Button variant="ghost" size="icon" className="hover:bg-destructive hover:text-white" onClick={handleLogout}>
                 <LogOut className="h-4 w-4" />
               </Button>
             </>
