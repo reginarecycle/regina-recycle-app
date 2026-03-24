@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { clearAuth } from "@/lib/helper";
+import { Routes } from "@/routes/routes";
 
 export function useInactivityLogout(timeoutMs = 60 * 60 * 1000) {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -12,7 +13,7 @@ export function useInactivityLogout(timeoutMs = 60 * 60 * 1000) {
     const logout = () => {
       clearAuth()
       queryClient.clear();
-      navigate("/login");
+      navigate(Routes.login);
     };
 
     const reset = () => {
