@@ -30,6 +30,7 @@ enum NotificationType {
   EMAIL_PICKUP_REMINDER
   IN_APP_PICKUP_REMINDER
   ACCOUNT_ACTIVITY
+  PAYMENT_ACTIVITY
   MARKETING
   ALERT
 }
@@ -122,6 +123,7 @@ model CollectorProfile {
   userId             String   @unique
   licenseId          String   @unique
   serviceFee         Decimal  @db.Decimal(10,2)
+  feeType            String   @default("FLAT_FEE")
   bulkIncentiveEnabled Boolean  @default(false)
   bulkThreshold        Int      @default(100)
   createdAt          DateTime @default(now())

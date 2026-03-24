@@ -64,6 +64,30 @@ export const groupByDate = (
   return groups;
 };
 
+export type DateRange = "today" | "7days" | "30days" | "alltime";
+
+export function buildDateRange(dateRange: DateRange): { startDate?: string; endDate?: string } {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const toISO = (d: Date) => d.toISOString().split("T")[0];
+
+  if (dateRange === "today") {
+    const d = toISO(today);
+    return { startDate: d, endDate: d };
+  }
+  if (dateRange === "7days") {
+    const start = new Date(today);
+    start.setDate(start.getDate() - 7);
+    return { startDate: toISO(start), endDate: toISO(today) };
+  }
+  if (dateRange === "30days") {
+    const start = new Date(today);
+    start.setDate(start.getDate() - 30);
+    return { startDate: toISO(start), endDate: toISO(today) };
+  }
+  return {};
+}
+
 export function maskEmail(email: string): string {
   const [local, domain] = email.split("@");
   if (!local || !domain) return email;

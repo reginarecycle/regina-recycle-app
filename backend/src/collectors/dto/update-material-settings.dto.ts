@@ -1,4 +1,4 @@
-import { IsOptional, IsBoolean, IsNumber } from 'class-validator';
+import { IsOptional, IsBoolean, IsNumber, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -15,9 +15,14 @@ export class UpdateMaterialSettingsDto {
   bulkThreshold?: number;
 
 
-  @ApiPropertyOptional({ example: 5.5})
+  @ApiPropertyOptional({ example: 5.5 })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   serviceFee?: number;
+
+  @ApiPropertyOptional({ enum: ['FLAT_FEE', 'PERCENTAGE_FEE'] })
+  @IsOptional()
+  @IsString()
+  feeType?: string;
 }

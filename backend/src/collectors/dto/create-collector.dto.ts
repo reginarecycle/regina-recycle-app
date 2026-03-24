@@ -29,6 +29,11 @@ export class CreateCollectorDto {
   @IsNumber()
   serviceFee?: number;
 
+  @ApiProperty({ enum: ['FLAT_FEE', 'PERCENTAGE_FEE'], default: 'FLAT_FEE' })
+  @IsOptional()
+  @IsString()
+  feeType?: string;
+
   @ApiProperty()
   @IsOptional()
   @IsBoolean()

@@ -8,15 +8,17 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreatePickupDto } from './dto/create-pickup.dto';
 import { UpdatePickupDto } from './dto/update-pickup.dto';
 import { NotificationGatewayService } from '../notifications/notifications.gateway.service';
+import { PickupQueryDto } from './dto/pickup-query.dto';
+import { paginate, getPaginationParams } from '../common/pagination/pagination-helper';
 
 @Injectable()
 export class PickupsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationService: NotificationGatewayService,
-  ) {}
+  ) { }
 
- 
+
   // USER: Schedule a pickup
   async create(requesterUserId: string, createPickupDto: CreatePickupDto, photoUrl?: string) {
     const { address, scheduledAt, items, estimatedCost, note } = createPickupDto;
@@ -118,37 +120,87 @@ export class PickupsService {
   }
 
   // COLLECTOR: Get all PENDING pickup requests
-  async getRequests() {
-    return this.prisma.pickup.findMany({
-      where: { status: 'PENDING' },
+  async getRequests(query: PickupQueryDto) {
+  const { page = 1, limit = 10, search, status, startDate, endDate } = query;
+  const { skip, take } = getPaginationParams(page, limit);
+
+  const where: any = { status: status ?? 'PENDING' };
+
+  if (startDate || endDate) {
+    where.scheduledAt = {
+      ...(startDate && { gte: new Date(startDate) }),
+      ...(endDate && { lte: new Date(endDate) }),
+    };
+  }
+
+  if (search) {
+    where.OR = [
+      { requester: { name: { contains: search, mode: 'insensitive' } } },
+      { requester: { email: { contains: search, mode: 'insensitive' } } },
+      { address: { line1: { contains: search, mode: 'insensitive' } } },
+    ];
+  }
+
+  const [pickups, total] = await Promise.all([
+    this.prisma.pickup.findMany({
+      where,
       include: {
         items: { include: { material: true } },
         address: true,
         requester: {
-          select: {
-            userId: true,
-            name: true,
-            email: true,
-            phoneNumber: true,
-          },
+          select: { userId: true, name: true, email: true, phoneNumber: true },
         },
       },
       orderBy: { scheduledAt: 'asc' },
-    });
+      skip,
+      take,
+    }),
+    this.prisma.pickup.count({ where }),
+  ]);
+
+  return paginate(pickups, total, page, limit);
+}
+
+
+  // USER: Get all their own pickups
+ async findAll(requesterUserId: string, query: PickupQueryDto) {
+  const { page = 1, limit = 10, search, status, startDate, endDate } = query;
+  const { skip, take } = getPaginationParams(page, limit);
+
+  const where: any = { requesterUserId };
+
+  if (status) where.status = status;
+
+  if (startDate || endDate) {
+    where.scheduledAt = {
+      ...(startDate && { gte: new Date(startDate) }),
+      ...(endDate && { lte: new Date(endDate) }),
+    };
   }
 
-  
-  // USER: Get all their own pickups
-  async findAll(requesterUserId: string) {
-    return this.prisma.pickup.findMany({
-      where: { requesterUserId },
+  if (search) {
+    where.OR = [
+      { address: { line1: { contains: search, mode: 'insensitive' } } },
+      { note: { contains: search, mode: 'insensitive' } },
+    ];
+  }
+
+  const [pickups, total] = await Promise.all([
+    this.prisma.pickup.findMany({
+      where,
       include: {
         items: { include: { material: true } },
         address: true,
       },
       orderBy: { createdAt: 'desc' },
-    });
-  }
+      skip,
+      take,
+    }),
+    this.prisma.pickup.count({ where }),
+  ]);
+
+  return paginate(pickups, total, page, limit);
+}
 
 
   // Get a single pickup by ID
@@ -174,7 +226,7 @@ export class PickupsService {
     return pickup;
   }
 
- 
+
   // COLLECTOR: Accept a pickup
   async accept(pickupId: string, collectorUserId: string) {
     const pickup = await this.prisma.pickup.findUnique({
@@ -287,7 +339,7 @@ export class PickupsService {
     };
   }
 
- 
+
   // COLLECTOR: Complete a pickup
   async complete(pickupId: string, collectorUserId: string) {
     const pickup = await this.prisma.pickup.findUnique({
@@ -393,7 +445,7 @@ export class PickupsService {
     };
   }
 
- 
+
   // USER: Update a pickup (PENDING only, requester only)
   async update(pickupId: string, requesterUserId: string, updatePickupDto: UpdatePickupDto) {
     const pickup = await this.prisma.pickup.findUnique({
@@ -446,7 +498,7 @@ export class PickupsService {
     };
   }
 
-  
+
   // USER: Cancel a pickup
   async cancel(pickupId: string, requesterUserId: string) {
     const pickup = await this.prisma.pickup.findUnique({
@@ -500,5 +552,72 @@ export class PickupsService {
       message: 'Pickup cancelled successfully',
       pickup: cancelled,
     };
+  }
+  async getAvailableSlots(month: number, year: number) {
+    const startOfMonth = new Date(year, month - 1, 1);
+    const endOfMonth = new Date(year, month, 0, 23, 59, 59);
+
+    const takenPickups = await this.prisma.pickup.findMany({
+      where: {
+        scheduledAt: {
+          gte: startOfMonth,
+          lte: endOfMonth,
+        },
+        status: {
+          in: ['PENDING', 'ACCEPTED', 'IN_PROGRESS'],
+        },
+      },
+      select: {
+        scheduledAt: true,
+      },
+    });
+
+    const ALL_SLOTS = [
+      { id: "slot-1", label: "9:00 AM - 11:00 AM", startHour: 9 },
+      { id: "slot-2", label: "11:00 AM - 1:00 PM", startHour: 11 },
+      { id: "slot-3", label: "1:00 PM - 3:00 PM", startHour: 13 },
+      { id: "slot-4", label: "3:00 PM - 5:00 PM", startHour: 15 },
+    ];
+
+    const MAX_PER_SLOT = 3;
+
+    const takenCount: Record<string, number> = {};
+    for (const pickup of takenPickups) {
+      const date = pickup.scheduledAt;
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      const h = date.getHours();
+      const key = `${y}-${m}-${d}-${h}`;
+      takenCount[key] = (takenCount[key] || 0) + 1;
+    }
+
+    const totalDays = new Date(year, month, 0).getDate();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const result: Record<string, { id: string; label: string }[]> = {};
+
+    for (let day = 1; day <= totalDays; day++) {
+      const date = new Date(year, month - 1, day);
+      date.setHours(0, 0, 0, 0);
+      if (date < today) continue;
+
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      const dateKey = `${y}-${m}-${d}`;
+
+      const available = ALL_SLOTS.filter((slot) => {
+        const key = `${dateKey}-${slot.startHour}`;
+        return (takenCount[key] || 0) < MAX_PER_SLOT;
+      }).map(({ id, label }) => ({ id, label }));
+
+      if (available.length > 0) {
+        result[dateKey] = available;
+      }
+    }
+
+    return result;
   }
 }

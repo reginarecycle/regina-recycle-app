@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 export default async function seedMaterials(prisma: PrismaClient) {
   await prisma.material.createMany({
+    skipDuplicates: true,
     data: [
       {
         name: "Aluminum Can",
