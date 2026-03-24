@@ -9,7 +9,7 @@ import { Skeleton } from "../ui/skeleton";
 interface SidebarProps {
   isCollectorMode?: boolean;
   userName: string;
-  userRole?: string;
+  userRole?: "CUSTOMER" | "COLLECTOR" | string;
   userAvatar?: string;
   isLoading?: boolean;
   onNavigate?: () => void;
