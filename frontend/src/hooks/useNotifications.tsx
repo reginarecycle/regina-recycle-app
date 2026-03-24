@@ -78,27 +78,27 @@ export function useNotifications(
         unreadData?.data?.count ??
         notifications.filter((n) => !n.read).length;
 
-const processedNotifications = useMemo(() => {
-    let result = [...notifications];
+    const processedNotifications = useMemo(() => {
+        let result = [...notifications];
 
-    if (activeTab !== "all") {
-        result = result.filter((n) => n.category === activeTab);
-    }
+        if (activeTab !== "all") {
+            result = result.filter((n) => n.category === activeTab);
+        }
 
-    if (viewMode === "unread") {
-        result = result.filter((n) => !n.read);
-    } else if (viewMode === "read") {
-        result = result.filter((n) => n.read);
-    }
+        if (viewMode === "unread") {
+            result = result.filter((n) => !n.read);
+        } else if (viewMode === "read") {
+            result = result.filter((n) => n.read);
+        }
 
-    result.sort((a, b) =>
-        sortBy === "newest"
-            ? b.timestamp.getTime() - a.timestamp.getTime()
-            : a.timestamp.getTime() - b.timestamp.getTime()
-    );
+        result.sort((a, b) =>
+            sortBy === "newest"
+                ? b.timestamp.getTime() - a.timestamp.getTime()
+                : a.timestamp.getTime() - b.timestamp.getTime()
+        );
 
-    return result;
-}, [notifications, activeTab, viewMode, sortBy]);
+        return result;
+    }, [notifications, activeTab, viewMode, sortBy]);
 
     const queryClient = useQueryClient();
 
@@ -127,10 +127,15 @@ const processedNotifications = useMemo(() => {
         );
     };
 
-    const clearAll = () => setNotifications([]);
+    const clearAll = () => {
+        notifications.forEach((n) => deleteNotification(n.id));
+    };
 
-    const clearRead = () =>
-        setNotifications((prev) => prev.filter((n) => !n.read));
+    const clearRead = () => {
+        notifications
+            .filter((n) => n.read)
+            .forEach((n) => deleteNotification(n.id));
+    };
 
     return {
         ...apiState,
