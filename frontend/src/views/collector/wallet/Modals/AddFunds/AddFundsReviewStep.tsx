@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Check } from "lucide-react";
+import { formatAmount } from "@/lib/utils";
 import { ModalFooter } from "../../components";
 import type { PaymentMethod } from "@/lib/validation";
 
@@ -22,7 +23,7 @@ export const AddFundsReviewStep: React.FC<AddFundsReviewStepProps> = ({
     <div className="flex-1 px-6 py-5 flex flex-col gap-4">
       <div className="rounded-xl bg-gray-50 border border-border p-5 flex flex-col gap-3">
         {[
-          { label: "Amount:",         value: `$${amount.toFixed(2)} CAD` },
+          { label: "Amount:",         value: `$${formatAmount(amount)} CAD` },
           { label: "Payment Method:", value: paymentMethod === "card" ? "Credit/Debit Card" : "Mobile Payment" },
           { label: "Processing Fee:", value: "$0.00" },
         ].map(({ label, value }) => (
@@ -34,7 +35,7 @@ export const AddFundsReviewStep: React.FC<AddFundsReviewStepProps> = ({
         <div className="h-px bg-border" />
         <div className="flex items-center justify-between">
           <span className="font-bold text-foreground">Total:</span>
-          <span className="font-bold text-green-600 text-lg">${amount.toFixed(2)}</span>
+          <span className="font-bold text-green-600 text-lg">${formatAmount(amount)}</span>
         </div>
       </div>
 

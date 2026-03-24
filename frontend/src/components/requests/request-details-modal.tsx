@@ -1,4 +1,5 @@
 import { X, MapPin, CheckCircle2, XCircle } from "lucide-react";
+import { formatAmount } from "@/lib/utils";
 import { RequestsData } from "@/components/requests/requests-data";
 import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
@@ -85,7 +86,7 @@ export function RequestDetailsModal({
                         </div>
 
                         <div className="mb-6 text-[30px] leading-none font-bold text-white">
-                            ${earnings.toFixed(2)}
+                            ${formatAmount(earnings)}
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -141,7 +142,7 @@ export function RequestDetailsModal({
                                             {item.estimatedUnits}
                                         </div>
                                         <div className="text-right font-semibold text-[#111827]">
-                                            ${item.price.toFixed(2)}
+                                            ${formatAmount(item.price)}
                                         </div>
                                     </div>
                                 ))}
