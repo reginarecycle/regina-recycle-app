@@ -46,12 +46,13 @@ export function Sidebar({
     queryClient.clear();
     navigate(Routes.login);
   };
+
   const effectivePath = activePath ?? pathname;
   const navItems = isCollectorMode ? collectorNavItems : userNavItems;
 
   const isActive = (href: string) =>
     effectivePath === href || effectivePath.startsWith(href + "/");
-
+  
   return (
     <aside className="flex h-screen w-64 flex-col border-r bg-white dark:bg-gray-950">
       {/* Logo */}
