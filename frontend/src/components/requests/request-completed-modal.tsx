@@ -1,4 +1,5 @@
 import { CheckCircle2 } from 'lucide-react';
+import { Button } from '../ui/button';
 
 interface SuccessModalProps {
     isOpen: boolean;
@@ -37,29 +38,26 @@ export function RequestCompletedModal({
                     </p>
 
                     {/* Buttons */}
-                    <div className="flex flex-col sm:flex-row gap-6 justify-center !h-[65px]">
-                        <button
+                    <div className="flex flex-col sm:flex-row gap-6 justify-center !h-[52px]">
+                        <Button
+                            size={'lg'}
                             onClick={onClose}
-                            className="flex-1 rounded-lg border border-gray-300 bg-white px-6 
-                            py-3.5 text-[16px] font-semibold text-gray-700 hover:bg-gray-50 
-                            transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200 
-                            focus:ring-offset-2 !w-[212px]"
+                            className="min-w-[210px] h-[56px] rounded-[14px] border border-red-400 bg-white text-[16px] font-semibold text-red-500 hover:bg-red-50"
+
                         >
                             Close
-                        </button>
+                        </Button>
 
-                        <button
-                            
+                        <Button
+                            size={'lg'}
                             onClick={() => {
                                 onViewCompletePickups();
                                 onClose();
                             }}
-                            className="flex-1 rounded-lg bg-[#344E41] px-6 py-0 text-[16px] font-semibold
-                             text-white hover:bg-[#265a42] transition-colors focus:outline-none focus:ring-2
-                              focus:ring-[#2F6B4F] focus:ring-offset-2 !w-[212px]"
+                            className="min-w-[210px] h-[56px] rounded-[14px] bg-[#344E41] text-[16px] font-semibold text-white hover:bg-[#2B4035] disabled:cursor-not-allowed disabled:bg-[#A7B3AC]"
                         >
                             View Complete Requests
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>
