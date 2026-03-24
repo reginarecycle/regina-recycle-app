@@ -21,7 +21,8 @@ function formatRole(role?: string) {
   return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase() + " User";
 }
 
-function getInitials(name: string) {
+function getInitials(name?: string) {
+  if (!name) return "U";
   return name.split(" ").map((n) => n[0]).join("").toUpperCase();
 }
 
@@ -99,7 +100,7 @@ export function Sidebar({
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                  <span className="text-sm font-semibold leading-tight">{userName}</span>
+                  <span className="text-sm font-semibold leading-tight">{userName ?? "User"}</span>
                   <span className="text-xs text-muted-foreground leading-tight">{formatRole(userRole)}</span>
                 </div>
               </div>
