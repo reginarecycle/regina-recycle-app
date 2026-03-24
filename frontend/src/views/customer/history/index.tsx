@@ -14,28 +14,20 @@ import { ScheduleDetailsModal } from "./ScheduleDetailsModal";
 import { useGetCustomerPickups } from "@/api-hooks/usePickups";
 import { useGetMaterials } from "@/api-hooks/useMaterials";
 
-// ─── Tabs ─────────────────────────────────────────────────────────────────────
-
-const PAGE_SIZE = 11;
+const PAGE_SIZE = 10;
 
 const TABS: DataTableTabItem[] = [
   { href: "ALL", label: "All" },
   { href: "PENDING", label: "Pending" },
-  { href: "ACCEPTED", label: "Accepted" },
   { href: "COMPLETED", label: "Completed" },
   { href: "CANCELLED", label: "Cancelled" },
 ];
 
-// ─── Filter options ────────────────────────────────────────────────────────────
-
 const STATUS_OPTIONS: StatusOption<RecycleStatus>[] = [
-  { key: "PENDING", label: "Pending" },
-  { key: "ACCEPTED", label: "Accepted" },
   { key: "COMPLETED", label: "Completed" },
+  { key: "PENDING", label: "Pending" },
   { key: "CANCELLED", label: "Cancelled" },
 ];
-
-// ─── Column Definitions ───────────────────────────────────────────────────────
 
 function buildColumns(
   onViewMore: (record: RecycleRecord) => void
@@ -91,8 +83,6 @@ function buildColumns(
   ];
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 function formatDate(value?: string) {
   if (!value) return "";
   const date = new Date(value);
@@ -137,14 +127,12 @@ function mapPickupToRecord(
     materials,
     date: formatDate(pickup.createdAt ?? pickup.scheduledAt),
     scheduledPickupDate: formatDate(pickup.scheduledAt),
-    status: pickup.status as RecycleStatus,
+    status: (pickup.status === "ACCEPTED" ? "PENDING" : pickup.status) as RecycleStatus,
     requestDate: formatDate(pickup.createdAt),
     collectorId: pickup.collector?.userId,
     collectorName: pickup.collector?.name,
   };
 }
-
-// ─── Main Component ───────────────────────────────────────────────────────────
 
 interface RecycleHistoryProps {
   records?: RecycleRecord[];
@@ -160,19 +148,45 @@ export const RecycleHistory: React.FC<RecycleHistoryProps> = () => {
   const [selectedRecord, setSelectedRecord] = useState<RecycleRecord | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const effectiveStatus: RecycleStatus | undefined =
-    filters.statuses[0] ||
-    (tab === "ALL" ? undefined : (tab as RecycleStatus));
+  const selectedStatus =
+    filters.statuses[0] || (tab === "ALL" ? undefined : tab);
 
-  const {
-    data: pickupsResult,
-    isLoading: pickupsLoading,
-    error: pickupsError,
-  } = useGetCustomerPickups({
+  const isPendingView = selectedStatus === "PENDING";
+
+  const defaultQuery = {
     page,
     limit: PAGE_SIZE,
     search: search || undefined,
-    status: effectiveStatus,
+  };
+
+  // Request 1: normal single-status query for non-pending views
+  const {
+    data: mainPickupsResult,
+    isLoading: mainPickupsLoading,
+    error: mainPickupsError,
+  } = useGetCustomerPickups({
+    ...defaultQuery,
+    status: isPendingView ? undefined : (selectedStatus as RecycleStatus | undefined),
+  });
+
+  // Request 2: explicit PENDING query for pending view
+  const {
+    data: pendingPickupsResult,
+    isLoading: pendingPickupsLoading,
+    error: pendingPickupsError,
+  } = useGetCustomerPickups({
+    ...defaultQuery,
+    status: isPendingView ? ("PENDING" as RecycleStatus) : undefined,
+  });
+
+  // Request 3: explicit ACCEPTED query for pending view
+  const {
+    data: acceptedPickupsResult,
+    isLoading: acceptedPickupsLoading,
+    error: acceptedPickupsError,
+  } = useGetCustomerPickups({
+    ...defaultQuery,
+    status: isPendingView ? ("ACCEPTED" as RecycleStatus) : undefined,
   });
 
   const {
@@ -191,12 +205,33 @@ export const RecycleHistory: React.FC<RecycleHistoryProps> = () => {
     }, {});
   }, [materialsResult]);
 
-  const records = useMemo(() => {
-    const pickups = pickupsResult?.data?.data ?? [];
-    return pickups.map((pickup: any) => mapPickupToRecord(pickup, materialNameById));
-  }, [pickupsResult, materialNameById]);
+  const rawPickups = useMemo(() => {
+    if (isPendingView) {
+      const pending = pendingPickupsResult?.data?.data ?? [];
+      const accepted = acceptedPickupsResult?.data?.data ?? [];
 
-  const totalItems = pickupsResult?.data?.total ?? records.length;
+      const merged = [...pending, ...accepted];
+      const seen = new Set<string>();
+
+      return merged.filter((pickup: any) => {
+        const id = pickup.pickupId;
+        if (seen.has(id)) return false;
+        seen.add(id);
+        return true;
+      });
+    }
+
+    return mainPickupsResult?.data?.data ?? [];
+  }, [isPendingView, mainPickupsResult, pendingPickupsResult, acceptedPickupsResult]);
+
+  const records = useMemo(() => {
+    return rawPickups.map((pickup: any) => mapPickupToRecord(pickup, materialNameById));
+  }, [rawPickups, materialNameById]);
+
+  const totalItems = isPendingView
+    ? records.length
+    : mainPickupsResult?.data?.total ?? records.length;
+
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
 
   const handleTabChange = (t: string) => {
@@ -216,7 +251,12 @@ export const RecycleHistory: React.FC<RecycleHistoryProps> = () => {
 
   const columns = useMemo(() => buildColumns(handleViewMore), []);
 
-  if (pickupsLoading || materialsLoading) {
+  if (
+    materialsLoading ||
+    mainPickupsLoading ||
+    (isPendingView && pendingPickupsLoading) ||
+    (isPendingView && acceptedPickupsLoading)
+  ) {
     return (
       <div className="flex-1 overflow-auto bg-background p-6 lg:p-8">
         Loading recycle history...
@@ -224,7 +264,11 @@ export const RecycleHistory: React.FC<RecycleHistoryProps> = () => {
     );
   }
 
-  if (pickupsError) {
+  if (
+    mainPickupsError ||
+    pendingPickupsError ||
+    acceptedPickupsError
+  ) {
     return (
       <div className="flex-1 overflow-auto bg-background p-6 lg:p-8">
         Failed to load recycle history.
@@ -243,7 +287,7 @@ export const RecycleHistory: React.FC<RecycleHistoryProps> = () => {
           <DataTableHeaderControls<RecycleStatus>
             search={search}
             onSearchChange={handleSearchChange}
-            searchPlaceholder="Search for transaction id..."
+            searchPlaceholder="Search"
             filters={filters}
             onFiltersChange={(f) => {
               setFilters(f);
