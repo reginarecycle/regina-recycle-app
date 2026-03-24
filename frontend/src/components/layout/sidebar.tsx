@@ -9,7 +9,7 @@ import { Skeleton } from "../ui/skeleton";
 interface SidebarProps {
   isCollectorMode?: boolean;
   userName: string;
-  userRole?: string;
+  userRole?: "CUSTOMER" | "COLLECTOR" | string;
   userAvatar?: string;
   isLoading?: boolean;
   onNavigate?: () => void;
@@ -34,12 +34,12 @@ export function Sidebar({
   onNavigate,
   activePath: _activePath,
 }: SidebarProps) {
-  const { pathname } = useLocation();
+ const { pathname } = useLocation();
   const navItems = isCollectorMode ? collectorNavItems : userNavItems;
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
-
+  
   return (
     <aside className="flex h-screen w-64 flex-col border-r bg-white dark:bg-gray-950">
       {/* Logo */}
