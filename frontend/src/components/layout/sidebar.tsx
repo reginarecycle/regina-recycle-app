@@ -9,10 +9,11 @@ import { Skeleton } from "../ui/skeleton";
 interface SidebarProps {
   isCollectorMode?: boolean;
   userName: string;
-  userRole?: string;
+  userRole?: "CUSTOMER" | "COLLECTOR" | string;
   userAvatar?: string;
   isLoading?: boolean;
   onNavigate?: () => void;
+  activePath?: string;
 }
 
 function formatRole(role?: string) {
@@ -31,12 +32,14 @@ export function Sidebar({
   userAvatar,
   isLoading = false,
   onNavigate,
+  activePath,
 }: SidebarProps) {
   const { pathname } = useLocation();
+  const effectivePath = activePath ?? pathname;
   const navItems = isCollectorMode ? collectorNavItems : userNavItems;
 
   const isActive = (href: string) =>
-    pathname === href || pathname.startsWith(href + "/");
+    effectivePath === href || effectivePath.startsWith(href + "/");
 
   return (
     <aside className="flex h-screen w-64 flex-col border-r bg-white dark:bg-gray-950">
