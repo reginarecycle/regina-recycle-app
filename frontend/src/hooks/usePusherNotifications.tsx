@@ -5,7 +5,7 @@ import type { Notification } from "@/types/notification";
 
 type BackendNotification = {
   notificationId: string;
-  type: string;
+  type: "IN_APP_PICKUP_REMINDER" | "ALERT" | "ACCOUNT_ACTIVITY" | "PAYMENT_ACTIVITY" | "MARKETING" | "EMAIL_PICKUP_REMINDER";
   title: string;
   message: string;
   isRead: boolean;
@@ -16,21 +16,21 @@ function mapToFrontend(n: BackendNotification): Notification {
   const typeMap: Record<string, Notification["type"]> = {
     PICKUP_SCHEDULED: "info",
     IN_APP_PICKUP_REMINDER: "info",
-    ACCOUNT_ACTIVITY: "success",
-    ALERT: "warning",
-    WALLET_UPDATED_CREDIT: "success",
-    WALLET_UPDATED_DEBIT: "warning",
-    MATERIAL_PRICING_UPDATED: "info",
+    EMAIL_PICKUP_REMINDER:  "info",
+    ACCOUNT_ACTIVITY:       "success",
+    PAYMENT_ACTIVITY:       "success",
+    MARKETING:              "info",
+    ALERT:                  "warning",
   };
 
   const categoryMap: Record<string, Notification["category"]> = {
     PICKUP_SCHEDULED: "pickups",
     IN_APP_PICKUP_REMINDER: "pickups",
-    ACCOUNT_ACTIVITY: "account",
-    ALERT: "alerts",
-    WALLET_UPDATED_CREDIT: "account",
-    WALLET_UPDATED_DEBIT: "account",
-    MATERIAL_PRICING_UPDATED: "alerts",
+    EMAIL_PICKUP_REMINDER:  "pickups",
+    ACCOUNT_ACTIVITY:       "account",
+    PAYMENT_ACTIVITY:       "payments",
+    MARKETING:              "account",
+    ALERT:                  "alerts",
   };
 
   return {
