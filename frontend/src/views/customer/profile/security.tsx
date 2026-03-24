@@ -7,10 +7,14 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { DeleteAccountBanner } from "@/components/shared/DeleteAccountBanner";
 import { DeleteAccountDialog } from "@/components/shared/DeleteAccountDialog";
+import { useCheckDeleteEligibility, useDeleteUserAccount } from "@/api-hooks/useUsers";
+import { useChangePassword } from "@/api-hooks/useAuth";
 
 const ProfileSecurity = () => {
+  const { data: deleteEligibility } = useCheckDeleteEligibility();
+  const { mutate: deleteUserAccount } = useDeleteUserAccount();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
+  const { mutate: changePassword } = useChangePassword();
   const {
     register: registerPassword,
     handleSubmit: handleSubmitPassword,
@@ -22,9 +26,13 @@ const ProfileSecurity = () => {
   });
 
   const onSubmitPassword = (data: ChangePasswordFormValues) => {
-    console.log("Password change:", data);
-    resetPassword();
-  };
+  changePassword({
+    currentPassword: data.currentPassword,
+    newPassword: data.newPassword,
+  });
+
+  resetPassword();
+};
 
   return (
     <section className="mt-0 p-8">
@@ -90,7 +98,11 @@ const ProfileSecurity = () => {
       <Separator className="my-8" />
 
       <DeleteAccountBanner
-        onDelete={() => setDeleteDialogOpen(true)}
+        onDelete={() => {
+      if (deleteEligibility?.data?.canDelete) {
+      setDeleteDialogOpen(true);
+      }
+      }}
         imageSrc="/delete-account.png"
       />
 
@@ -98,8 +110,8 @@ const ProfileSecurity = () => {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={() => {
-          console.log("Account deleted");
-          // TODO: call your delete account API here
+       deleteUserAccount("delete");
+       setDeleteDialogOpen(false);
         }}
       />
     </section>
