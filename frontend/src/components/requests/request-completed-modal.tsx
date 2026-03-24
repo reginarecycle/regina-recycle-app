@@ -4,13 +4,13 @@ import { Button } from '../ui/button';
 interface SuccessModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onViewActivePickups: () => void;
+    onViewCompletePickups: () => void;
 }
 
-export function RequestAcceptedModal({
+export function RequestCompletedModal({
     isOpen,
     onClose,
-    onViewActivePickups,
+    onViewCompletePickups,
 }: SuccessModalProps) {
     if (!isOpen) return null;
 
@@ -29,17 +29,18 @@ export function RequestAcceptedModal({
                     <h2 className="mb-3 text-2xl font-bold text-gray-900">
                         Request Successfully
                         <br />
-                        Accepted!
+                        Completed!
                     </h2>
 
                     {/* Subtitle / description */}
                     <p className="mb-8 text-base text-gray-600 leading-relaxed">
-                        This pickup has been added to your Active Pickups. You can start the route from your dashboard.
+                        This pickup has been added to your Completed Pickups. You can start the route from your dashboard.
                     </p>
 
                     {/* Buttons */}
                     <div className="flex flex-col sm:flex-row gap-6 justify-center !h-[52px]">
                         <Button
+                            size={'lg'}
                             onClick={onClose}
                             className="min-w-[210px] h-[56px] rounded-[14px] border border-red-400 bg-white text-[16px] font-semibold text-red-500 hover:bg-red-50"
 
@@ -48,14 +49,14 @@ export function RequestAcceptedModal({
                         </Button>
 
                         <Button
+                            size={'lg'}
                             onClick={() => {
-                                onViewActivePickups();
+                                onViewCompletePickups();
                                 onClose();
                             }}
                             className="min-w-[210px] h-[56px] rounded-[14px] bg-[#344E41] text-[16px] font-semibold text-white hover:bg-[#2B4035] disabled:cursor-not-allowed disabled:bg-[#A7B3AC]"
-
                         >
-                            View Active Pickups
+                            View Complete Requests
                         </Button>
                     </div>
                 </div>
