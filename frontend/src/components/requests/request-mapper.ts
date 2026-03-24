@@ -41,6 +41,16 @@ const compatibility =
 
   const estUnits = items.reduce((sum, item) => sum + item.estimatedUnits, 0);
 
+  const snapshots =
+   pickup.snapshots?.map((snapshot: any) => ({
+     materialId: snapshot.materialId,
+     material: snapshot.material?.name ?? "Unknown Material",
+     quantity: Number(snapshot.quantity ?? 0),
+     priceUsed: Number(snapshot.priceUsed ?? 0),
+     totalPrice:
+       Number(snapshot.quantity ?? 0) * Number(snapshot.priceUsed ?? 0),
+   })) ?? [];
+
   return {
     pickupId: pickup.pickupId,
     Username: pickup.requester?.name ?? "Unknown User",
@@ -63,6 +73,7 @@ const compatibility =
     actualEarning: Number(pickup.actualEarning ?? 0),
     items,
     estUnits,
+    snapshots,
     note: pickup.note ?? "",
     pickupCount: 0,
   };

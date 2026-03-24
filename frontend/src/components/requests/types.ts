@@ -1,3 +1,12 @@
+export type RequestSnapshotRow = {
+ materialId: string;
+ material: string;
+ quantity: number;
+ priceUsed: number;
+ totalPrice: number;
+};
+
+
 export type RequestItemRow = {
   materialId: string;
   material: string;
@@ -25,4 +34,5 @@ export type RequestRow = {
   estUnits: number;
   note?: string;
   pickupCount?: number;
+  snapshots?: RequestSnapshotRow[];
 };

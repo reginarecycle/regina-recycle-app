@@ -19,6 +19,7 @@ interface RequestDetailsModalProps {
   compatibilityStr: string;
   username: string;
   sourceTab: RequestTab;
+  isComaptible: boolean;
 }
 
 export function RequestDetailsModal({
@@ -33,11 +34,46 @@ export function RequestDetailsModal({
   compatibilityStr,
   username,
   sourceTab,
+  isComaptible,
 }: RequestDetailsModalProps) {
   if (!isOpen || !request) return null;
 
   const isIncompatible = compatibilityStr.toLowerCase().includes("incompatible");
   const showActionButtons = sourceTab === "incoming";
+
+  const isCompleted = sourceTab === "completed";
+
+
+ const unitsLabel = isCompleted ? "Units" : "Estimated Units";
+ // const totalLabel = isCompleted ? "Final Total ($)" : "Estimated Total ($)";
+
+
+
+
+// const earningsLabel = isCompleted ? "Actual Payout" : "Potential Earnings";
+
+
+const earningsValue = isCompleted
+ ? Number(request.actualEarning ?? 0)
+ : earnings;
+
+
+ const orderSummary =
+   sourceTab === "completed"
+     ? (request.snapshots ?? []).map((snapshot) => ({
+         material: snapshot.material,
+         estimatedUnits: snapshot.quantity,
+         price: snapshot.totalPrice,
+       }))
+     : request.items.map((item) => ({
+         material: item.material,
+         estimatedUnits: item.estimatedUnits,
+         price: item.price,
+       }));
+
+
+
+
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
@@ -80,7 +116,7 @@ export function RequestDetailsModal({
             </div>
 
             <div className="mb-6 text-[30px] leading-none font-bold text-white">
-              ${earnings.toFixed(2)}
+              ${earningsValue.toFixed(2)}
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -121,15 +157,15 @@ export function RequestDetailsModal({
               <Card className="overflow-hidden rounded-2xl border border-[#D1D5DB] bg-white shadow-sm py-3">
                 <div className="grid grid-cols-3 border-b border-[#E5E7EB] px-6 pb-2 text-[14px] font-semibold text-[#9CA3AF]">
                   <div>Material</div>
-                  <div className="text-center">Estimated Units</div>
+                  <div className="text-center">{unitsLabel}</div>
                   <div className="text-right">Price</div>
                 </div>
 
-                {request.items.map((item, index) => (
+                {orderSummary.map((item, index) => (
                   <div
-                    key={`${item.materialId}-${index}`}
+                    key={`${item.material}-${index}`}
                     className={`grid grid-cols-3 px-6 pb-2 text-[14px] ${
-                      index !== request.items.length - 1
+                      index !== orderSummary.length - 1
                         ? "border-b border-[#E5E7EB]"
                         : ""
                     }`}
@@ -199,6 +235,7 @@ export function RequestDetailsModal({
 
                 <Button
                   onClick={onAccept}
+                  disabled={!isComaptible}
                   className="min-w-[180px] flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#344E41] text-white hover:bg-[#2B4035] h-[48px]"
                 >
                   <CheckCircle2 size={18} />

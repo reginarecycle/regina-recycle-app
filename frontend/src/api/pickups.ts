@@ -14,3 +14,4 @@ export const cancelPickup = async (pickupId: string) => {
   const response = await api.delete(`/pickups/${pickupId}`);
   return response.data;
 };
+
