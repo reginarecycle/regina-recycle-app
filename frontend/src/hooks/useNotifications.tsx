@@ -25,13 +25,17 @@ function mapToFrontend(n: NotificationItem): Notification {
     };
 
     const categoryMap: Record<string, Notification["category"]> = {
-        PICKUP_SCHEDULED: "pickups",
-        ACCOUNT_ACTIVITY: "account",
-        ALERT: "alerts",
-        WALLET_UPDATED_CREDIT: "account",
-        WALLET_UPDATED_DEBIT: "account",
-        MATERIAL_PRICING_UPDATED: "alerts",
-    };
+    PICKUP_SCHEDULED: "pickups",
+    IN_APP_PICKUP_REMINDER: "pickups",
+    EMAIL_PICKUP_REMINDER: "pickups",
+    ACCOUNT_ACTIVITY: "account",
+    PAYMENT_ACTIVITY: "payments",
+    MARKETING: "marketing",
+    ALERT: "alerts",
+    WALLET_UPDATED_CREDIT: "account",
+    WALLET_UPDATED_DEBIT: "account",
+    MATERIAL_PRICING_UPDATED: "alerts",
+};
 
     return {
         id: n.notificationId,

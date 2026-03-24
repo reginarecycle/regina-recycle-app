@@ -495,6 +495,7 @@ export const customerTabs: NotificationTab[] = [
   { value: "payments", label: "Payments" },
   { value: "alerts", label: "Alerts" },
   { value: "account", label: "Account" },
+  { value: "marketing", label: "Marketing" },
 ];
 
 export const collectorTabs: NotificationTab[] = [
@@ -503,4 +504,5 @@ export const collectorTabs: NotificationTab[] = [
   { value: "payments", label: "Payments" },
   { value: "alerts", label: "Alerts" },
   { value: "account", label: "Account" },
+  { value: "marketing", label: "Marketing" },
 ];

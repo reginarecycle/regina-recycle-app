@@ -6,12 +6,12 @@ import { groupByDate } from "@/lib/utils";
 import type { Notification, NotificationTab } from "@/types/notification";
 
 interface NotificationTabsProps {
-  tabs:           NotificationTab[];
-  notifications:  Notification[];
-  processed:      Notification[];
-  onMarkAsRead:   (id: string) => void;
+  tabs: NotificationTab[];
+  notifications: Notification[];
+  processed: Notification[];
+  onMarkAsRead: (id: string) => void;
   onMarkAsUnread: (id: string) => void;
-  onDelete:       (id: string) => void;
+  onDelete: (id: string) => void;
 }
 
 export function NotificationTabs({
@@ -22,9 +22,13 @@ export function NotificationTabs({
   onMarkAsUnread,
   onDelete,
 }: NotificationTabsProps) {
-  const grouped = groupByDate(processed);
-
   const tabItems: TabItem[] = tabs.map((tab) => {
+    const filteredForTab = processed.filter(
+      (n) => tab.value === "all" || n.category === tab.value
+    );
+
+    const grouped = groupByDate(filteredForTab);
+
     const unreadForTab = notifications.filter(
       (n) => !n.read && (tab.value === "all" || n.category === tab.value)
     ).length;
@@ -35,7 +39,7 @@ export function NotificationTabs({
       badge: unreadForTab > 0 ? unreadForTab : undefined,
       component: () => (
         <div className="p-4 sm:p-6">
-          {processed.length === 0 ? (
+          {filteredForTab.length === 0 ? (
             <NotificationEmptyState activeTab={tab.value} />
           ) : (
             <div className="space-y-6 sm:space-y-8">
