@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import type { Transaction, TransactionStatus, TransactionType } from "./types";
+import type { Transaction, TransactionStatus, TransactionType } from "./types.tsx";
 import { TransactionRow, TX_GRID } from "./TransactionRow.tsx";
 import { Search, SlidersHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -174,7 +174,7 @@ export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({ 
         </div>
 
         {/* Tabs — scrollable on mobile */}
-        <div className="flex border-b border-border px-4 sm:px-6 overflow-x-auto">
+        <div className="flex border-b border-border px-4 sm:px-6">
           {TABS.map(({ key, label }) => (
             <button
               key={key}

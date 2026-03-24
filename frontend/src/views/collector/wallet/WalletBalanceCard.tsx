@@ -41,7 +41,7 @@ export const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
     </div>
 
     {/* Buttons — stack on very small screens */}
-    <div className="flex flex-col xs:flex-row gap-2 sm:gap-3">
+    <div className="flex flex-row gap-2 sm:gap-3">
       <button
         onClick={onAddFunds}
         className="flex-1 h-11 sm:h-12 rounded-xl bg-white text-foreground font-semibold text-sm flex items-center justify-center gap-2 hover:bg-white/90 transition-colors"
