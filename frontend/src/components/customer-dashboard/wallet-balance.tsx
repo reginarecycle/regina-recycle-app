@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatAmount } from "@/lib/utils";
 import { Eye, EyeOff } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,7 +49,7 @@ export function WalletBalance({
         {/* Balance */}
         <div className="flex items-end gap-1">
           <span className="text-4xl font-bold tracking-tight text-foreground inline-flex items-center gap-0.5">
-            {visible ? `$${balance.toFixed(2)}` : (
+            {visible ? `$${formatAmount(balance)}` : (
               <>$<span className="text-2xl self-center tracking-widest leading-none">*******</span></>
             )}
           </span>
@@ -59,7 +60,7 @@ export function WalletBalance({
         <div className="flex items-center gap-1">
           <img src={GreenArrow} alt="" className="w-8 h-8 shrink-0" />
           <span className={`text-sm font-semibold ${isPositive ? "text-green-600" : "text-red-600"}`}>
-            { `${change}$${stats.toFixed(2)} ${currency} this month`}
+            { `${change}$${formatAmount(stats)} ${currency} this month`}
           </span>
         </div>
 

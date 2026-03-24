@@ -18,7 +18,7 @@ export function CollectorSecurityTab() {
     reset,
   } = useForm<CollectorSecurityFormValues>({
     resolver: zodResolver(collectorSecuritySchema),
-    mode: "onChange",
+    mode: "onBlur",
   });
 
   const onSubmit = (data: CollectorSecurityFormValues) => {
