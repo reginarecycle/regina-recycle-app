@@ -83,11 +83,24 @@ export const resetPasswordSchema = z
 export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
 export const profileDetailsSchema = z.object({
-  fullName: z.string().min(1, "Full Name is required"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().min(1, "Phone number is required"),
-  dateOfBirth: z.string().min(1, "Date of birth is required"),
-  address: z.string().min(1, "Address is required"),
+  fullName: z.string(),
+  email: z.string().refine(
+    (v) => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+    "Invalid email address"
+  ),
+  phone: z.string().refine(
+    (v) => !v || v.replace(/\D/g, "").length === 10,
+    "Enter a valid 10-digit Canadian phone number"
+  ),
+  dateOfBirth: z.string()
+    .refine((v) => !v || /^\d{2}-\d{2}-\d{4}$/.test(v), "Enter date as DD-MM-YYYY")
+    .refine((v) => {
+      if (!v) return true;
+      const [dd, mm, yyyy] = v.split("-").map(Number);
+      const d = new Date(Date.UTC(yyyy, mm - 1, dd));
+      return d.getUTCFullYear() === yyyy && d.getUTCMonth() === mm - 1 && d.getUTCDate() === dd;
+    }, "Invalid date"),
+  address: z.string(),
 });
 
 export type ProfileDetailsFormValues = z.infer<typeof profileDetailsSchema>;
@@ -218,4 +231,3 @@ export const addFundsCardSchema = z.object({
 export type AddFundsAmountFormValues = z.infer<typeof addFundsAmountSchema>;
 export type AddFundsCardFormValues   = z.infer<typeof addFundsCardSchema>;
 export type PaymentMethod = "card" | "mobile" | null;
-

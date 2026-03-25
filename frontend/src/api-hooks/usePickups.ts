@@ -181,7 +181,7 @@ export const useCreatePickup = () => {
     });
 };
 
-export const useGetCustomerPickups = (query?: CustomerPickupsQuery) => {
+export const useGetCustomerPickups = (query?: CustomerPickupsQuery, enabled = true) => {
   const params = new URLSearchParams();
 
   if (query?.page) params.append("page", String(query.page));
@@ -196,6 +196,7 @@ export const useGetCustomerPickups = (query?: CustomerPickupsQuery) => {
 
   return useGetOne<CustomerPaginatedPickups>(
     ["pickups", "customer", query ?? {}],
-    endpoint
+    endpoint,
+    { enabled }
   );
 };
