@@ -126,7 +126,7 @@ export class CollectorsController {
 
   // ─── Profile ──────────────────────────────────────────────────────────────
 
-  @Put(':collectorId/profile')
+ /* @Put(':collectorId/profile')
   @ApiOperation({ summary: 'Update collector profile' })
   @ApiParam({ name: 'collectorId', type: String })
   async updateProfile(
@@ -135,6 +135,7 @@ export class CollectorsController {
   ) {
     return this.collectorsService.updateProfile(collectorId, dto);
   }
+*/
 
   // ─── Pricing ──────────────────────────────────────────────────────────────
 @Get('/me/pricing')

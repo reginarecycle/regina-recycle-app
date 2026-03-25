@@ -410,7 +410,7 @@ export class CollectorsService {
     };
   }
 
-  async updateProfile(collectorId: string, dto: UpdateCollectorDto) {
+  /*async updateProfile(collectorId: string, dto: UpdateCollectorDto) {
     await this.ensureCollectorExists(collectorId);
 
     const updatedProfile = await this.prisma.collectorProfile.upsert({
@@ -433,7 +433,7 @@ export class CollectorsService {
     });
 
     return { message: 'Collector profile updated successfully', data: updatedProfile };
-  }
+  }*/
 
   async getPricing(collectorId: string, query: CollectorQueryDto) {
     await this.ensureCollectorExists(collectorId);
