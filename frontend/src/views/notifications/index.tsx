@@ -41,29 +41,8 @@ export default function NotificationsPage({
 
   const tabs = userRole === "customer" ? customerTabs : collectorTabs;
 
-  if (userLoading || notificationsLoading) {
-    return <div className="p-4 sm:p-6 md:p-8">Loading notifications...</div>;
-  }
-
-  if (userError || notificationsError) {
-    return (
-      <div className="p-4 sm:p-6 md:p-8">
-        Failed to load notifications.
-      </div>
-    );
-  }
-
-  if (!notifications.length) {
-    return (
-      <div className="p-4 sm:p-6 md:p-8">
-        <Card className="border-0 bg-white p-6 shadow-none">
-          <p className="text-center text-sm text-muted-foreground">
-            No notifications yet.
-          </p>
-        </Card>
-      </div>
-    );
-  }
+  const isLoading = userLoading || notificationsLoading;
+  const hasError = !!(userError || notificationsError);
 
   return (
     <div className="p-4 sm:p-6 md:p-8">
@@ -80,14 +59,22 @@ export default function NotificationsPage({
           onClearAll={clearAll}
         />
 
-        <NotificationTabs
-          tabs={tabs}
-          notifications={notifications}
-          processed={processedNotifications}
-          onMarkAsRead={markAsRead}
-          onMarkAsUnread={markAsUnread}
-          onDelete={deleteNotification}
-        />
+        {hasError ? (
+          <div className="p-4 sm:p-6">
+            <p className="text-center text-sm text-muted-foreground">
+              Failed to load notifications.
+            </p>
+          </div>
+        ) : (
+          <NotificationTabs
+            tabs={tabs}
+            notifications={isLoading ? [] : notifications}
+            processed={isLoading ? [] : processedNotifications}
+            onMarkAsRead={markAsRead}
+            onMarkAsUnread={markAsUnread}
+            onDelete={deleteNotification}
+          />
+        )}
       </Card>
     </div>
   );
