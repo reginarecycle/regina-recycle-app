@@ -1,10 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// ADD these two imports to the top of your existing collectors.controller.ts
-// ─────────────────────────────────────────────────────────────────────────────
-// import { CollectorUsersQueryDto } from './dto/collector-users-query.dto';
-// import { Query } from '@nestjs/common';   // if not already imported
-// ─────────────────────────────────────────────────────────────────────────────
-
 import {
   Controller,
   Get,
@@ -13,12 +6,12 @@ import {
   Param,
   Query,
   Body,
+  BadRequestException,
 } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { CollectorsService } from './collectors.service';
-import { CollectorUsersQueryDto as CollectorQueryDto } from './dto/collectors-query.dto';
-import { PickupQueryDto } from './dto/pickup-query.dto';
 import { CollectorUsersQueryDto } from './dto/collectors-query.dto';
+import { PickupQueryDto } from './dto/pickup-query.dto';
 import { UpdateCollectorDto } from './dto/update-collector.dto';
 import { UpdateMaterialPricingDto } from './dto/update-material-pricing.dto';
 import { UpdateMaterialSettingsDto } from './dto/update-material-settings.dto';
@@ -57,7 +50,7 @@ export class CollectorsController {
   @ApiParam({ name: 'collectorId', type: String })
   async getCustomers(
     @Param('collectorId') collectorId: string,
-    @Query() query: CollectorQueryDto,
+    @Query() query: CollectorUsersQueryDto,
   ) {
     return this.collectorsService.getCustomers(collectorId, query);
   }
@@ -74,8 +67,6 @@ export class CollectorsController {
   }
 
   // ─── NEW: Users ────────────────────────────────────────────────────────────
-  // NOTE: /users/stats MUST be declared before /users to prevent NestJS
-  //       treating 'stats' as a collectorId param value.
 
   @Get(':collectorId/users/stats')
   @ApiOperation({ summary: 'Get user stats for a collector' })
@@ -149,7 +140,7 @@ export class CollectorsController {
   @ApiParam({ name: 'collectorId', type: String })
   async getPricing(
     @Param('collectorId') collectorId: string,
-    @Query() query: CollectorQueryDto,
+    @Query() query: CollectorUsersQueryDto,
   ) {
     return this.collectorsService.getPricing(collectorId, query);
   }
@@ -195,34 +186,29 @@ export class CollectorsController {
     return this.collectorsService.updateMaterialSettings(collectorId, dto);
   }
 
-  @Get('material-pricing/:materialId/calculate')
-  @Auth()
-  calculateMaterialPayout(
-  @CurrentUser() user: CurrentUserPayload,
-  @Param('materialId') materialId: string,
-  @Query('quantity') quantity: string,
-) {
-  const qty = Number(quantity);
+  // ─── Material Payout Calculation ──────────────────────────────────────────
 
-  if (isNaN(qty) || qty <= 0) {
-    throw new BadRequestException('Quantity must be a number greater than 0');
+  @Get('material-pricing/:materialId/calculate')
+  async calculateMaterialPayout(
+    @Param('materialId') materialId: string,
+    @Query('collectorId') collectorId: string,
+    @Query('quantity') quantity: string,
+  ) {
+    const qty = Number(quantity);
+    if (isNaN(qty) || qty <= 0) {
+      throw new BadRequestException('Quantity must be a number greater than 0');
+    }
+    return this.collectorsService.calculateMaterialPayout(
+      collectorId,
+      materialId,
+      qty,
+    );
   }
 
-  return this.collectorsService.calculateMaterialPayout(
-    user.userId,
-    materialId,
-    qty,
-  );
+  // ─── Average Material Price ───────────────────────────────────────────────
+
+  @Get('materials/:id/averagePrice')
+  async getAverageMaterialPrice(@Param('id') id: string) {
+    return this.collectorsService.getAverageMaterialPrice(id);
+  }
 }
-
-
-@Get('materials/:id/averagePrice')
-@Auth()
-getAverageMaterialPrice(@Param('id') id: string) {
-   return this.collectorsService.getAverageMaterialPrice(id);
- }
-
-}
-
-
-

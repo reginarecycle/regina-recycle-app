@@ -1,31 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-
-// ─── Inline query helpers ─────────────────────────────────────────────────────
-
-const useGetOne = <T>(key: readonly unknown[], url: string, options?: any) =>
-  useQuery<T, Error>({
-    queryKey: key,
-    queryFn: () => fetch(url, { credentials: 'include' }).then((r) => r.json()),
-    ...options,
-  });
-
-const useCreate = <TRes, TBody>(
-  url: string,
-  invalidateKey: readonly unknown[],
-  method = 'POST',
-) => {
-  const qc = useQueryClient();
-  return useMutation<TRes, Error, TBody>({
-    mutationFn: (body) =>
-      fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(body),
-      }).then((r) => r.json()),
-    onSuccess: () => qc.invalidateQueries({ queryKey: invalidateKey }),
-  });
-};
+import { useGetOne, useCreate } from "@/lib/queryHelpers";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -51,6 +24,8 @@ export interface CustomerWallet {
   balance: number;
   totalEarned: number;
   totalWithdrawn: number;
+  earningsChangeAmount?: number;
+  pendingEarningsAmount?: number;
 }
 
 export interface WalletTransaction {
@@ -105,11 +80,13 @@ export interface CollectorWithdrawPayload {
   amount: number;
 }
 
+// ─── Hooks ────────────────────────────────────────────────────────────────────
+
 // GET /wallet/collector
 export const useGetCollectorWallet = () =>
   useGetOne<CollectorWallet>(['wallet', 'collector'], '/wallet/collector');
 
-// Customer wallet hook (used in customer home view)
+// GET /wallet/customer
 export const useCustomerWallet = () =>
   useGetOne<CustomerWallet>(['wallet', 'customer'], '/wallet/customer');
 

@@ -6,61 +6,44 @@ import { ScheduleDetailsModal } from "@/views/customer/history/ScheduleDetailsMo
 import type { RecycleRecord } from "@/views/customer/history/types.tsx";
 import { useRouter } from "@/routes/hooks/use-router";
 import { Routes } from "@/routes/routes";
+import type { Pickup } from "@/api-hooks/usePickups";
 
-type Material = "Plastic" | "Glass" | "Cardboard" | "Carton" | "Paper";
-type Status = "Approved" | "Pending" | "Cancelled";
-
-export type ScheduleItem = {
-  id: string;
-  materials: Material[];
-  date: string;
-  status: Status;
+type Props = {
+  recentSchedule?: Pickup[];
 };
 
-const schedules: ScheduleItem[] = [
-  { id: "1", materials: ["Glass"],                         date: "2026-01-01", status: "Pending"     },
-  { id: "2", materials: ["Cardboard", "Glass"],            date: "2026-01-01", status: "Approved"    },
-  { id: "3", materials: ["Cardboard", "Glass", "Plastic"], date: "2026-01-02", status: "Cancelled" },
-  { id: "4", materials: ["Cardboard", "Glass", "Plastic"], date: "2026-01-01", status: "Approved"    },
-  { id: "5", materials: ["Cardboard", "Glass", "Plastic"], date: "2026-01-01", status: "Pending"     },
-  { id: "6", materials: ["Cardboard", "Glass", "Plastic"], date: "2022-03-01", status: "Pending"     },
-  { id: "7", materials: ["Cardboard", "Glass", "Plastic"], date: "2022-03-01", status: "Approved"    },
-];
-
-const STATUS_MAP: Record<Status, RecycleRecord["status"]> = {
-  Approved:  "COMPLETED",
-  Pending:   "PENDING",
-  Cancelled: "CANCELLED",
-};
-
-function toRecord(item: ScheduleItem): RecycleRecord {
-  return {
-    id:                   item.id,
-    location:             "123 Lane, Str. Downtown District",
-    materials:            item.materials as RecycleRecord["materials"],
-    date:                 item.date,
-    status:               STATUS_MAP[item.status] as RecycleRecord["status"],
-    referenceNumber:      `REF-2023-00${item.id}`,
-    collectorName:        "Michael Johnson",
-    collectorId:          "COL-789",
-    requestDate:          item.date,
-    scheduledPickupDate:  item.date,
-    pickupLocation:       "123 Lane, Str. Downtown District",
-  };
-}
-
-export function Schedule() {
+export function Schedule({ recentSchedule = [] }: Props) {
   const router = useRouter();
   const [selectedRecord, setSelectedRecord] = useState<RecycleRecord | null>(null);
 
-  const columns: ColumnDef<ScheduleItem>[] = [
+  function toRecord(pickup: Pickup): RecycleRecord {
+    return {
+      id:                  pickup.pickupId,
+      location:            pickup.address
+        ? `${pickup.address.line1}, ${pickup.address.city}`
+        : "N/A",
+      materials:           pickup.items?.map((i) => i.material?.name ?? "") as RecycleRecord["materials"],
+      date:                pickup.scheduledAt,
+      status:              pickup.status as RecycleRecord["status"],
+      referenceNumber:     `REF-${pickup.pickupId.slice(0, 8).toUpperCase()}`,
+      collectorName:       "Assigned Collector",
+      collectorId:         pickup.pickupId,
+      requestDate:         pickup.scheduledAt,
+      scheduledPickupDate: pickup.scheduledAt,
+      pickupLocation:      pickup.address
+        ? `${pickup.address.line1}, ${pickup.address.city}`
+        : "N/A",
+    };
+  }
+
+  const columns: ColumnDef<Pickup>[] = [
     {
       key: "materials",
       header: "Material",
       cell: (row) => (
         <div className="flex flex-wrap gap-1.5">
-          {row.materials.map((m) => (
-            <MaterialTag key={m} material={m} size="sm" />
+          {row.items?.map((i) => (
+            <MaterialTag key={i.materialId} material={i.material?.name as any} size="sm" />
           ))}
         </div>
       ),
@@ -70,14 +53,16 @@ export function Schedule() {
       header: "Schedule Date",
       cell: (row) => (
         <span className="text-sm font-semibold text-foreground">
-          {new Date(row.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }).replace(/(\d+) (\w+) (\d+)/, "$1, $2 $3")}
+          {new Date(row.scheduledAt).toLocaleDateString("en-GB", {
+            day: "numeric", month: "short", year: "numeric",
+          }).replace(/(\d+) (\w+) (\d+)/, "$1, $2 $3")}
         </span>
       ),
     },
     {
       key: "status",
       header: "Status",
-      cell: (row) => <StatusBadge status={STATUS_MAP[row.status]} />,
+      cell: (row) => <StatusBadge status={row.status as any} />,
     },
     {
       key: "action",
@@ -96,10 +81,11 @@ export function Schedule() {
   return (
     <>
       <DataTable
-        data={schedules}
+        data={recentSchedule}
         columns={columns}
-        rowKey={(s) => s.id}
+        rowKey={(s) => s.pickupId}
         title="Recent Schedule"
+        emptyText="No schedules found"
         headerRight={
           <button
             onClick={() => router.push(Routes.history)}

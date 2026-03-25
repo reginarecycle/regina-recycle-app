@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "@/routes/hooks/use-router";
 import { Routes } from "@/routes/routes";
-import { formatCurrency } from "@/lib/utils";
 import GreenArrow from "@/assets/green-arrow.svg";
 import CashMultiple from "@/assets/cash-multiple.svg";
 
@@ -27,6 +26,16 @@ export function WalletBalance({
   const router     = useRouter();
   const [visible, setVisible] = useState(true);
   const isPositive = change === "+";
+
+  if (isLoading) {
+    return (
+      <Card className="w-full rounded-2xl border border-border bg-white shadow-none overflow-hidden py-4!">
+        <CardContent className="px-4 py-6 flex items-center justify-center">
+          <div className="h-8 w-32 rounded bg-gray-100 animate-pulse" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full rounded-2xl border border-border bg-white shadow-none overflow-hidden py-4!">
@@ -63,7 +72,7 @@ export function WalletBalance({
         <div className="flex items-center gap-1">
           <img src={GreenArrow} alt="" className="w-8 h-8 shrink-0" />
           <span className={`text-sm font-semibold ${isPositive ? "text-green-600" : "text-red-600"}`}>
-            { `${change}$${formatAmount(stats)} ${currency} this month`}
+            {`${change}$${formatAmount(stats)} ${currency} this month`}
           </span>
         </div>
 
