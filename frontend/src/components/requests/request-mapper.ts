@@ -75,6 +75,8 @@ const compatibility =
     estUnits,
     snapshots,
     note: pickup.note ?? "",
+    collectorNote: pickup.collectorNote ?? "",
+    rejectionReason: pickup.rejectionReason ?? "",
     pickupCount: 0,
   };
 };

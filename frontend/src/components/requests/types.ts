@@ -33,6 +33,8 @@ export type RequestRow = {
   items: RequestItemRow[];
   estUnits: number;
   note?: string;
+  collectorNote?: string;
+  rejectionReason?: string;
   pickupCount?: number;
   snapshots?: RequestSnapshotRow[];
 };

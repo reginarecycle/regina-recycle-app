@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { StatsCards } from "@/components/requests/stats-cards";
 import RequestsTable from "@/components/requests/requests-table";
 import { getCollectorStats } from "@/api/collectorRequest";
@@ -10,8 +10,7 @@ export function CollectorRequests() {
     potentialRevenue: 0,
   });
 
-  useEffect(() => {
-    const loadStats = async () => {
+    const loadStats = useCallback( async () => {
       try {
         const result = await getCollectorStats();
 
@@ -27,10 +26,12 @@ export function CollectorRequests() {
       } catch (error) {
         console.error("Failed to load stats:", error);
       }
-    };
+    },
+  []);
 
-    loadStats();
-  }, []);
+  useEffect(() => {
+   loadStats();
+  }, [loadStats])
 
   return (
     <div>
@@ -58,7 +59,7 @@ export function CollectorRequests() {
       </div>
 
       <div className="px-6 py-6">
-        <RequestsTable />
+        <RequestsTable onRefreshStats={loadStats}/>
       </div>
     </div>
   );

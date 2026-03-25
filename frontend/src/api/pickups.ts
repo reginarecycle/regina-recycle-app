@@ -15,3 +15,27 @@ export const cancelPickup = async (pickupId: string) => {
   return response.data;
 };
 
+export const completePickup = async (
+ pickupId: string,
+ payload: {
+   items: { materialId: string; quantity: number }[];
+   note?: string;
+ },
+) => {
+ const response = await api.patch(`/pickups/${pickupId}/complete-v2`, payload);
+ return response.data;
+};
+
+
+export const cancelPickupV2 = async (
+ pickupId: string,
+ payload: {
+   reason: string;
+   comment?: string;
+ },
+) => {
+ const response = await api.patch(`/pickups/${pickupId}/cancel-v2`, payload);
+ return response.data;
+};
+
+
