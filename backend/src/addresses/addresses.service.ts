@@ -199,7 +199,7 @@ export class AddressesService {
     });
 
     if (!primaryAddress) {
-      throw new NotFoundException(ErrorMessage.NO_PRIMARY_ADDRESS);
+      return null;
     }
 
     return primaryAddress;

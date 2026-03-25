@@ -10,6 +10,8 @@ type ScheduleData = {
   slotLabel: string | null;
   address: string;
   estCost: number;
+  photo: File | null;
+  note: string;
 };
 
 type ScheduleContextType = {
@@ -27,6 +29,8 @@ const defaultScheduleData: ScheduleData = {
   slotLabel: null,
   address: "",
   estCost: 0,
+  photo: null,
+  note: "",
 };
 
 const ScheduleContext = createContext<ScheduleContextType | undefined>(undefined);
