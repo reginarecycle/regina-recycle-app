@@ -3,42 +3,45 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
 import { PillTabs } from "@/components/ui/pill-tabs";
 import { AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useUpdatePricingSettings } from "@/api-hooks/useCollector";
+import { toast } from "sonner";
 
 interface FeeSettingsProps {
   serviceFee:           string;
   feeType:              "PERCENTAGE_FEE" | "FLAT_FEE";
   bulkThreshold:        string;
   bulkIncentiveEnabled: boolean;
-  onSave: (data: {
-    serviceFee?:           number;
-    feeType?:              string;
-    bulkIncentiveEnabled?: boolean;
-    bulkThreshold?:        number;
-  }) => void;
 }
 
 export function FeeSettings({
   serviceFee:           initialServiceFee,
   feeType:              initialFeeType,
   bulkThreshold:        initialBulkThreshold,
-  bulkIncentiveEnabled: initialBulkEnabled,
-  onSave,
+  bulkIncentiveEnabled: initialBulkIncentiveEnabled,
 }: FeeSettingsProps) {
   const [feeType,              setFeeType]              = useState<"PERCENTAGE_FEE" | "FLAT_FEE">(initialFeeType);
   const [serviceFee,           setServiceFee]           = useState(initialServiceFee);
   const [bulkThreshold,        setBulkThreshold]        = useState(initialBulkThreshold);
-  const [bulkIncentiveEnabled, setBulkIncentiveEnabled] = useState(initialBulkEnabled);
+  const [bulkIncentiveEnabled, setBulkIncentiveEnabled] = useState(initialBulkIncentiveEnabled);
+
+  const { mutate: saveSettings, isPending } = useUpdatePricingSettings();
 
   const handleSave = () => {
-    onSave({
-      serviceFee:           parseFloat(serviceFee),
-      feeType,
-      bulkIncentiveEnabled,
-      bulkThreshold:        parseInt(bulkThreshold),
-    });
+    saveSettings(
+      {
+        serviceFee:           parseFloat(serviceFee),
+        feeType,
+        bulkThreshold:        parseFloat(bulkThreshold),
+        bulkIncentiveEnabled,
+      },
+      {
+        onSuccess: () => toast.success("Settings saved"),
+        onError:   () => toast.error("Failed to save settings"),
+      }
+    );
   };
 
   return (
@@ -65,8 +68,8 @@ export function FeeSettings({
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {feeType === "PERCENTAGE_FEE"
-                    ? "A percentage-based fee applied to every pickup request"
-                    : "A fixed flat fee applied to every pickup request"}
+                    ? "This is a percentage-based fee applied to every pickup request to cover transport and operational cost"
+                    : "A fixed flat fee applied to every pickup request regardless of quantity or value"}
                 </p>
               </div>
               <div className="relative shrink-0 w-32">
@@ -84,7 +87,7 @@ export function FeeSettings({
             <Separator />
             <div className="flex items-start gap-3 p-3 bg-[#FFFBEB] border border-[#FDE68A] rounded-lg">
               <AlertTriangle className="h-4 w-4 text-[#F59E0B] shrink-0 mt-0.5" />
-              <p className="text-xs text-[#78350F]">These fees will be clearly displayed to customers during scheduling.</p>
+              <p className="text-xs text-[#78350F]">These fees will be clearly displayed to the customers during the scheduling process.</p>
             </div>
           </div>
         </Card>
@@ -114,8 +117,12 @@ export function FeeSettings({
       </div>
 
       <div className="flex justify-end">
-        <Button onClick={handleSave} className="w-[174px] h-11 bg-primary hover:bg-primary/90">
-          Save Settings
+        <Button
+          onClick={handleSave}
+          disabled={isPending}
+          className="w-full sm:w-[174px] h-11 bg-primary hover:bg-primary/90 disabled:opacity-60"
+        >
+          {isPending ? "Saving..." : "Save Settings"}
         </Button>
       </div>
     </div>

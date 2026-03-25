@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MapPin } from "lucide-react";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import InputField from "@/components/forms/input-field";
 import { ProfileHeader } from "@/components/shared/ProfileHeader";
 import { collectorProfileSchema, type CollectorProfileFormValues } from "@/lib/validation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/apiFetch";
 import { useUpdateCollectorProfile } from "@/api-hooks/useCollector";
 import { toast } from "sonner";
@@ -20,14 +20,39 @@ interface CurrentUser {
   collectorProfile: { licenseId: string } | null;
 }
 
+interface DefaultAddress {
+  addressId:  string;
+  line1:      string;
+  city:       string;
+  province:   string;
+  postalCode: string;
+}
+
 export function CollectorProfileTab() {
+  const addressIdRef = useRef<string | null>(null);
+
   const { data: meData } = useQuery({
     queryKey: ["auth", "me"],
     queryFn:  () => apiFetch<CurrentUser>("/auth/me"),
   });
 
-  const me = meData?.data;
-  const { mutate: updateProfile, isPending } = useUpdateCollectorProfile();
+  const { data: addressData } = useQuery({
+    queryKey: ["addresses", "default"],
+    queryFn:  () => apiFetch<DefaultAddress>("/addresses/default"),
+  });
+
+  const me      = meData?.data;
+  const address = addressData?.data;
+
+  const { mutate: updateProfile, isPending: isUpdatingProfile } = useUpdateCollectorProfile();
+
+  const { mutate: updateAddress, isPending: isUpdatingAddress } = useMutation({
+    mutationFn: (dto: { line1: string; city: string; province: string; postalCode: string }) =>
+      apiFetch(`/addresses/${addressIdRef.current}`, { method: "PATCH", data: dto }),
+    onError: () => toast.error("Failed to update address"),
+  });
+
+  const isPending = isUpdatingProfile || isUpdatingAddress;
 
   const {
     register,
@@ -38,11 +63,11 @@ export function CollectorProfileTab() {
     resolver: zodResolver(collectorProfileSchema),
     mode: "onBlur",
     defaultValues: {
-      businessName:       "Shahnaz and Sons Recycling",
-      businessEmail:      "ssr@gmail.com",
-      businessPhone:      "1-(306)-0000",
-      registrationNumber: "123456789",
-      address:            "123 Lane Str.",
+      businessName:       "",
+      businessEmail:      "",
+      businessPhone:      "",
+      registrationNumber: "",
+      address:            "",
       city:               "",
       provinceState:      "",
       postalCode:         "",
@@ -51,18 +76,19 @@ export function CollectorProfileTab() {
 
   useEffect(() => {
     if (me) {
+      addressIdRef.current = address?.addressId ?? null;
       reset({
         businessName:       me.name ?? "",
         businessEmail:      me.email ?? "",
         businessPhone:      me.phoneNumber ?? "",
         registrationNumber: me.collectorProfile?.licenseId ?? "",
-        address:            "",
-        city:               "",
-        provinceState:      "",
-        postalCode:         "",
+        address:            address?.line1 ?? "",
+        city:               address?.city ?? "",
+        provinceState:      address?.province ?? "",
+        postalCode:         address?.postalCode ?? "",
       });
     }
-  }, [me, reset]);
+  }, [me, address, reset]);
 
   const onSubmit = (data: CollectorProfileFormValues) => {
     updateProfile(
@@ -72,8 +98,22 @@ export function CollectorProfileTab() {
         licenseId:   data.registrationNumber,
       },
       {
-        onSuccess: () => toast.success("Profile updated successfully"),
-        onError:   () => toast.error("Failed to update profile"),
+        onSuccess: () => {
+          if (addressIdRef.current) {
+            updateAddress(
+              {
+                line1:      data.address,
+                city:       data.city,
+                province:   data.provinceState,
+                postalCode: data.postalCode,
+              },
+              { onSuccess: () => toast.success("Profile updated successfully") }
+            );
+          } else {
+            toast.success("Profile updated successfully");
+          }
+        },
+        onError: () => toast.error("Failed to update profile"),
       }
     );
   };

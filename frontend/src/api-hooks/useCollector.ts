@@ -1,8 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/apiFetch";
 
-// ── Types ──────────────────────────────────────────────────────────────────
-
 export interface CollectorPricing {
   collectorPricingId: string;
   materialId:         string;
@@ -19,13 +17,23 @@ export interface CollectorPricing {
 }
 
 export interface PricingSettings {
-  serviceFee:           number;
-  feeType:              string;
-  bulkIncentiveEnabled: boolean;
-  bulkThreshold:        number;
+  collectorId: string;
+  settings: {
+    serviceFee:           string;
+    feeType:              string;
+    bulkIncentiveEnabled: boolean;
+    bulkThreshold:        number;
+  };
 }
 
-// ── Query Keys ─────────────────────────────────────────────────────────────
+export interface PricingMeta {
+  total:           number;
+  page:            number;
+  limit:           number;
+  totalPages:      number;
+  hasNextPage:     boolean;
+  hasPreviousPage: boolean;
+}
 
 export const collectorKeys = {
   pricing:         () => ["collector", "pricing"]          as const,
@@ -33,12 +41,12 @@ export const collectorKeys = {
   profile:         () => ["collector", "profile"]          as const,
 };
 
-// ── Hooks ──────────────────────────────────────────────────────────────────
-
-export const useGetCollectorPricing = () =>
+export const useGetCollectorPricing = (params?: { page?: number; limit?: number }) =>
   useQuery({
-    queryKey: collectorKeys.pricing(),
-    queryFn:  () => apiFetch<{ data: CollectorPricing[] }>("/collectors/me/pricing"),
+    queryKey: [...collectorKeys.pricing(), params],
+    queryFn:  () => apiFetch<{ data: CollectorPricing[]; meta: PricingMeta }>(
+      `/collectors/me/pricing?page=${params?.page ?? 1}&limit=${params?.limit ?? 10}`
+    ),
   });
 
 export const useGetPricingSettings = () =>

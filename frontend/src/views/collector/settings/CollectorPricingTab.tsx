@@ -1,28 +1,22 @@
-import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import DataTable, { type Column } from "@/components/ui/data-table";
+import { useState } from "react";
 import { FeeSettings } from "@/views/collector/settings/FeeSettings";
-import {
-  useGetCollectorPricing,
-  useGetPricingSettings,
-  useUpdateMaterialPricing,
-  useUpdatePricingSettings,
-  type CollectorPricing,
-} from "@/api-hooks/useCollector";
+import { useGetCollectorPricing, useGetPricingSettings, useUpdateMaterialPricing, type CollectorPricing } from "@/api-hooks/useCollector";
 import { toast } from "sonner";
 
 export function CollectorPricingTab() {
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { data: pricingData, isLoading: pricingLoading } = useGetCollectorPricing();
-  const { data: settingsData } = useGetPricingSettings();
-  const { mutate: updatePricing } = useUpdateMaterialPricing();
-  const { mutate: updateSettings } = useUpdatePricingSettings();
+  const { data: pricingData, isLoading } = useGetCollectorPricing({ page: currentPage, limit: 10 });
+  const { data: settingsData }           = useGetPricingSettings();
+  const { mutate: updatePricing }        = useUpdateMaterialPricing();
 
   const materials = pricingData?.data?.data ?? [];
-  const settings  = settingsData?.data;
+  const meta      = pricingData?.data?.meta;
+  const settings  = settingsData?.data?.settings;
 
   const handlePriceChange = (materialId: string, field: "basePrice" | "bulkPrice", value: string) => {
     const num = parseFloat(value);
@@ -33,7 +27,7 @@ export function CollectorPricingTab() {
     );
   };
 
-  const handleToggle = (materialId: string, currentStatus: string) => {
+  const handleToggleMaterial = (materialId: string, currentStatus: string) => {
     updatePricing(
       { materialId, status: currentStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE" },
       {
@@ -45,7 +39,7 @@ export function CollectorPricingTab() {
 
   const columns: Column<CollectorPricing>[] = [
     {
-      key: "name",
+      key: "material",
       header: "Material Category",
       render: (m) => (
         <div className="flex items-center gap-3">
@@ -75,7 +69,7 @@ export function CollectorPricingTab() {
     },
     {
       key: "bulkPrice",
-      header: "Bulk rate",
+      header: "Bulk rate (100+ Units)",
       render: (m) => (
         <div className="relative w-36">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
@@ -88,12 +82,12 @@ export function CollectorPricingTab() {
       ),
     },
     {
-      key: "active",
+      key: "status",
       header: "Action",
       render: (m) => (
         <Switch
           checked={m.status === "ACTIVE"}
-          onCheckedChange={() => handleToggle(m.materialId, m.status)}
+          onCheckedChange={() => handleToggleMaterial(m.materialId, m.status)}
         />
       ),
     },
@@ -108,7 +102,42 @@ export function CollectorPricingTab() {
     },
   ];
 
-  if (pricingLoading) return <div className="p-8 text-muted-foreground">Loading pricing...</div>;
+  const renderMobile = (m: CollectorPricing) => (
+    <>
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-3 flex-1">
+          <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-2xl shrink-0">
+            {m.material.photoUrl ? <img src={m.material.photoUrl} className="w-8 h-8 object-contain" /> : "♻️"}
+          </div>
+          <div>
+            <div className="font-semibold">{m.material.name}</div>
+            <div className="text-sm text-muted-foreground">{m.material.description ?? m.material.type}</div>
+          </div>
+        </div>
+        <Switch checked={m.status === "ACTIVE"} onCheckedChange={() => handleToggleMaterial(m.materialId, m.status)} />
+      </div>
+      <div className="space-y-2 pl-15">
+        {(["basePrice", "bulkPrice"] as const).map((field) => (
+          <div key={field} className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">{field === "basePrice" ? "Base price:" : "Bulk rate:"}</span>
+            <div className="relative w-28">
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs">$</span>
+              <Input
+                defaultValue={m[field] ? Number(m[field]).toFixed(2) : "0.00"}
+                onBlur={(e) => handlePriceChange(m.materialId, field, e.target.value)}
+                className="pl-6 h-8 text-sm bg-[#F9FAFB]"
+              />
+            </div>
+          </div>
+        ))}
+        <Badge className={`${m.status === "ACTIVE" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"} text-xs`}>
+          {m.status}
+        </Badge>
+      </div>
+    </>
+  );
+
+  if (isLoading) return <div className="p-8 text-muted-foreground">Loading pricing...</div>;
 
   return (
     <div className="p-8 space-y-8">
@@ -119,10 +148,11 @@ export function CollectorPricingTab() {
         header={{ title: "Pricing & Materials", subtitle: "Manage your collection & accepted recycling materials" }}
         pagination={{
           currentPage,
-          totalPages: Math.ceil(materials.length / 10),
+          totalPages:   meta?.totalPages ?? 1,
           onPageChange: setCurrentPage,
-          showText: `Showing ${materials.length} materials`,
+          showText:     `Showing ${materials.length} of ${meta?.total ?? materials.length} materials`,
         }}
+        mobileRender={renderMobile}
       />
 
       {settings && (
@@ -131,12 +161,6 @@ export function CollectorPricingTab() {
           feeType={settings.feeType as "PERCENTAGE_FEE" | "FLAT_FEE"}
           bulkThreshold={String(settings.bulkThreshold)}
           bulkIncentiveEnabled={settings.bulkIncentiveEnabled}
-          onSave={(data) => {
-            updateSettings(data, {
-              onSuccess: () => toast.success("Settings saved"),
-              onError:   () => toast.error("Failed to save settings"),
-            });
-          }}
         />
       )}
     </div>
