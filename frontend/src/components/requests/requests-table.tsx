@@ -91,7 +91,7 @@ export default function RequestsTable({ onRefreshStats }: RequestsTableProps) {
 
   const loadPricing = useCallback(async () => {
     try {
-      const result = await getCollectorPricing(100, 0);
+      const result = await getCollectorPricing();
       const pricingRows = result.data?.data ?? [];
 
       const map: Record<string, number> = {};

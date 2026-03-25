@@ -6,7 +6,7 @@ import ThresholdProgress from "./progressBar";
 import { Button } from "@/components/ui/button";
 import GoldCoins from "@/assets/goldcoins.svg?react";
 
-const THRESHOLD = 5.0;
+const THRESHOLD = 15.0;
 
 function Divider() {
   return <div className="hidden sm:block h-10 w-px shrink-0 bg-border" />;
@@ -61,7 +61,7 @@ export function ScheduleFooter({ step, onConfirm, isPending = false }: Props) {
   );
 
   return (
-    <div className="fixed bottom-0 right-0 left-0 sm:left-65 z-40 border-t border-border bg-white px-4 sm:px-6 py-4">
+    <div className="fixed bottom-0 left-0 right-0 lg:left-64 z-40 border-t border-border bg-white px-4 sm:px-6 py-4">
       {/* Mobile */}
       <div className="flex sm:hidden items-center justify-between gap-3">
         <div>

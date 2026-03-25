@@ -111,12 +111,12 @@ export class PickupsService {
     });
 
     if (user) {
-      await this.notificationService.notifyPickupScheduled({
+      this.notificationService.notifyPickupScheduled({
         userId: requesterUserId,
         recipientEmail: user.email,
         pickupId: pickup.pickupId,
         scheduledDate: scheduledAt,
-      });
+      }).catch(() => {});
     }
 
     return {
@@ -337,12 +337,12 @@ export class PickupsService {
       });
 
       if (requester) {
-        await this.notificationService.notifyPickupStatusChanged({
+        this.notificationService.notifyPickupStatusChanged({
           userId: pickup.requesterUserId,
           recipientEmail: requester.email,
           pickupId,
           status: 'ACCEPTED',
-        });
+        }).catch(() => {});
       }
     }
 
@@ -442,12 +442,12 @@ export class PickupsService {
       });
 
       if (requester) {
-        await this.notificationService.notifyPickupStatusChanged({
+        this.notificationService.notifyPickupStatusChanged({
           userId: pickup.requesterUserId,
           recipientEmail: requester.email,
           pickupId,
           status: 'COMPLETED',
-        });
+        }).catch(() => {});
       }
     }
 
@@ -552,12 +552,12 @@ export class PickupsService {
       });
 
       if (requester) {
-        await this.notificationService.notifyPickupStatusChanged({
+        this.notificationService.notifyPickupStatusChanged({
           userId: pickup.requesterUserId,
           recipientEmail: requester.email,
           pickupId,
           status: 'CANCELLED',
-        });
+        }).catch(() => {});
       }
     }
 

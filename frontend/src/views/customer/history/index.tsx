@@ -13,6 +13,11 @@ import { MaterialTag } from "@/components/ui/material-tag";
 import { ScheduleDetailsModal } from "./ScheduleDetailsModal";
 import { useGetCustomerPickups } from "@/api-hooks/usePickups";
 import { useGetMaterials } from "@/api-hooks/useMaterials";
+import { formatDate } from "@/lib/utils";
+
+function makeRef(id: string): string {
+  return `RRY-${parseInt(id.replace(/-/g, "").slice(0, 8), 16) % 900000 + 100000}`;
+}
 
 const PAGE_SIZE = 10;
 
@@ -36,7 +41,6 @@ function buildColumns(
     {
       key: "location",
       header: "Location",
-      headerClassName: "w-56",
       cell: (row) => (
         <span className="block max-w-45 truncate text-sm font-medium text-foreground">
           {row.location}
@@ -46,7 +50,6 @@ function buildColumns(
     {
       key: "material",
       header: "Material",
-      className: "w-48",
       cell: (row) => (
         <div className="flex flex-wrap items-center gap-1.5">
           {row.materials.map((m) => (
@@ -58,19 +61,16 @@ function buildColumns(
     {
       key: "date",
       header: "Date",
-      className: "w-40",
       cell: (row) => <span className="text-sm text-foreground">{row.date}</span>,
     },
     {
       key: "status",
       header: "Status",
-      className: "w-40",
       cell: (row) => <StatusBadge status={row.status} />,
     },
     {
       key: "action",
       header: "Action",
-      className: "w-[120px]",
       cell: (row) => (
         <button
           onClick={() => onViewMore(row)}
@@ -81,18 +81,6 @@ function buildColumns(
       ),
     },
   ];
-}
-
-function formatDate(value?: string) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-
-  return date.toLocaleDateString("en-CA", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
 }
 
 function buildLocation(pickup: any) {
@@ -121,7 +109,7 @@ function mapPickupToRecord(
 
   return {
     id: pickup.pickupId,
-    referenceNumber: pickup.pickupId,
+    referenceNumber: makeRef(pickup.pickupId),
     location: buildLocation(pickup),
     pickupLocation: buildLocation(pickup),
     materials,
@@ -134,11 +122,7 @@ function mapPickupToRecord(
   };
 }
 
-interface RecycleHistoryProps {
-  records?: RecycleRecord[];
-}
-
-export const RecycleHistory: React.FC<RecycleHistoryProps> = () => {
+export const RecycleHistory: React.FC = () => {
   const [tab, setTab] = useState<HistoryTab>("ALL");
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<TableFilterState<RecycleStatus>>(
@@ -159,74 +143,59 @@ export const RecycleHistory: React.FC<RecycleHistoryProps> = () => {
     search: search || undefined,
   };
 
-  // Request 1: normal single-status query for non-pending views
   const {
     data: mainPickupsResult,
     isLoading: mainPickupsLoading,
-    error: mainPickupsError,
-  } = useGetCustomerPickups({
-    ...defaultQuery,
-    status: isPendingView ? undefined : (selectedStatus as RecycleStatus | undefined),
-  });
+  } = useGetCustomerPickups(
+    { ...defaultQuery, status: selectedStatus as RecycleStatus | undefined },
+    !isPendingView
+  );
 
-  // Request 2: explicit PENDING query for pending view
   const {
     data: pendingPickupsResult,
     isLoading: pendingPickupsLoading,
-    error: pendingPickupsError,
-  } = useGetCustomerPickups({
-    ...defaultQuery,
-    status: isPendingView ? ("PENDING" as RecycleStatus) : undefined,
-  });
+  } = useGetCustomerPickups(
+    { ...defaultQuery, status: "PENDING" as RecycleStatus },
+    isPendingView
+  );
 
-  // Request 3: explicit ACCEPTED query for pending view
   const {
     data: acceptedPickupsResult,
     isLoading: acceptedPickupsLoading,
-    error: acceptedPickupsError,
-  } = useGetCustomerPickups({
-    ...defaultQuery,
-    status: isPendingView ? ("ACCEPTED" as RecycleStatus) : undefined,
-  });
+  } = useGetCustomerPickups(
+    { ...defaultQuery, status: "ACCEPTED" as RecycleStatus },
+    isPendingView
+  );
 
   const {
     data: materialsResult,
     isLoading: materialsLoading,
-  } = useGetMaterials({
-    page: 1,
-    limit: 100,
-  });
+  } = useGetMaterials({ page: 1, limit: 100 });
 
   const materialNameById = useMemo(() => {
     const rawMaterials = materialsResult?.data?.data ?? [];
-    return rawMaterials.reduce<Record<string, string>>((acc, material) => {
-      acc[material.materialId] = material.name;
+    return rawMaterials.reduce<Record<string, string>>((acc, m) => {
+      acc[m.materialId] = m.name;
       return acc;
     }, {});
   }, [materialsResult]);
 
-  const rawPickups = useMemo(() => {
+  const records = useMemo(() => {
+    let rawPickups: any[];
     if (isPendingView) {
       const pending = pendingPickupsResult?.data?.data ?? [];
       const accepted = acceptedPickupsResult?.data?.data ?? [];
-
-      const merged = [...pending, ...accepted];
       const seen = new Set<string>();
-
-      return merged.filter((pickup: any) => {
-        const id = pickup.pickupId;
-        if (seen.has(id)) return false;
-        seen.add(id);
+      rawPickups = [...pending, ...accepted].filter((p: any) => {
+        if (seen.has(p.pickupId)) return false;
+        seen.add(p.pickupId);
         return true;
       });
+    } else {
+      rawPickups = mainPickupsResult?.data?.data ?? [];
     }
-
-    return mainPickupsResult?.data?.data ?? [];
-  }, [isPendingView, mainPickupsResult, pendingPickupsResult, acceptedPickupsResult]);
-
-  const records = useMemo(() => {
-    return rawPickups.map((pickup: any) => mapPickupToRecord(pickup, materialNameById));
-  }, [rawPickups, materialNameById]);
+    return rawPickups.map((p: any) => mapPickupToRecord(p, materialNameById));
+  }, [isPendingView, mainPickupsResult, pendingPickupsResult, acceptedPickupsResult, materialNameById]);
 
   const totalItems = isPendingView
     ? records.length
@@ -251,37 +220,19 @@ export const RecycleHistory: React.FC<RecycleHistoryProps> = () => {
 
   const columns = useMemo(() => buildColumns(handleViewMore), []);
 
-  if (
+  const isLoading =
     materialsLoading ||
     mainPickupsLoading ||
-    (isPendingView && pendingPickupsLoading) ||
-    (isPendingView && acceptedPickupsLoading)
-  ) {
-    return (
-      <div className="flex-1 overflow-auto bg-background p-6 lg:p-8">
-        Loading recycle history...
-      </div>
-    );
-  }
-
-  if (
-    mainPickupsError ||
-    pendingPickupsError ||
-    acceptedPickupsError
-  ) {
-    return (
-      <div className="flex-1 overflow-auto bg-background p-6 lg:p-8">
-        Failed to load recycle history.
-      </div>
-    );
-  }
+    (isPendingView && (pendingPickupsLoading || acceptedPickupsLoading));
 
   return (
-    <div className="flex-1 overflow-auto bg-background p-6 lg:p-8">
+    <div className="h-full flex flex-col bg-background p-6 lg:p-8">
       <DataTable
+        className="flex-1"
         data={records}
         columns={columns}
         rowKey={(r) => r.id}
+        isLoading={isLoading}
         title="Recycle History"
         headerRight={
           <DataTableHeaderControls<RecycleStatus>
@@ -304,7 +255,6 @@ export const RecycleHistory: React.FC<RecycleHistoryProps> = () => {
         pageSize={PAGE_SIZE}
         onPageChange={setPage}
         emptyText="No records found"
-        minHeight="300px"
       />
 
       <ScheduleDetailsModal
@@ -320,3 +270,67 @@ export const RecycleHistory: React.FC<RecycleHistoryProps> = () => {
 };
 
 export default RecycleHistory;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

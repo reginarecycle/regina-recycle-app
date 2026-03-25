@@ -6,7 +6,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-
 export const getTypeStyles = (type: NotificationType) => {
   const styles = {
     success: { bg: "bg-green-50", iconBg: "bg-green-100", iconColor: "text-green-600", border: "border-green-200" },
@@ -95,9 +94,38 @@ export function formatAmount(amount: number): string {
   }).format(amount);
 }
 
+export function formatDate(iso: string): string {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return date.toLocaleDateString("en-CA", {
+    month: "short", day: "numeric", year: "numeric",
+  });
+}
+
+export function formatTimeRange(iso: string, durationHours = 2): string {
+  const start = new Date(iso);
+  const end   = new Date(start.getTime() + durationHours * 60 * 60 * 1000);
+  const fmt   = (d: Date) => d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+  return `${fmt(start)} – ${fmt(end)}`;
+}
+
 export function maskEmail(email: string): string {
   const [local, domain] = email.split("@");
   if (!local || !domain) return email;
   const visible = local.slice(0, 3);
   return `${visible}${"*".repeat(Math.max(local.length - 3, 3))}@${domain}`;
+}
+
+
+export function formatCurrency(
+  amount: number,
+  currency: string = "CAD",
+  showSymbol: boolean = true
+): string {
+  const formatted = amount.toLocaleString("en-CA", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return showSymbol ? `$${formatted} ${currency}` : formatted;
 }

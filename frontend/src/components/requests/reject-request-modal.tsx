@@ -37,14 +37,14 @@ export function RejectRequestModal({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-            <div className="w-full max-w-[660px] rounded-[28px] bg-white px-12 py-10 shadow-2xl">
+            <div className="w-full max-w-115 rounded-[24px] bg-white px-8 py-8 shadow-2xl">
                 {/* Icon */}
-                <div className="mb-8 flex justify-center">
-                    <div className="mb-8 flex justify-center">
-                        <div className="flex h-[96px] w-[96px] items-center justify-center rounded-full bg-[#F8D7DA]">
+                <div className="mb-5 flex justify-center">
+                    <div className="mb-0 flex justify-center">
+                        <div className="flex h-18 w-18 items-center justify-center rounded-full bg-[#F8D7DA]">
                             <svg
-                                width="44"
-                                height="44"
+                                width="32"
+                                height="32"
                                 viewBox="0 0 44 44"
                                 fill="none"
                                 xmlns="http://www.w3.org/2000/svg"
@@ -62,20 +62,20 @@ export function RejectRequestModal({
                 </div>
 
                 {/* Heading */}
-                <div className="mb-10 text-center">
-                    <h2 className="mb-3 text-[24px] font-bold text-black">
+                <div className="mb-6 text-center">
+                    <h2 className="mb-2 text-[22px] font-bold text-black">
                         Reject this request?
                     </h2>
-                    <p className="mx-auto max-w-[380px] text-[16px] leading-8 text-[#9CA3AF]">
+                    <p className="mx-auto max-w-85 text-[14px] leading-6 text-[#9CA3AF]">
                         This action cannot be undone. Please specify why you're
                         declining this pickup.
                     </p>
                 </div>
 
-                <div className="space-y-8">
+                <div className="space-y-5">
                     {/* Reason */}
                     <div>
-                        <label className="mb-3 block text-[16px] font-medium text-[#111827]">
+                        <label className="mb-2 block text-sm font-medium text-[#111827]">
                             Reason for Rejection <span className="text-red-500">*</span>
                         </label>
 
@@ -113,7 +113,7 @@ export function RejectRequestModal({
 
                     {/* Comments */}
                     <div>
-                        <label className="mb-3 block text-[16px] font-medium text-[#111827]">
+                        <label className="mb-2 block text-sm font-medium text-[#111827]">
                             Additional Comments (Optional)
                         </label>
 
@@ -121,13 +121,13 @@ export function RejectRequestModal({
                             value={comments}
                             onChange={(e) => setComments(e.target.value)}
                             placeholder="Narration.."
-                            className="min-h-[110px] w-full rounded-[14px] border border-[#D1D5DB] px-4 py-4 text-[16px] text-[#111827] outline-none placeholder:text-[#9CA3AF] focus:border-[#C7C7C7]"
+                            className="min-h-22.5 w-full rounded-[14px] border border-[#D1D5DB] px-4 py-3 text-sm text-[#111827] outline-none placeholder:text-[#9CA3AF] focus:border-[#C7C7C7]"
                         />
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="mt-14 grid grid-cols-2 gap-4 justify-between">
+                <div className="mt-8 grid grid-cols-2 gap-4">
                     <Button
                         type="button"
                         onClick={onClose}

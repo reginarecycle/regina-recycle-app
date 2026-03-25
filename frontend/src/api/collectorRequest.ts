@@ -13,7 +13,7 @@ export const getCollectorPickups = async (
 };
 
 export const getCollectorPricing = async (
-  limit = 100,
+  limit = 0,
   offset = 0,
   search?: string,
   status?: string,

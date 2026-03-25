@@ -1,68 +1,64 @@
 import { useCallback, useEffect, useState } from "react";
-import { StatsCards } from "@/components/requests/stats-cards";
+import { StatsCards, type StatItem } from "@/components/requests/stats-cards";
 import RequestsTable from "@/components/requests/requests-table";
 import { getCollectorStats } from "@/api/collectorRequest";
 
 export function CollectorRequests() {
-  const [stats, setStats] = useState({
-    perfectMatch: 0,
-    needsCompletion: 0,
-    potentialRevenue: 0,
-  });
+  const [stats, setStats] = useState<StatItem[]>([
+    { title: "PERFECT MATCH", data: 0, color: "green", unit: "Requests" },
+    { title: "NEEDS COMPLETION", data: 0, color: "yellow", unit: "Requests" },
+    { title: "POTENTIAL REVENUE", data: 0, color: "blue", currency: "$" },
+  ]);
 
-    const loadStats = useCallback( async () => {
-      try {
-        const result = await getCollectorStats();
+  const loadStats = useCallback(async () => {
+    try {
+      const result = await getCollectorStats();
+      console.log("COLLECTOR STATS:", result);
 
-        const data = result?.data ?? result ?? {};
+      const payload = result?.data?? {};
 
-        console.log(data)
-
-        setStats({
-          perfectMatch: data.pendingRequests ?? 0,
-          needsCompletion: data.acceptedRequests ?? 0,
-          potentialRevenue: data.pendingAmount ?? 0,
-        });
-      } catch (error) {
-        console.error("Failed to load stats:", error);
-      }
-    },
-  []);
+      setStats([
+        {
+          title: "PERFECT MATCH",
+          data: Number(payload.pendingRequests ?? 0),
+          color: "green",
+          unit: "Requests",
+        },
+        {
+          title: "NEEDS COMPLETION",
+          data: Number(payload.acceptedRequests ?? 0),
+          color: "yellow",
+          unit: "Requests",
+        },
+        {
+          title: "POTENTIAL REVENUE",
+          data: Number(payload.pendingAmount ?? 0),
+          color: "blue",
+          currency: "$",
+        },
+      ]);
+    } catch (error) {
+      console.error("Failed to fetch collector stats:", error);
+    }
+  }, []);
 
   useEffect(() => {
-   loadStats();
-  }, [loadStats])
+    loadStats();
+  }, [loadStats]);
 
   return (
-    <div>
-      <div className="w-full grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 pt-6 px-6">
-        <StatsCards
-          title="PERFECT MATCH"
-          data={stats.perfectMatch}
-          color="green"
-          unit="Requests"
-        />
-
-        <StatsCards
-          title="NEEDS COMPLETION"
-          data={stats.needsCompletion}
-          color="yellow"
-          unit="Requests"
-        />
-
-        <StatsCards
-          title="POTENTIAL REVENUE"
-          data={stats.potentialRevenue}
-          currency="$"
-          color="blue"
-        />
+    <div className="h-full flex flex-col overflow-auto">
+      <div className="pt-6 px-6 shrink-0">
+        <StatsCards items={stats} />
       </div>
 
-      <div className="px-6 py-6">
-        <RequestsTable onRefreshStats={loadStats}/>
+      <div className="flex-1 px-6 py-6 min-h-0">
+        <RequestsTable onRefreshStats={loadStats} />
       </div>
     </div>
   );
 }
 
 export default CollectorRequests;
+
+

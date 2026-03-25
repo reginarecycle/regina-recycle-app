@@ -28,17 +28,20 @@ export class UsersController {
     return this.usersService.updateProfile(req.user.userId, dto);
   }
 
+  // PATCH /users/deactivate
   @Patch('deactivate')
   @HttpCode(HttpStatus.OK)
   deactivateAccount(@Req() req: AuthRequest) {
     return this.usersService.deactivateAccount(req.user.userId);
   }
 
+  // GET /users/delete/check
   @Get('delete/check')
-  checkDeleteEligibility(@Req() req: AuthRequest) {
+  checkDeleteEligibility(@Req() req: any) {
     return this.usersService.checkDeleteEligibility(req.user.userId);
   }
 
+  // DELETE /users/delete
   @Delete('delete')
   @HttpCode(HttpStatus.OK)
   deleteAccount(@Req() req: AuthRequest) {
