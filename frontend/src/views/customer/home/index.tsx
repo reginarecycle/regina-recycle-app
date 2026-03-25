@@ -18,13 +18,13 @@ const UserHome = () => {
     return d.toISOString();
   }, []);
 
-  const { data: statsResult   } = useCustomerDashboardStats();          // GET /customers/dashboard-stats
-  const { data: walletResult  } = useCustomerWallet();                  // GET /wallet/customer
-  const { data: tipResult     } = useGetTip();                          // GET /tips
-  const { data: upcomingResult } = useGetCustomerPickups({              // GET /pickups?startDate=today&limit=10 — nearest upcoming
+  const { data: statsResult   } = useCustomerDashboardStats();          
+  const { data: walletResult  } = useCustomerWallet();                  
+  const { data: tipResult     } = useGetTip();                          
+  const { data: upcomingResult } = useGetCustomerPickups({              
     limit: 10, page: 1, startDate: todayStart,
   });
-  const { data: scheduleResult } = useGetCustomerPickups({              // GET /pickups?limit=5 — recent schedule table
+  const { data: scheduleResult } = useGetCustomerPickups({             
     limit: 5, page: 1,
   });
 
@@ -43,8 +43,6 @@ const UserHome = () => {
     { title: "Water Saved",            data: stats?.waterSaved           ?? 0, unit: "Liters", color: "blue"               },
     { title: "Pending Earnings",       data: stats?.pendingEarnings      ?? 0, unit: "CAD",   color: "gold", currency: "$" },
   ];
-
-  // ── Wallet card ───────────────────────────────────────────────────────────
   const walletCard = (
     <WalletBalance
       balance={wallet?.balance ?? 0}
