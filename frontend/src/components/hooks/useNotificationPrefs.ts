@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   useNotificationsPreferences,
-  useUpdateNotificationPreferences,
+  useUpdateNotificationPreferences, // new
   useCreateNotificationPreferences,
   type NotificationPreferencesDto,
   type UpdateNotificationPreferencePayload,
@@ -42,7 +42,7 @@ function mapFrontendToBackend(
 
 export function useNotificationPrefs() {
   const { data, isLoading, error, refetch } = useNotificationsPreferences();
-  const updatePrefsMutation = useCreateNotificationPreferences();
+  const updatePrefsMutation = useUpdateNotificationPreferences();
 
   const [saved, setSaved] = useState<NotificationPrefs>(DEFAULT_PREFS);
   const [prefs, setPrefs] = useState<NotificationPrefs>(DEFAULT_PREFS);
