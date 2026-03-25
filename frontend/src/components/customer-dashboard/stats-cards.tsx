@@ -19,7 +19,7 @@ const COLOR_THEMES = {
 
 function StatCard({ title, data, unit, color = "blue", currency = "" }: StatItem) {
   const theme = COLOR_THEMES[color];
-  const displayValue = color === "gold" ? data.toFixed(2) : data.toString();
+  const displayValue = color === "gold" ? data.toFixed(2) : data.toFixed(0);
 
   return (
     <Card className={`w-full min-h-36 sm:min-h-42 rounded-xl border shadow-none px-4 py-4 sm:px-6 sm:py-5 flex flex-col justify-between overflow-hidden ${theme.bg} ${theme.border}`}>
