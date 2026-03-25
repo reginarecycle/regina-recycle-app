@@ -47,19 +47,12 @@ export class UsersService {
       }
     }
 
-    // Hash new password if provided
-    let hashedPassword: string | undefined;
-    if (dto.password) {
-      hashedPassword = await bcrypt.hash(dto.password, 10);
-    }
-
     const updated = await this.prisma.user.update({
       where: { userId },
       data: {
         ...(dto.name        !== undefined && { name:        dto.name        }),
         ...(dto.email       !== undefined && { email:       dto.email       }),
         ...(dto.phoneNumber !== undefined && { phoneNumber: dto.phoneNumber }),
-        ...(hashedPassword               && { password:    hashedPassword  }),
       },
       select: {
         userId:      true,
@@ -70,6 +63,19 @@ export class UsersService {
         updatedAt:   true,
       },
     });
+
+    if (dto.dateOfBirth !== undefined) {
+  await this.prisma.customerDOB.upsert({
+    where: { userId },
+    update: {
+      dob: new Date(dto.dateOfBirth),
+    },
+    create: {
+      userId,
+      dob: new Date(dto.dateOfBirth),
+    },
+  });
+}
 
     await this.notificationService.sendNotification({
       type:           NotificationEventType.ALERT,
