@@ -1,6 +1,7 @@
 import {
   useQuery,
   useMutation,
+  useInfiniteQuery,
   useQueryClient,
   type QueryKey,
   type UseQueryOptions,
@@ -49,6 +50,22 @@ export function useCreate<TData, TBody = Partial<TData>>(
   });
 }
 
+export function usePatch<TData, TBody = Partial<TData>>(
+  endpoint: string,
+  invalidateKey: QueryKey,
+  options?: UseMutationOptions<ApiResult<TData>, Error, TBody>
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation<ApiResult<TData>, Error, TBody>({
+    mutationFn: (body) => apiFetch<TData>(endpoint, { method: "PATCH", data: body }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: invalidateKey });
+    },
+    ...options,
+  });
+}
+
 export function useUpdate<TData, TBody = Partial<TData>>(
   endpointFn: (id: string) => string,
   invalidateKey: QueryKey,
@@ -67,6 +84,21 @@ export function useUpdate<TData, TBody = Partial<TData>>(
       queryClient.invalidateQueries({ queryKey: invalidateKey });
     },
     ...options,
+  });
+}
+
+export function useGetInfiniteList<T extends { meta?: { hasNextPage?: boolean; page?: number } }>(
+  queryKey: QueryKey,
+  endpointFn: (page: number) => string,
+) {
+  return useInfiniteQuery({
+    queryKey,
+    queryFn: ({ pageParam }: { pageParam: number }) => apiFetch<T>(endpointFn(pageParam)),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage: ApiResult<T>) => {
+      const meta = (lastPage.data as { meta?: { hasNextPage?: boolean; page?: number } })?.meta;
+      return meta?.hasNextPage ? (meta.page ?? 1) + 1 : undefined;
+    },
   });
 }
 

@@ -152,6 +152,9 @@ export class CollectorsService {
           requester: { select: { userId: true, name: true, email: true, phoneNumber: true } },
           address: true,
           items: { include: { material: true } },
+          snapshots: {
+              include:{material: true},
+          },
         },
         orderBy: { scheduledAt: 'asc' },
         skip,
@@ -422,12 +425,39 @@ export class CollectorsService {
     return ServiceFeeFactory.create(feeType, feeValue).calculate(amount);
   }
 
-  private getStartDate(period?: string): Date | undefined {
-    if (!period) return undefined;
-    const date = new Date();
-    if (period === 'weekly') date.setDate(date.getDate() - 7);
-    else if (period === 'monthly') date.setDate(date.getDate() - 30);
-    else return undefined;
-    return date;
-  }
+async getAverageMaterialPrice(materialId: string) {
+   const result = await this.prisma.collectorPricing.aggregate({
+     where: {
+       materialId,
+       status: PricingStatus.ACTIVE,
+     },
+     _min: {
+       basePrice: true,
+     },
+     _max: {
+       basePrice: true,
+     },
+     _avg: {
+       basePrice: true,
+     },
+   });
+
+
+   return {
+     minPrice: Number(result._min.basePrice ?? 0),
+     maxPrice: Number(result._max.basePrice ?? 0),
+     avgPrice: Number(result._avg.basePrice ?? 0),
+   };
+ }
+
+ private getStartDate(period?: string): Date | undefined {
+   if (!period) return undefined;
+   const date = new Date();
+   if (period === 'weekly') date.setDate(date.getDate() - 7);
+   else if (period === 'monthly') date.setDate(date.getDate() - 30);
+   else return undefined;
+   return date;
+ }
+
 }
+

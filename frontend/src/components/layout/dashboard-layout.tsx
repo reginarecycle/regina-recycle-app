@@ -37,10 +37,8 @@ export default function DashboardLayout() {
   const { data: userResult, isLoading } = useCurrentUser();
   const user = userResult?.data;
 
-  // ── Must be before any early returns (rules of hooks) ────────────────────────
   useInactivityLogout(60 * 60 * 1000);
 
-  // ── Role-aware redirects ──────────────────────────────────────────────────────
   const role = getUserRole();
 
   if (location.pathname === Routes.app) {

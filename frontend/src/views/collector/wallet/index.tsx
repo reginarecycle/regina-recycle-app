@@ -1,9 +1,11 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Minus, Plus, ArrowUpRight } from "lucide-react";
+import { formatAmount } from "@/lib/utils";
 import type { Transaction, TransactionStatus, TransactionType } from "./types";
 import { WalletBalanceCard, WalletStats } from "./components";
-import { TransactionHistoryPage } from "./TransactionHistoryPage";
+import { Routes } from "@/routes/routes";
 import { WithdrawFundsModal } from "./Modals/withdraw/Withdrawfundsmodal";
 import { AddFundsModal } from "./Modals/AddFunds/AddFundsModal";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
@@ -13,12 +15,14 @@ import { useGetCollectorWallet, useGetWalletTransactions } from "@/api-hooks/use
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const TX_ICONS: Record<TransactionType, { bg: string; Icon: React.ElementType; color: string }> = {
-  payout:     { bg: "bg-yellow-100", Icon: Minus,        color: "text-yellow-600" },
-  topup:      { bg: "bg-green-100",  Icon: Plus,         color: "text-green-600"  },
-  withdrawal: { bg: "bg-blue-100",   Icon: ArrowUpRight, color: "text-blue-600"   },
+  payout: { bg: "bg-yellow-100", Icon: Minus, color: "text-yellow-600" },
+  topup: { bg: "bg-green-100", Icon: Plus, color: "text-green-600" },
+  withdrawal: { bg: "bg-blue-100", Icon: ArrowUpRight, color: "text-blue-600" },
 };
 
 function mapTransaction(tx: {
+  transactionId: string;
+  referenceNumber?: string;
   walletId: string;
   type: string;
   amount: number;
@@ -35,7 +39,7 @@ function mapTransaction(tx: {
     uiType = "payout";
   }
   return {
-    id: tx.referenceId ?? tx.walletId,
+    id: tx.referenceNumber ?? `RRY-${parseInt(tx.transactionId.replace(/-/g, "").slice(0, 8), 16) % 900000 + 100000}`,
     name: tx.description ?? "Transaction",
     type: uiType,
     date: new Date(tx.createdAt).toLocaleDateString("en-CA", { day: "numeric", month: "short", year: "numeric" }),
@@ -73,7 +77,7 @@ const COLUMNS: ColumnDef<Transaction>[] = [
   {
     key: "amount",
     header: "Amount",
-    cell: (row) => <span className="text-sm font-medium text-foreground">${row.amount.toFixed(2)}</span>,
+    cell: (row) => <span className="text-sm font-medium text-foreground">${formatAmount(row.amount)}</span>,
   },
   {
     key: "status",
@@ -100,15 +104,15 @@ function WalletSkeleton() {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function WalletManagement() {
+  const navigate = useNavigate();
   const [addFundsOpen, setAddFundsOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
-  const [viewAllOpen, setViewAllOpen]   = useState(false);
 
   const { data: walletResult, isLoading: walletLoading, isError: walletError } = useGetCollectorWallet();
-  const { data: txResult,     isLoading: txLoading,     isError: txError      } = useGetWalletTransactions({ page: 1, limit: 4 });
+  const { data: txResult, isLoading: txLoading, isError: txError } = useGetWalletTransactions({ page: 1, limit: 4 });
 
   if (walletError) toast.error("Failed to load wallet. Please refresh.");
-  if (txError)     toast.error("Failed to load transactions. Please refresh.");
+  if (txError) toast.error("Failed to load transactions. Please refresh.");
 
   const wallet = walletResult?.data;
   const transactions = useMemo(() => (txResult?.data?.data ?? []).map(mapTransaction), [txResult]);
@@ -120,7 +124,6 @@ export default function WalletManagement() {
     </div>
   );
 
-  if (viewAllOpen) return <TransactionHistoryPage onBack={() => setViewAllOpen(false)} />;
 
   return (
     <div className="flex-1 p-6 lg:p-8 overflow-auto bg-background flex flex-col gap-5">
@@ -130,7 +133,12 @@ export default function WalletManagement() {
         onWithdraw={() => setWithdrawOpen(true)}
       />
 
-      <WalletStats totalPayouts={wallet.monthlyPayouts} netFlow={wallet.monthlyNetFlow} />
+      <WalletStats
+        totalPayouts={wallet.monthlyPayouts}
+        netFlow={wallet.monthlyNetFlow}
+        payoutsChange={wallet.monthlyPayoutsChange}
+        netFlowChange={wallet.monthlyNetChange}
+      />
 
       <DataTable
         data={txLoading ? [] : transactions}
@@ -139,7 +147,7 @@ export default function WalletManagement() {
         title="Transaction History"
         headerRight={
           <button
-            onClick={() => setViewAllOpen(true)}
+            onClick={() => navigate(Routes.collectortransactionhistory)}
             className="text-sm text-primary font-semibold hover:underline whitespace-nowrap"
           >
             View All

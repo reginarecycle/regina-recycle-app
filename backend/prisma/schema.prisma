@@ -30,6 +30,7 @@ enum NotificationType {
   EMAIL_PICKUP_REMINDER
   IN_APP_PICKUP_REMINDER
   ACCOUNT_ACTIVITY
+  PAYMENT_ACTIVITY
   MARKETING
   ALERT
 }
@@ -122,7 +123,7 @@ model CollectorProfile {
   userId             String   @unique
   licenseId          String   @unique
   serviceFee         Decimal  @db.Decimal(10,2)
-  feeType            String   @default("FLAT_FEE")
+  feeType           String   @default("FLAT_FEE")
   bulkIncentiveEnabled Boolean  @default(false)
   bulkThreshold        Int      @default(100)
   createdAt          DateTime @default(now())
@@ -178,6 +179,7 @@ model Material {
   co2Saved   Float?
   waterSaved Float?
   createdAt  DateTime @default(now())
+  
   collectorPricings CollectorPricing[]
   pickupItems       PickupItem[]
   pickupSnapshots   PickupSnapshot[]
@@ -279,16 +281,17 @@ model Wallet {
 }
 
 model WalletTransaction {
-  transactionId String   @id @default(uuid())
-  walletId      String
-  userId        String?
-  type          TxType
-  amount        Decimal  @db.Decimal(14,2)
-  status        TxStatus @default(PENDING)
-  description   String?
-  referenceType String?
-  referenceId   String?
-  createdAt     DateTime @default(now())
+  transactionId   String   @id @default(uuid())
+  referenceNumber String?  @unique
+  walletId        String
+  userId          String?
+  type            TxType
+  amount          Decimal  @db.Decimal(14,2)
+  status          TxStatus @default(PENDING)
+  description     String?
+  referenceType   String?
+  referenceId     String?
+  createdAt       DateTime @default(now())
   wallet        Wallet   @relation(fields: [walletId], references: [walletId], onDelete: Cascade) // cascade if wallet removed
   user          User?    @relation(fields: [userId], references: [userId], onDelete: SetNull) // keep transaction but null user
 

@@ -14,7 +14,9 @@ const STYLES: Record<string, string> = {
   CANCELLED:   "bg-red-100 text-red-700 border border-red-200",
   REJECTED:    "bg-red-100 text-red-700 border border-red-200",
   FAILED:      "bg-red-100 text-red-700 border border-red-200",
-  INACTIVE:    "bg-muted text-muted-foreground border border-border",
+  INACTIVE:      "bg-muted text-muted-foreground border border-border",
+  COMPATIBLE:    "bg-green-100 text-green-700 border border-green-200",
+  INCOMPATIBLE:  "bg-red-100 text-red-700 border border-red-200",
 };
 
 export function StatusBadge({ status, label, className }: { status: string; label?: string; className?: string }) {

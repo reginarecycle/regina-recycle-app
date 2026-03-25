@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MapPin } from "lucide-react";
@@ -5,12 +6,29 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import InputField from "@/components/forms/input-field";
 import { ProfileHeader } from "@/components/shared/ProfileHeader";
-import {
-  collectorProfileSchema,
-  type CollectorProfileFormValues,
-} from "@/lib/validation";
+import { collectorProfileSchema, type CollectorProfileFormValues } from "@/lib/validation";
+import { useQuery } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/apiFetch";
+import { useUpdateCollectorProfile } from "@/api-hooks/useCollector";
+import { toast } from "sonner";
+
+interface CurrentUser {
+  userId:      string;
+  name:        string;
+  email:       string;
+  phoneNumber: string | null;
+  collectorProfile: { licenseId: string } | null;
+}
 
 export function CollectorProfileTab() {
+  const { data: meData } = useQuery({
+    queryKey: ["auth", "me"],
+    queryFn:  () => apiFetch<CurrentUser>("/auth/me"),
+  });
+
+  const me = meData?.data;
+  const { mutate: updateProfile, isPending } = useUpdateCollectorProfile();
+
   const {
     register,
     handleSubmit,
@@ -18,7 +36,7 @@ export function CollectorProfileTab() {
     reset,
   } = useForm<CollectorProfileFormValues>({
     resolver: zodResolver(collectorProfileSchema),
-    mode: "onChange",
+    mode: "onBlur",
     defaultValues: {
       businessName:       "Shahnaz and Sons Recycling",
       businessEmail:      "ssr@gmail.com",
@@ -31,17 +49,41 @@ export function CollectorProfileTab() {
     },
   });
 
+  useEffect(() => {
+    if (me) {
+      reset({
+        businessName:       me.name ?? "",
+        businessEmail:      me.email ?? "",
+        businessPhone:      me.phoneNumber ?? "",
+        registrationNumber: me.collectorProfile?.licenseId ?? "",
+        address:            "",
+        city:               "",
+        provinceState:      "",
+        postalCode:         "",
+      });
+    }
+  }, [me, reset]);
+
   const onSubmit = (data: CollectorProfileFormValues) => {
-    console.log("Profile data:", data);
-    // TODO: call your API here
+    updateProfile(
+      {
+        name:        data.businessName,
+        phoneNumber: data.businessPhone,
+        licenseId:   data.registrationNumber,
+      },
+      {
+        onSuccess: () => toast.success("Profile updated successfully"),
+        onError:   () => toast.error("Failed to update profile"),
+      }
+    );
   };
 
   return (
     <>
       <ProfileHeader
         avatarSrc="/collector-avatar.png"
-        avatarFallback="SS"
-        name="Shahnaz and Sons Recycling"
+        avatarFallback={me?.name?.slice(0, 2).toUpperCase() ?? "SS"}
+        name={me?.name ?? "Shahnaz and Sons Recycling"}
         badge="VERIFIED COLLECTOR"
         memberSince="Member since January 2026"
       />
@@ -56,10 +98,10 @@ export function CollectorProfileTab() {
               <span className="text-xl">🏢</span> Business Information
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <InputField label="Legal Business Name"  register={register("businessName")}       error={errors.businessName?.message}       placeholder="John Doe"        required />
-              <InputField label="Business Email"       register={register("businessEmail")}      error={errors.businessEmail?.message}      type="email" placeholder="doe@gmail.com" disabled required />
-              <InputField label="Business Phone Number" register={register("businessPhone")}     error={errors.businessPhone?.message}      placeholder="1-(306)-0000"    required />
-              <InputField label="Registration Number"  register={register("registrationNumber")} error={errors.registrationNumber?.message} placeholder="123456789"       required />
+              <InputField label="Legal Business Name"   register={register("businessName")}       error={errors.businessName?.message}       placeholder="John Doe"        required />
+              <InputField label="Business Email"        register={register("businessEmail")}      error={errors.businessEmail?.message}      type="email" placeholder="doe@gmail.com" disabled required />
+              <InputField label="Business Phone Number" register={register("businessPhone")}      error={errors.businessPhone?.message}      placeholder="1-(306)-0000"    required />
+              <InputField label="Registration Number"   register={register("registrationNumber")} error={errors.registrationNumber?.message} placeholder="123456789"       required />
             </div>
           </div>
 
@@ -79,13 +121,13 @@ export function CollectorProfileTab() {
           </div>
 
           <div className="flex flex-col sm:flex-row justify-center sm:justify-end gap-3 pt-6">
-            <Button type="button" variant="outline" disabled={!isDirty} onClick={() => reset()}
+            <Button type="button" variant="outline" disabled={!isDirty || isPending} onClick={() => reset()}
               className="w-full sm:w-[174px] h-11 min-w-0 border-[rgba(221,30,30,0.60)] text-red-500 hover:bg-red-50 disabled:opacity-60">
               Cancel
             </Button>
-            <Button type="submit" disabled={!isDirty}
+            <Button type="submit" disabled={!isDirty || isPending}
               className="w-full sm:w-[174px] h-11 min-w-0 bg-primary hover:bg-primary/90 disabled:opacity-60">
-              Save Changes
+              {isPending ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </form>

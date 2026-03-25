@@ -1,10 +1,15 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import BasketGif from "@/assets/basket.gif";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useSchedule } from "@/components/scheduleView/ScheduleContext";
-import { useGetMaterials } from "@/api-hooks/useMaterials";
+import { useGetMaterialsInfinite, useGetMaterialAveragePrice } from "@/api-hooks/useMaterials";
+import { useQueries } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/apiFetch";
+import type { MaterialAveragePrice } from "@/api-hooks/useMaterials";
 import useDebounce from "@/hooks/useDebounce";
+import { formatAmount } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -14,6 +19,104 @@ type Item = {
   payoutInfo: string;
   estimatedPay: number;
 };
+
+// ── Average price label ────────────────────────────────────────────────────────
+
+function formatCents(dollars: number): string {
+  const cents = Math.round(dollars * 100);
+  return cents < 100 ? `${cents}¢` : `$${formatAmount(dollars)}`;
+}
+
+function AveragePriceLabel({ materialId }: { materialId: string }) {
+  const { data, isLoading } = useGetMaterialAveragePrice(materialId);
+
+  if (isLoading) return <span className="text-[11px] text-muted-foreground">Loading price…</span>;
+
+  const min = data?.data?.minPrice;
+  const max = data?.data?.maxPrice;
+
+  if (min == null || max == null || (min === 0 && max === 0)) {
+    return <span className="text-[11px] text-muted-foreground">Price varies by collector</span>;
+  }
+
+  if (min === max) {
+    return <span className="text-[11px] text-muted-foreground">{formatCents(min)}/unit</span>;
+  }
+
+  return (
+    <span className="text-[11px] text-muted-foreground">
+      {formatCents(min)} – {formatCents(max)}/unit
+    </span>
+  );
+}
+
+// ── Photo preview card ─────────────────────────────────────────────────────────
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes}B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)}KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+}
+
+function PhotoPreviewCard({
+  file,
+  onRemove,
+  onReplace,
+}: {
+  file: File;
+  onRemove: () => void;
+  onReplace: (f: File) => void;
+}) {
+  const [preview, setPreview] = useState<string | null>(null);
+  const replaceRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-border bg-white px-3 py-3">
+      {preview ? (
+        <img src={preview} alt={file.name} className="h-14 w-14 rounded-lg object-cover shrink-0" />
+      ) : (
+        <div className="h-14 w-14 rounded-lg bg-muted shrink-0" />
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-foreground truncate">{file.name}</p>
+        <p className="text-xs text-primary mt-0.5">{formatFileSize(file.size)}</p>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <input
+          ref={replaceRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) onReplace(f);
+            e.target.value = "";
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => replaceRef.current?.click()}
+          className="rounded-full border border-border px-3 py-1 text-sm text-foreground hover:bg-muted transition-colors"
+        >
+          Change
+        </button>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+        >
+          ×
+        </button>
+      </div>
+    </div>
+  );
+}
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -49,22 +152,78 @@ export default function Step1Items({ onNext }: Props) {
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 400);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const { data: materialsResult, isLoading } = useGetMaterials({
-    search: debouncedSearch || undefined,
-    limit: 100,
+  const {
+    data: materialsResult,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useGetMaterialsInfinite({ search: debouncedSearch || undefined, limit: 20 });
+
+  // Flatten pages → items
+  const ITEMS: Item[] = useMemo(() => {
+    const pages = materialsResult?.pages ?? [];
+    return pages.flatMap((page) =>
+      (page.data?.data ?? []).map((m) => ({
+        id: m.materialId,
+        name: m.name,
+        payoutInfo: m.description ?? "",
+        estimatedPay: 0,
+      }))
+    );
+  }, [materialsResult]);
+
+  // Infinite scroll — load next page when sentinel is visible
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Fetch avg prices for selected items (used by AveragePriceLabel via RQ cache + for estCost)
+  const selectedIds = useMemo(() => Object.keys(itemPicked), [itemPicked]);
+
+  const avgPriceResults = useQueries({
+    queries: selectedIds.map((id) => ({
+      queryKey: ["materials", "averagePrice", id],
+      queryFn: () => apiFetch<MaterialAveragePrice>(`/collectors/materials/${id}/averagePrice`),
+      staleTime: 5 * 60 * 1000,
+    })),
   });
 
-  // Map API materials → Item shape
-  const ITEMS: Item[] = useMemo(() => {
-    const raw = materialsResult?.data?.data ?? [];
-    return raw.map((m) => ({
-      id: m.materialId,
-      name: m.name,
-      payoutInfo: m.description ?? "Recyclable material accepted for pickup.",
-      estimatedPay: m.co2Saved ?? 0.10,
-    }));
-  }, [materialsResult]);
+  // Stable map: only changes when a new price actually loads (not on every render)
+  const avgPriceMap = useRef<Record<string, number>>({});
+  const prevLoadedKey = useRef("");
+
+  const loadedKey = selectedIds
+    .map((id, i) => {
+      const p = avgPriceResults[i]?.data?.data?.avgPrice;
+      return p != null ? `${id}:${p}` : null;
+    })
+    .filter(Boolean)
+    .sort()
+    .join("|");
+
+  if (loadedKey !== prevLoadedKey.current) {
+    prevLoadedKey.current = loadedKey;
+    const map: Record<string, number> = {};
+    selectedIds.forEach((id, i) => {
+      const p = avgPriceResults[i]?.data?.data?.avgPrice;
+      if (p != null) map[id] = p;
+    });
+    avgPriceMap.current = map;
+  }
 
   const selectedItems = useMemo(
     () => ITEMS.filter((item) => itemPicked[item.id] !== undefined),
@@ -75,8 +234,8 @@ export default function Step1Items({ onNext }: Props) {
 
   const syncContext = (newPicked: Record<string, number>) => {
     const total = Object.values(newPicked).reduce((a, b) => a + b, 0);
-    const cost = ITEMS.reduce(
-      (sum, item) => sum + (newPicked[item.id] || 0) * item.estimatedPay,
+    const cost = Object.entries(newPicked).reduce(
+      (sum, [id, qty]) => sum + qty * (avgPriceMap.current[id] ?? 0),
       0
     );
     updateScheduleData({
@@ -86,6 +245,16 @@ export default function Step1Items({ onNext }: Props) {
       estCost: cost,
     });
   };
+
+  // Update estCost when prices load without touching itemPicked
+  useEffect(() => {
+    if (selectedIds.length === 0) return;
+    const cost = Object.entries(itemPicked).reduce(
+      (sum, [id, qty]) => sum + qty * (avgPriceMap.current[id] ?? 0),
+      0
+    );
+    updateScheduleData({ estCost: cost });
+  }, [loadedKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleItem = (id: string) => {
     const next = { ...itemPicked };
@@ -150,32 +319,36 @@ export default function Step1Items({ onNext }: Props) {
                   <p className="text-sm text-muted-foreground">No materials found</p>
                 </div>
               ) : (
-                ITEMS.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => toggleItem(item.id)}
-                    className={`w-full flex items-center justify-between rounded-lg border px-4 py-4 transition-colors ${
-                      isSelected(item.id)
-                        ? "border-primary bg-background-green-100"
-                        : "border-border bg-white hover:border-muted-foreground"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <ItemIcon />
-                      <span className="text-sm text-foreground">{item.name}</span>
-                    </div>
-                    {isSelected(item.id) ? (
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
-                        ✓
+                <>
+                  {ITEMS.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => toggleItem(item.id)}
+                      className={`w-full flex items-center justify-between rounded-lg border px-4 py-4 transition-colors ${
+                        isSelected(item.id)
+                          ? "border-primary bg-background-green-100"
+                          : "border-border bg-white hover:border-muted-foreground"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <ItemIcon />
+                        <span className="text-sm text-foreground">{item.name}</span>
                       </div>
-                    ) : (
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-muted-foreground">
-                        +
-                      </div>
-                    )}
-                  </button>
-                ))
+                      {isSelected(item.id) ? (
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+                          ✓
+                        </div>
+                      ) : (
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-muted-foreground">
+                          +
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                  <div ref={sentinelRef} className="h-2" />
+                  {isFetchingNextPage && <SkeletonItem />}
+                </>
               )}
             </div>
           </div>
@@ -232,14 +405,12 @@ export default function Step1Items({ onNext }: Props) {
                           <p className="text-[13px] font-semibold text-foreground truncate">
                             {item.name}
                           </p>
-                          <p className="text-[11px] text-muted-foreground">
-                            {item.payoutInfo}
-                          </p>
+                          <AveragePriceLabel materialId={item.id} />
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0">
-                        <input
+                        <Input
                           type="number"
                           min={1}
                           value={itemPicked[item.id] || ""}
@@ -253,7 +424,7 @@ export default function Step1Items({ onNext }: Props) {
                             const v = Number(e.target.value);
                             setQuantity(item.id, v > 0 ? v : 1);
                           }}
-                          className="h-9 w-14 rounded-md border border-border text-center text-sm"
+                          className="h-9 w-14 rounded-md border border-border text-center text-sm [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         />
                         <button
                           type="button"
@@ -275,13 +446,38 @@ export default function Step1Items({ onNext }: Props) {
       {/* Upload */}
       <div className="mt-6 w-full">
         <p className="text-sm font-medium text-foreground">
-          Upload photos of your bags{" "}
+          Upload a photo of your bags{" "}
           <span className="text-muted-foreground">(optional)</span>
         </p>
-        <label className="mt-3 flex h-[120px] w-full cursor-pointer items-center justify-center rounded-xl border border-dashed border-border text-sm text-muted-foreground hover:bg-muted transition-colors">
-          <input type="file" accept="image/*" multiple className="hidden" />
-          Drag and drop or click to browse images
-        </label>
+
+        {!scheduleData.photo ? (
+          <label className="mt-3 flex h-30 w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-border text-sm text-muted-foreground hover:bg-muted transition-colors">
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) updateScheduleData({ photo: file });
+                e.target.value = "";
+              }}
+            />
+            <svg className="mb-1 h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Drag and drop or click to browse
+          </label>
+        ) : (
+          <div className="mt-3">
+            <PhotoPreviewCard
+              file={scheduleData.photo}
+              onRemove={() => updateScheduleData({ photo: null })}
+              onReplace={(newFile) => updateScheduleData({ photo: newFile })}
+            />
+          </div>
+        )}
       </div>
 
       {/* Additional note */}
@@ -290,8 +486,10 @@ export default function Step1Items({ onNext }: Props) {
           Additional notes{" "}
           <span className="text-muted-foreground">(optional)</span>
         </p>
-        <textarea
+        <Textarea
           rows={3}
+          value={scheduleData.note}
+          onChange={(e) => updateScheduleData({ note: e.target.value })}
           placeholder="e.g. Items are in the front porch, please ring the bell..."
           className="mt-3 w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:border-primary transition-colors"
         />
