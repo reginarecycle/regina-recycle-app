@@ -11,7 +11,6 @@ export class AddressesService {
   async create(userId: string, createAddressDto: AddressDto) {
     const { ...addressData } = createAddressDto;
 
-    // Verify user exists
     const user = await this.prisma.user.findUnique({
       where: { userId },
     });
@@ -20,7 +19,6 @@ export class AddressesService {
       throw new NotFoundException(ErrorMessage.USER_NOT_FOUND);
     }
 
-    // Check for duplicate address
     const existingAddress = await this.prisma.address.findFirst({
       where: {
         userId,
@@ -33,14 +31,12 @@ export class AddressesService {
       throw new BadRequestException(ErrorMessage.ADDRESS_ALREADY_EXISTS);
     }
 
-    // If this is the first address, make it primary
     const addressCount = await this.prisma.address.count({
       where: { userId },
     });
 
     const isPrimary = addressCount === 0 || addressData.isPrimary === true;
 
-    // If setting as primary, unset other primary addresses
     if (isPrimary) {
       await this.prisma.address.updateMany({
         where: { userId, isPrimary: true },
@@ -48,7 +44,6 @@ export class AddressesService {
       });
     }
 
-    // Create the address
     const address = await this.prisma.address.create({
       data: {
         line1: addressData.line1,
@@ -102,7 +97,6 @@ export class AddressesService {
       throw new NotFoundException(ErrorMessage.ADDRESS_NOT_FOUND);
     }
 
-    // If setting as primary, unset other primary addresses for this user
     if (updateAddressDto.isPrimary === true) {
       await this.prisma.address.updateMany({
         where: {
@@ -114,7 +108,6 @@ export class AddressesService {
       });
     }
 
-    // Update the address
     const updatedAddress = await this.prisma.address.update({
       where: { addressId },
       data: updateAddressDto,
@@ -135,7 +128,6 @@ export class AddressesService {
       throw new NotFoundException(ErrorMessage.ADDRESS_NOT_FOUND);
     }
 
-    // Don't allow deletion of primary address if there are others
     if (address.isPrimary) {
       const otherAddresses = await this.prisma.address.count({
         where: {
@@ -192,9 +184,16 @@ export class AddressesService {
 
   // Get primary address for a user
   async getDefaultAddress(userId: string) {
+    // Guard: if a full user object is passed instead of a string, extract the userId
+    const resolvedId = typeof userId === 'string' ? userId : (userId as any)?.userId;
+
+    if (!resolvedId) {
+      throw new NotFoundException(ErrorMessage.USER_NOT_FOUND);
+    }
+
     const primaryAddress = await this.prisma.address.findFirst({
       where: {
-        userId,
+        userId: resolvedId,
         isPrimary: true,
       },
     });
@@ -217,5 +216,6 @@ export class AddressesService {
     if (!address) {
       throw new UnauthorizedException(ErrorMessage.ADDRESS_NO_ACCESS);
     }
-    return !!address;}
+    return !!address;
+  }
 }
