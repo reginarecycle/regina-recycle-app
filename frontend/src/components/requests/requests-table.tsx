@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/data-table-header-controls";
 import { MaterialTag } from "@/components/ui/material-tag";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { ChevronRight } from "lucide-react";
 import { RequestsData, type RequestRow } from "@/components/requests/requests-data";
 import { RequestDetailsModal } from "./request-details-modal";
 import { RequestAcceptedModal } from "./request-accepted-modal";
