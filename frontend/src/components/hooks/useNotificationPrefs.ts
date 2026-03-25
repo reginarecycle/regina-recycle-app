@@ -39,8 +39,8 @@ function mapFrontendToBackend(
     inAppAlerts: prefs["inapp:alerts"],
   };
 }
-
-export function useNotificationPrefs() {
+// for the notifcation page
+export function useNotificationPrefs2() {
   const { data, isLoading, error, refetch } = useNotificationsPreferences();
   const updatePrefsMutation = useUpdateNotificationPreferences();
 

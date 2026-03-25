@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   useNotificationsPreferences,
   useUpdateNotificationPreferences,
-  type NotificationsPreference,
+  type NotificationPreferencesDto,
   type UpdateNotificationPreferencePayload,
 } from "@/api-hooks/useNotifications";
 import type { CollectorNotificationKey } from "@/constants/data";
@@ -18,7 +18,7 @@ const DEFAULT_PREFS: CollectorNotificationPrefs = {
 };
 
 function mapBackendToFrontend(
-  prefs?: NotificationsPreference
+  prefs?: NotificationPreferencesDto
 ): CollectorNotificationPrefs {
   return {
     "email:collection": prefs?.emailPickupReminder ?? true,
