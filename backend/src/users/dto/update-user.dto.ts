@@ -4,26 +4,23 @@ import { IsString, IsOptional, IsEmail, MinLength, IsDateString, ValidateNested,
 import { AddressDto } from 'src/addresses/dto/address.dto';
 
 export class UpdateUserDto {
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   name?: string;
 
+  @ApiPropertyOptional()
   @IsOptional()
   @IsEmail()
   email?: string;
 
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   phoneNumber?: string;
 
   @ApiPropertyOptional()
-    @IsDateString()
-    @IsOptional()
-    dateOfBirth?: string;
-  
-    @ApiProperty({ type: () => AddressDto})
-    @ValidateNested()
-    @Type(() => AddressDto)
-    @IsNotEmpty()
-    address: AddressDto;
+  @IsDateString()
+  @IsOptional()
+  dateOfBirth?: string;
 }

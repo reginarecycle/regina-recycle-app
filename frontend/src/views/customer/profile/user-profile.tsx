@@ -202,7 +202,8 @@ const UserProfile = () => {
             )}
           />
         </div>
-
+        
+         <input type="hidden" {...registerDetails("address")} />
         <AddressAutocompleteField
           key={`${addressKey}-${addressData?.data?.addressId ?? "none"}`}
           initialValue={addressData?.data?.line1 ?? ""}
