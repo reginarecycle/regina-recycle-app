@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+import { formatDate, formatTimeRange } from "@/lib/utils";
 import WelcomeMessage from "@/components/customer-dashboard/welcome-message";
 import { StatsCards, type StatItem } from "@/components/customer-dashboard/stats-cards";
 import ComingNext from "@/components/customer-dashboard/coming-next";
@@ -10,25 +12,31 @@ import { useGetTip } from "@/api-hooks/useTips";
 import { useGetCustomerPickups } from "@/api-hooks/usePickups";
 
 const UserHome = () => {
-  // ── API calls using existing endpoints ────────────────────────────────────
+  const todayStart = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.toISOString();
+  }, []);
+
   const { data: statsResult   } = useCustomerDashboardStats();          // GET /customers/dashboard-stats
   const { data: walletResult  } = useCustomerWallet();                  // GET /wallet/customer
   const { data: tipResult     } = useGetTip();                          // GET /tips
-  const { data: nextResult    } = useGetCustomerPickups({               // GET /pickups?status=PENDING&limit=1
-    limit: 1, page: 1, status: "PENDING",
+  const { data: upcomingResult } = useGetCustomerPickups({              // GET /pickups?startDate=today&limit=10 — nearest upcoming
+    limit: 10, page: 1, startDate: todayStart,
   });
-  const { data: scheduleResult } = useGetCustomerPickups({              // GET /pickups?limit=5
+  const { data: scheduleResult } = useGetCustomerPickups({              // GET /pickups?limit=5 — recent schedule table
     limit: 5, page: 1,
   });
 
-  // ── Unwrap data ───────────────────────────────────────────────────────────
   const stats          = (statsResult  as any)?.data ?? statsResult  as any;
   const wallet         = (walletResult as any)?.data ?? walletResult as any;
   const tip            = (tipResult    as any)?.data ?? tipResult    as any;
-  const nextPickup     = ((nextResult     as any)?.data?.data ?? [])[0];
   const recentSchedule = (scheduleResult as any)?.data?.data ?? [];
 
-  // ── Stats cards ───────────────────────────────────────────────────────────
+  const nextPickup: any = ((upcomingResult as any)?.data?.data ?? [])
+    .filter((p: any) => p.status === "PENDING" || p.status === "ACCEPTED")
+    .sort((a: any, b: any) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())[0] ?? null;
+
   const STATS: StatItem[] = [
     { title: "CO2 Saved",              data: stats?.co2Saved             ?? 0, unit: "kg",    color: "red"                 },
     { title: "Total Recycle Quantity", data: stats?.totalRecycleQuantity ?? 0, unit: "units", color: "green"               },
@@ -46,13 +54,12 @@ const UserHome = () => {
     />
   );
 
-  // ── Coming up next ────────────────────────────────────────────────────────
+
   const comingNext = nextPickup ? (
     <ComingNext
-      pickup="Doorstep Pickup"
-      date={new Date(nextPickup.scheduledAt).toLocaleDateString("en-CA", {
-        month: "short", day: "numeric", year: "numeric",
-      })}
+      pickup="Recycling Pickup"
+      date={formatDate(nextPickup.scheduledAt)}
+      time={formatTimeRange(nextPickup.scheduledAt)}
       address={nextPickup.address
         ? `${nextPickup.address.line1}, ${nextPickup.address.city}`
         : "N/A"}
@@ -95,3 +102,67 @@ const UserHome = () => {
 };
 
 export default UserHome;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

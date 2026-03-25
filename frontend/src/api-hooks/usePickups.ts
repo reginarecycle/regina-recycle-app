@@ -105,6 +105,19 @@ export const useCreatePickup = () => {
   });
 };
 
+export const useCancelPickup = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (pickupId: string) => {
+      const response = await apiClient.delete(`/pickups/${pickupId}/cancel`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pickups"] });
+    },
+  });
+};
+
 export const useGetCustomerPickups = (query?: CustomerPickupsQuery, enabled = true) => {
   const params = new URLSearchParams();
   if (query?.page)      params.append("page",      String(query.page));

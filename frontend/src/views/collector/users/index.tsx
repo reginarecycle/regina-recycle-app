@@ -39,12 +39,16 @@ const Avatar = ({ name }: { name: string }) => {
 
 const CustomerModal = ({
   customerId,
+  status,
   onClose,
 }: {
   customerId: string;
+  status: string;
   onClose: () => void;
 }) => {
-  const { data: result, isLoading } = useCollectorCustomerDetail(customerId);
+  const { data: currentUser } = useCurrentUser();
+  const collectorId = (currentUser as any)?.data?.userId ?? "";
+  const { data: result, isLoading } = useCollectorCustomerDetail(collectorId, customerId);
   const detail = result?.data;
 
   const completedPickups = detail?.pickups.filter((p) => p.status === "COMPLETED") ?? [];
@@ -82,8 +86,12 @@ const CustomerModal = ({
               <p className="text-[16px] font-semibold leading-[24px]">
                 {isLoading ? "Loading..." : detail?.customer.name}
               </p>
-              <span className="mt-1 inline-flex w-fit rounded-full bg-[#DDFCE7] px-2 py-[2px] text-[10px] font-semibold uppercase leading-none text-[#16A34A]">
-                ACTIVE
+              <span className={`mt-1 inline-flex w-fit rounded-full px-2 py-[2px] text-[10px] font-semibold uppercase leading-none ${
+                status === "NEW"      ? "bg-[#DBEAFE] text-[#2563EB]" :
+                status === "INACTIVE" ? "bg-[#E2E8F0] text-[#64748B]" :
+                                        "bg-[#DDFCE7] text-[#16A34A]"
+              }`}>
+                {status}
               </span>
             </div>
           </div>
@@ -385,6 +393,7 @@ export default function CollectorUsersPage() {
       {selectedId && (
         <CustomerModal
           customerId={selectedId}
+          status={customers.find((c) => c.customerId === selectedId)?.status ?? "ACTIVE"}
           onClose={() => setSelectedId(null)}
         />
       )}

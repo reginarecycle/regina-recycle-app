@@ -7,6 +7,11 @@ import type { RecycleRecord } from "@/views/customer/history/types.tsx";
 import { useRouter } from "@/routes/hooks/use-router";
 import { Routes } from "@/routes/routes";
 import type { Pickup } from "@/api-hooks/usePickups";
+import { formatDate } from "@/lib/utils";
+
+function makeRef(id: string): string {
+  return `RRY-${parseInt(id.replace(/-/g, "").slice(0, 8), 16) % 900000 + 100000}`;
+}
 
 type Props = {
   recentSchedule?: Pickup[];
@@ -17,22 +22,21 @@ export function Schedule({ recentSchedule = [] }: Props) {
   const [selectedRecord, setSelectedRecord] = useState<RecycleRecord | null>(null);
 
   function toRecord(pickup: Pickup): RecycleRecord {
+    const location = pickup.address
+      ? `${pickup.address.line1}, ${pickup.address.city}`
+      : "N/A";
     return {
       id:                  pickup.pickupId,
-      location:            pickup.address
-        ? `${pickup.address.line1}, ${pickup.address.city}`
-        : "N/A",
+      location,
       materials:           pickup.items?.map((i) => i.material?.name ?? "") as RecycleRecord["materials"],
-      date:                pickup.scheduledAt,
+      date:                formatDate(pickup.scheduledAt),
       status:              pickup.status as RecycleRecord["status"],
-      referenceNumber:     `REF-${pickup.pickupId.slice(0, 8).toUpperCase()}`,
+      referenceNumber:     makeRef(pickup.pickupId),
       collectorName:       "Assigned Collector",
       collectorId:         pickup.pickupId,
-      requestDate:         pickup.scheduledAt,
-      scheduledPickupDate: pickup.scheduledAt,
-      pickupLocation:      pickup.address
-        ? `${pickup.address.line1}, ${pickup.address.city}`
-        : "N/A",
+      requestDate:         formatDate(pickup.scheduledAt),
+      scheduledPickupDate: formatDate(pickup.scheduledAt),
+      pickupLocation:      location,
     };
   }
 
@@ -53,9 +57,7 @@ export function Schedule({ recentSchedule = [] }: Props) {
       header: "Schedule Date",
       cell: (row) => (
         <span className="text-sm font-semibold text-foreground">
-          {new Date(row.scheduledAt).toLocaleDateString("en-GB", {
-            day: "numeric", month: "short", year: "numeric",
-          }).replace(/(\d+) (\w+) (\d+)/, "$1, $2 $3")}
+          {formatDate(row.scheduledAt)}
         </span>
       ),
     },

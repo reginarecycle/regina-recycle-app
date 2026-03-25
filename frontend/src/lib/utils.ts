@@ -94,6 +94,22 @@ export function formatAmount(amount: number): string {
   }).format(amount);
 }
 
+export function formatDate(iso: string): string {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return date.toLocaleDateString("en-CA", {
+    month: "short", day: "numeric", year: "numeric",
+  });
+}
+
+export function formatTimeRange(iso: string, durationHours = 2): string {
+  const start = new Date(iso);
+  const end   = new Date(start.getTime() + durationHours * 60 * 60 * 1000);
+  const fmt   = (d: Date) => d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+  return `${fmt(start)} – ${fmt(end)}`;
+}
+
 export function maskEmail(email: string): string {
   const [local, domain] = email.split("@");
   if (!local || !domain) return email;
@@ -101,9 +117,7 @@ export function maskEmail(email: string): string {
   return `${visible}${"*".repeat(Math.max(local.length - 3, 3))}@${domain}`;
 }
 
-// Formats a number as currency
-// formatCurrency(45.5)              → "$45.50 CAD"
-// formatCurrency(45.5, "CAD", false) → "45.50"
+
 export function formatCurrency(
   amount: number,
   currency: string = "CAD",

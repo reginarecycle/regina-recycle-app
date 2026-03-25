@@ -252,11 +252,11 @@ export const useCollectorCustomers = (query?: { search?: string; page?: number; 
   );
 };
 
-export const useCollectorCustomerDetail = (customerId: string) =>
+export const useCollectorCustomerDetail = (collectorId: string, customerId: string) =>
   useGetOne<CustomerDetails>(
     collectorKeys.customerDetail(customerId),
-    `/collectors/customers/${customerId}`,
-    { enabled: Boolean(customerId) },
+    `/collectors/${collectorId}/customers/${customerId}`,
+    { enabled: Boolean(collectorId) && Boolean(customerId) },
   );
 
 export const useCollectorPricing = (query?: { search?: string; status?: string; page?: number; limit?: number }) => {
