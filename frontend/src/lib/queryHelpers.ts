@@ -1,10 +1,13 @@
 import {
   useQuery,
   useMutation,
+  useInfiniteQuery,
   useQueryClient,
   type QueryKey,
   type UseQueryOptions,
   type UseMutationOptions,
+  type UseInfiniteQueryOptions,
+  type InfiniteData,
 } from "@tanstack/react-query";
 import { apiFetch, type ApiResult } from "./apiFetch";
 
@@ -83,6 +86,21 @@ export function useUpdate<TData, TBody = Partial<TData>>(
       queryClient.invalidateQueries({ queryKey: invalidateKey });
     },
     ...options,
+  });
+}
+
+export function useGetInfiniteList<T extends { meta?: { hasNextPage?: boolean; page?: number } }>(
+  queryKey: QueryKey,
+  endpointFn: (page: number) => string,
+) {
+  return useInfiniteQuery({
+    queryKey,
+    queryFn: ({ pageParam }: { pageParam: number }) => apiFetch<T>(endpointFn(pageParam)),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage: ApiResult<T>) => {
+      const meta = (lastPage.data as { meta?: { hasNextPage?: boolean; page?: number } })?.meta;
+      return meta?.hasNextPage ? (meta.page ?? 1) + 1 : undefined;
+    },
   });
 }
 

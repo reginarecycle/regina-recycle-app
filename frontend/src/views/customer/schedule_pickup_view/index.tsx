@@ -78,7 +78,10 @@ export default function SchedulePickupFlow() {
         scheduledAt,
         estimatedCost: scheduleData.estCost,
         items,
+        note: scheduleData.note || undefined,
       }));
+
+      if (scheduleData.photo) formData.append("photo", scheduleData.photo);
 
       await createPickup(formData);
       toast.success("Pickup scheduled successfully!");
@@ -99,7 +102,7 @@ export default function SchedulePickupFlow() {
 
   return (
     <div className="flex min-h-screen flex-col px-4 sm:px-6 py-4">
-      <div className="flex-1 space-y-4 pb-24 sm:pb-27.5">
+      <div className="flex-1 space-y-4 pb-36 sm:pb-32">
 
         {step === 1 ? (
           <Step1Items onNext={() => setStep(2)} />
