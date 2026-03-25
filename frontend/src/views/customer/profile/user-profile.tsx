@@ -79,7 +79,7 @@ const UserProfile = () => {
     fullName: currentUserData?.data?.name ?? "",
     email: currentUserData?.data?.email ?? "",
     phone: maskPhone(currentUserData?.data?.phoneNumber ?? ""),
-    dateOfBirth: isoToDmy(currentUserData?.data?.customerDOB?.dob ?? ""),
+    dateOfBirth: isoToDmy(currentUserData?.data?.dateOfBirth ?? ""),
     address: addressData?.data?.line1 ?? "",
   });
 
