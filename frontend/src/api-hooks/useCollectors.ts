@@ -49,12 +49,20 @@ export interface TopLocations {
 }
 
 export interface CollectorCustomer {
-  customerId:   string;
-  name:         string;
-  email:        string;
-  phoneNumber:  string | null;
-  totalPickups: number;
-  totalUnits:   number;
+  customerId:       string;
+  name:             string;
+  email:            string;
+  phoneNumber:      string | null;
+  status:           string;
+  neighborhood:     string | null;
+  totalCollections: number;
+  totalRevenue:     number;
+}
+
+export interface CollectorCustomerStats {
+  totalUsers:        number;
+  avgRevenuePerUser: number;
+  totalCollections:  number;
 }
 
 export interface PaginatedCustomers {
@@ -71,15 +79,21 @@ export interface CustomerPickup {
 }
 
 export interface CustomerDetails {
-  collectorId: string;
   customer: {
-    userId:      string;
+    customerId:  string;
     name:        string;
     email:       string;
     phoneNumber: string | null;
-    addresses:   { addressId: string; line1: string; city: string; province: string }[];
+    status:      string;
+    address:     { line1: string; city: string; province: string } | null;
   };
-  pickups: CustomerPickup[];
+  stats: {
+    collections: number;
+    revenue:     number;
+    avgOrder:    number;
+  };
+  collectedItems:  string[];
+  nextCollection:  string | null;
 }
 
 export interface MaterialPricing {
@@ -127,13 +141,13 @@ export interface MaterialPayoutCalculation {
 }
 
 export interface UpdateCollectorPayload {
-  name?:                string;
-  phoneNumber?:         string;
-  licenseId?:           string;
-  serviceFee?:          number;
-  feeType?:             string;
+  name?:                 string;
+  phoneNumber?:          string;
+  licenseId?:            string;
+  serviceFee?:           number;
+  feeType?:              string;
   bulkIncentiveEnabled?: boolean;
-  bulkThreshold?:       number;
+  bulkThreshold?:        number;
 }
 
 export interface UpdateMaterialSettingsPayload {
@@ -159,36 +173,33 @@ export interface CreateMaterialPricingPayload {
 // ─── Query keys ───────────────────────────────────────────────────────────────
 
 export const collectorKeys = {
-  stats:                  ()                 => ["collectors", "stats"]                      as const,
-  materialDistribution:   (period?: string)  => ["collectors", "material-distribution", period] as const,
-  pickupOverview:         ()                 => ["collectors", "pickup-overview"]             as const,
-  pickups:                (query?: object)   => ["collectors", "pickups", query ?? {}]        as const,
-  topLocations:           (limit?: number, period?: string) => ["collectors", "top-locations", limit, period] as const,
-  customers:              (query?: object)   => ["collectors", "customers", query ?? {}]      as const,
-  customerDetail:         (id: string)       => ["collectors", "customers", id]               as const,
-  pricing:                (query?: object)   => ["collectors", "pricing", query ?? {}]        as const,
-  pricingSettings:        ()                 => ["collectors", "pricing-settings"]            as const,
-  payoutCalculation:      (materialId: string, qty: number) => ["collectors", "payout", materialId, qty] as const,
+  stats:                ()                                => ["collectors", "stats"]                          as const,
+  materialDistribution: (period?: string)                 => ["collectors", "material-distribution", period]  as const,
+  pickupOverview:       ()                                => ["collectors", "pickup-overview"]                 as const,
+  pickups:              (query?: object)                  => ["collectors", "pickups", query ?? {}]            as const,
+  topLocations:         (limit?: number, period?: string) => ["collectors", "top-locations", limit, period]   as const,
+  customers:            (query?: object)                  => ["collectors", "customers", query ?? {}]          as const,
+  customerStats:        ()                                => ["collectors", "customers", "stats"]              as const,
+  customerDetail:       (id: string)                      => ["collectors", "customers", id]                  as const,
+  pricing:              (query?: object)                  => ["collectors", "pricing", query ?? {}]            as const,
+  pricingSettings:      ()                                => ["collectors", "pricing-settings"]                as const,
+  payoutCalculation:    (materialId: string, qty: number) => ["collectors", "payout", materialId, qty]        as const,
 };
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
 
-// Stats
 export const useCollectorStats = () =>
   useGetOne<CollectorStats>(collectorKeys.stats(), "/collectors/stats");
 
-// Material distribution
 export const useCollectorMaterialDistribution = (period?: string) =>
   useGetOne<MaterialDistribution>(
     collectorKeys.materialDistribution(period),
     `/collectors/material-distribution${period ? `?period=${period}` : ""}`,
   );
 
-// Pickup overview (weekly chart data)
 export const useCollectorPickupOverview = () =>
   useGetOne<PickupOverview>(collectorKeys.pickupOverview(), "/collectors/pickup-overview");
 
-// Collector's pickups with filters
 export const useCollectorPickups = (query?: { status?: string; page?: number; limit?: number }) => {
   const params = new URLSearchParams();
   if (query?.status) params.append("status", query.status);
@@ -201,7 +212,6 @@ export const useCollectorPickups = (query?: { status?: string; page?: number; li
   );
 };
 
-// Top locations
 export const useCollectorTopLocations = (limit?: number, period?: string) => {
   const params = new URLSearchParams();
   if (limit)  params.append("limit",  String(limit));
@@ -213,10 +223,23 @@ export const useCollectorTopLocations = (limit?: number, period?: string) => {
   );
 };
 
-// Customers list
-export const useCollectorCustomers = (query?: { search?: string; page?: number; limit?: number }) => {
+// ─── Customer Stats — GET /collectors/customers/stats ────────────────────────
+export const useCollectorCustomerStats = () =>
+  useGetOne<CollectorCustomerStats>(
+    collectorKeys.customerStats(),
+    "/collectors/customers/stats",
+  );
+
+// ─── Customers list — GET /collectors/customers ───────────────────────────────
+export const useCollectorCustomers = (query?: {
+  search?: string;
+  status?: string;
+  page?:   number;
+  limit?:  number;
+}) => {
   const params = new URLSearchParams();
   if (query?.search) params.append("search", query.search);
+  if (query?.status) params.append("status", query.status);
   if (query?.page)   params.append("page",   String(query.page));
   if (query?.limit)  params.append("limit",  String(query.limit));
   const qs = params.toString();
@@ -226,7 +249,7 @@ export const useCollectorCustomers = (query?: { search?: string; page?: number; 
   );
 };
 
-// Single customer detail
+// ─── Customer detail — GET /collectors/customers/:customerId ─────────────────
 export const useCollectorCustomerDetail = (customerId: string) =>
   useGetOne<CustomerDetails>(
     collectorKeys.customerDetail(customerId),
@@ -234,7 +257,6 @@ export const useCollectorCustomerDetail = (customerId: string) =>
     { enabled: Boolean(customerId) },
   );
 
-// Pricing list
 export const useCollectorPricing = (query?: { search?: string; status?: string; page?: number; limit?: number }) => {
   const params = new URLSearchParams();
   if (query?.search) params.append("search", query.search);
@@ -248,11 +270,9 @@ export const useCollectorPricing = (query?: { search?: string; status?: string; 
   );
 };
 
-// Pricing settings
 export const useCollectorPricingSettings = () =>
   useGetOne<MaterialSettings>(collectorKeys.pricingSettings(), "/collectors/pricing-settings");
 
-// Payout calculation
 export const useCalculatePayout = (materialId: string, quantity: number) =>
   useGetOne<MaterialPayoutCalculation>(
     collectorKeys.payoutCalculation(materialId, quantity),
@@ -260,21 +280,18 @@ export const useCalculatePayout = (materialId: string, quantity: number) =>
     { enabled: Boolean(materialId) && quantity > 0 },
   );
 
-// Update profile
 export const useUpdateCollectorProfile = () =>
   useUpdate<{ message: string }, UpdateCollectorPayload>(
     () => "/collectors/profile",
     collectorKeys.stats(),
   );
 
-// Update pricing settings
 export const useUpdatePricingSettings = () =>
   useUpdate<{ message: string }, UpdateMaterialSettingsPayload>(
     () => "/collectors/pricing-settings",
     collectorKeys.pricingSettings(),
   );
 
-// Update single material pricing
 export const useUpdateMaterialPricing = () =>
   useUpdate<{ message: string }, UpdateMaterialPricingPayload>(
     (materialId) => `/collectors/pricing/${materialId}`,
