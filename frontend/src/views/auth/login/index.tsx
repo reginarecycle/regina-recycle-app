@@ -20,7 +20,7 @@ const Login = () => {
     formState: { errors, isDirty },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
-    mode: "onChange",
+    mode: "onBlur",
   });
 
   const onSubmit = (data: LoginFormValues) => {

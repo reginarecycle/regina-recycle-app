@@ -1,17 +1,18 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Request } from '@nestjs/common';
 import { CustomersService } from './customers.service';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { Auth } from '../common/decorator/auth.decorator';
 
 @ApiTags('Customers')
+@ApiBearerAuth('JWT-auth')
 @Controller('customers')
 export class CustomersController {
   constructor(private readonly customersService: CustomersService) {}
 
   @Get('dashboard-stats')
+  @Auth('CUSTOMER')
   @ApiOperation({ summary: 'Get customer dashboard stats' })
-  // @UseGuards(JwtAuthGuard, CustomerGuard)
-  getDashboardStats(/* @CurrentUser() user: User */) {
-    const userId = 'temp-user-id';
-    return this.customersService.getDashboardStats(userId);
+  getDashboardStats(@Request() req) {
+    return this.customersService.getDashboardStats(req.user.userId);
   }
 }

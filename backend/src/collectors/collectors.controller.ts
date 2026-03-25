@@ -194,4 +194,35 @@ export class CollectorsController {
   ) {
     return this.collectorsService.updateMaterialSettings(collectorId, dto);
   }
+
+  @Get('material-pricing/:materialId/calculate')
+  @Auth()
+  calculateMaterialPayout(
+  @CurrentUser() user: CurrentUserPayload,
+  @Param('materialId') materialId: string,
+  @Query('quantity') quantity: string,
+) {
+  const qty = Number(quantity);
+
+  if (isNaN(qty) || qty <= 0) {
+    throw new BadRequestException('Quantity must be a number greater than 0');
+  }
+
+  return this.collectorsService.calculateMaterialPayout(
+    user.userId,
+    materialId,
+    qty,
+  );
 }
+
+
+@Get('materials/:id/averagePrice')
+@Auth()
+getAverageMaterialPrice(@Param('id') id: string) {
+   return this.collectorsService.getAverageMaterialPrice(id);
+ }
+
+}
+
+
+

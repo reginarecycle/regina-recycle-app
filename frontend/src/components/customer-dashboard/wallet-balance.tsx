@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatAmount } from "@/lib/utils";
 import { Eye, EyeOff } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -49,30 +50,22 @@ export function WalletBalance({
         </div>
 
         {/* Balance */}
-        {isLoading ? (
-          <div className="h-10 w-40 rounded bg-gray-100 animate-pulse" />
-        ) : (
-          <div className="flex items-end gap-1">
-            <span className="text-4xl font-bold tracking-tight text-foreground inline-flex items-center gap-0.5">
-              {visible
-                ? formatCurrency(balance, currency)
-                : <>$<span className="text-2xl self-center tracking-widest leading-none">*******</span></>
-              }
-            </span>
-          </div>
-        )}
+        <div className="flex items-end gap-1">
+          <span className="text-4xl font-bold tracking-tight text-foreground inline-flex items-center gap-0.5">
+            {visible ? `$${formatAmount(balance)}` : (
+              <>$<span className="text-2xl self-center tracking-widest leading-none">*******</span></>
+            )}
+          </span>
+          <span className="mb-1 text-lg font-semibold text-foreground">{currency}</span>
+        </div>
 
         {/* Monthly change */}
-        {isLoading ? (
-          <div className="h-4 w-48 rounded bg-gray-100 animate-pulse" />
-        ) : (
-          <div className="flex items-center gap-1">
-            <img src={GreenArrow} alt="" className="w-8 h-8 shrink-0" />
-            <span className={`text-sm font-semibold ${isPositive ? "text-green-600" : "text-red-600"}`}>
-              {`${change}${formatCurrency(stats, currency)} this month`}
-            </span>
-          </div>
-        )}
+        <div className="flex items-center gap-1">
+          <img src={GreenArrow} alt="" className="w-8 h-8 shrink-0" />
+          <span className={`text-sm font-semibold ${isPositive ? "text-green-600" : "text-red-600"}`}>
+            { `${change}$${formatAmount(stats)} ${currency} this month`}
+          </span>
+        </div>
 
         {/* CTA */}
         <Button

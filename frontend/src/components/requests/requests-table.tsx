@@ -9,6 +9,7 @@ import { RequestDetailsModal } from "./request-details-modal";
 import { RequestAcceptedModal } from "./request-accepted-modal";
 import { CompleteRequestModal } from "./complete-request-modal";
 import { RejectRequestModal } from "./reject-request-modal";
+import { RequestCompletedModal } from "./request-completed-modal";
 
 type RequestRow = (typeof RequestsData)[number];
 
@@ -17,6 +18,7 @@ export default function RequestsTable() {
 
     const [activeTab, setActiveTab] = useState<"incoming" | "accepted" | "completed">("incoming");
     const [selectedRequest, setSelectedRequest] = useState<RequestRow | null>(null);
+    const [completedOpen, setCompletedOpen] = useState(false);
 
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [completeOpen, setCompleteOpen] = useState(false);
@@ -66,6 +68,7 @@ export default function RequestsTable() {
         );
 
         setCompleteOpen(false);
+        setCompletedOpen(true);
         setActiveTab("completed");
     };
 
@@ -439,24 +442,38 @@ export default function RequestsTable() {
             )}
 
             {selectedRequest && (
-                <CompleteRequestModal
-                    isOpen={completeOpen}
-                    onClose={() => setCompleteOpen(false)}
-                    onComplete={handleCompleteRequest}
-                    requestId="REQ001"
-                    customer={selectedRequest.Username}
-                    location={selectedRequest.Location}
-                    dateTime={`${selectedRequest.Date}, ${selectedRequest.startTime} - ${selectedRequest.endTime}`}
-                    compatibility={
-                        selectedRequest.Compatibility === 100 ? "100%" : "0%"
-                    }
-                    balance={850}
-                    note={completeNote}
-                    setNote={setCompleteNote}
-                />
+                // this is used to complete the request by updating any info -> the request is completed when you press complete request
+                <>
+                    <CompleteRequestModal
+                        isOpen={completeOpen}
+                        onClose={() => setCompleteOpen(false)}
+                        onComplete={handleCompleteRequest}
+                        requestId="REQ001"
+                        customer={selectedRequest.Username}
+                        location={selectedRequest.Location}
+                        dateTime={`${selectedRequest.Date}, ${selectedRequest.startTime} - ${selectedRequest.endTime}`}
+                        compatibility={
+                            selectedRequest.Compatibility === 100 ? "100%" : "0%"
+                        }
+                        balance={850}
+                        note={completeNote}
+                        setNote={setCompleteNote}
+                    />
+
+                    {selectedRequest && (
+                        <RequestCompletedModal
+                            isOpen={completedOpen}
+                            onClose={() => setCompletedOpen(false)}
+                            onViewCompletePickups={() => {
+                                setCompletedOpen(false);
+                                setActiveTab("completed");
+                            }}
+                        />
+                    )}
+                </>
             )}
 
-            <RequestAcceptedModal
+            <RequestAcceptedModal // used to accept a request -> pickup has not been performed yet
                 isOpen={acceptedOpen}
                 onClose={() => setAcceptedOpen(false)}
                 onViewActivePickups={() => {
@@ -465,7 +482,7 @@ export default function RequestsTable() {
                 }}
             />
 
-            <RejectRequestModal
+            <RejectRequestModal // used to reject a pickup
                 isOpen={rejectOpen}
                 onClose={() => setRejectOpen(false)}
                 onConfirm={({ reason, comments }) => {
