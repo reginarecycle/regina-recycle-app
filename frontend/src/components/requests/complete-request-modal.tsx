@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatAmount } from "@/lib/utils";
 import { X, Wallet, CheckCircle } from "lucide-react";
 import { Button } from "../ui/button";
 
@@ -192,7 +193,7 @@ export function CompleteRequestModal({
                                             </p>
                                             <p className="mt-1 text-[14px] text-[#9CA3AF]">
                                                 Expected: {item.expectedUnits} units @ $
-                                                {item.unitPrice.toFixed(2)}/unit
+                                                {formatAmount(item.unitPrice)}/unit
                                             </p>
                                         </div>
 
@@ -217,7 +218,7 @@ export function CompleteRequestModal({
                                             </div>
 
                                             <div className="min-w-[90px] text-right text-[16px] font-medium text-[#111827]">
-                                                ${total.toFixed(2)}
+                                                ${formatAmount(total)}
                                             </div>
                                         </div>
                                     </div>
@@ -247,7 +248,7 @@ export function CompleteRequestModal({
                                 </span>
                             </div>
                             <span className="text-[20px] font-medium text-[#3B82F6]">
-                                ${balance.toFixed(2)}
+                                ${formatAmount(balance)}
                             </span>
                         </div>
 
@@ -256,7 +257,7 @@ export function CompleteRequestModal({
                                 Estimated Payout:
                             </span>
                             <span className="text-[16px] text-[#9CA3AF]">
-                                ${estimatedPayout.toFixed(2)}
+                                ${formatAmount(estimatedPayout)}
                             </span>
                         </div>
 
@@ -265,7 +266,7 @@ export function CompleteRequestModal({
                                 Updated Total Payout:
                             </span>
                             <span className="text-[20px] font-medium text-[#22C55E]">
-                                ${updatedTotalPayout.toFixed(2)}
+                                ${formatAmount(updatedTotalPayout)}
                             </span>
                         </div>
 

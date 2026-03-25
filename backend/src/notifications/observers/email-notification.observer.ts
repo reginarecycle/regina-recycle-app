@@ -21,7 +21,7 @@ export class EmailNotificationObserver implements IObserver {
       this.logger.log(`Email sent to ${event.recipientEmail} for event ${event.type}`);
     } catch (error) {
       this.logger.error(`Failed to send email for event ${event.type}`, error);
-      throw error;
+      // Do not re-throw — email failure should not break the main operation
     }
   }
 }
