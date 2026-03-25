@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   useNotificationsPreferences,
   useUpdateNotificationPreferences,
-  type NotificationsPreference,
+  useCreateNotificationPreferences,
+  type NotificationPreferencesDto,
   type UpdateNotificationPreferencePayload,
 } from "@/api-hooks/useNotifications";
 import type { NotificationKey, NotificationPrefs } from "@/types/notification";
@@ -16,7 +17,7 @@ const DEFAULT_PREFS: NotificationPrefs = {
 };
 
 function mapBackendToFrontend(
-  prefs?: NotificationsPreference
+  prefs?: NotificationPreferencesDto
 ): NotificationPrefs {
   return {
     "email:pickup": prefs?.emailPickupReminder ?? true,
@@ -41,7 +42,7 @@ function mapFrontendToBackend(
 
 export function useNotificationPrefs() {
   const { data, isLoading, error, refetch } = useNotificationsPreferences();
-  const updatePrefsMutation = useUpdateNotificationPreferences();
+  const updatePrefsMutation = useCreateNotificationPreferences();
 
   const [saved, setSaved] = useState<NotificationPrefs>(DEFAULT_PREFS);
   const [prefs, setPrefs] = useState<NotificationPrefs>(DEFAULT_PREFS);
