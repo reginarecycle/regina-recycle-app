@@ -6,8 +6,6 @@ import {
   type QueryKey,
   type UseQueryOptions,
   type UseMutationOptions,
-  type UseInfiniteQueryOptions,
-  type InfiniteData,
 } from "@tanstack/react-query";
 import { apiFetch, type ApiResult } from "./apiFetch";
 
