@@ -32,12 +32,12 @@ export interface NotificationUnreadCount {
 }
 // previously named NotificationsPreference
 export interface NotificationPreferencesDto {
-    emailPickupReminder?: boolean;
-    emailAccountActivity?: boolean;
-    emailMarketing?: boolean;
-    emailPayment?: boolean;
-    inAppPickupReminder?: boolean;
-    inAppAlerts?: boolean;
+    emailPickupReminder: boolean;
+    emailAccountActivity: boolean;
+    emailMarketing: boolean;
+    emailPayment: boolean;
+    inAppPickupReminder: boolean;
+    inAppAlerts: boolean;
 }
 
 export interface UpdateNotificationPreferencePayload {
@@ -105,9 +105,9 @@ export function useCreateNotificationPreferences() {
 }
 
 export function useUpdateNotificationPreferences() {
-  return usePatch<NotificationPreferencesDto , NotificationPreferencesDto >(
+  return usePatch<NotificationPreferencesDto, UpdateNotificationPreferencePayload>(
     "/notifications/preferences",
-    ["notification-preferences"]
+    ["notifications", "preferences"]
   );
 }
 
