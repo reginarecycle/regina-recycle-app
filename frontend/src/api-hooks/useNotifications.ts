@@ -1,4 +1,4 @@
-import { useCreate, useGetOne } from "@/lib/queryHelpers";
+import { useCreate, useGetOne, usePatch } from "@/lib/queryHelpers";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/apiFetch";
 
@@ -31,7 +31,7 @@ export interface NotificationUnreadCount {
     count: number;
 }
 // previously named NotificationsPreference
-export interface NotificationsPreferencesDto {
+export interface NotificationPreferencesDto {
     emailPickupReminder?: boolean;
     emailAccountActivity?: boolean;
     emailMarketing?: boolean;
@@ -83,17 +83,32 @@ export function useUnreadNotificationCount() {
 }
 
 export function useNotificationsPreferences() {
-    return useGetOne<NotificationsPreferencesDto>(
+    return useGetOne<NotificationPreferencesDto>(
         ["notifications", "preferences"],
         "/notifications/preferences"
     );
 }
+
+// export function useNotificationPreferences() {
+//   return useGetOne<NotificationPreferencesDto >(
+//     ["notification-preferences"],
+//     "/notifications/preferences"
+//   );
+// }
+
 // previously named useUpdateNotificationPreferences
 export function useCreateNotificationPreferences() {
     return useCreate<
-        NotificationsPreferencesDto,
+        NotificationPreferencesDto,
         UpdateNotificationPreferencePayload
     >("/notifications/preferences", ["notifications", "preferences"]);
+}
+
+export function useUpdateNotificationPreferences() {
+  return usePatch<NotificationPreferencesDto , NotificationPreferencesDto >(
+    "/notifications/preferences",
+    ["notification-preferences"]
+  );
 }
 
 export function useMarkAllNotificationsAsRead() {
