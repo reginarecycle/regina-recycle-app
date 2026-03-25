@@ -180,6 +180,9 @@ export interface DataTableProps<T> {
   /** Forwarded to DataTableTabBar */
   tabBarProps?: Omit<DataTableTabBarProps, "tabs" | "className">;
 
+  /** Slot rendered between the tab bar and the table (e.g. search + filter row) */
+  subHeader?: ReactNode;
+
   // Table body
   emptyText?: string;
   minHeight?: string;
@@ -218,6 +221,8 @@ export function DataTable<T>({
   showTabs = true,
   tabBarClassName,
   tabBarProps,
+  // subHeader
+  subHeader,
   // table
   emptyText = "No records found",
   minHeight = "300px",
@@ -261,6 +266,13 @@ export function DataTable<T>({
           className={tabBarClassName}
           {...tabBarProps}
         />
+      )}
+
+      {/* ── Sub-header (between tabs and table) ── */}
+      {subHeader && (
+        <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-3 border-b border-border">
+          {subHeader}
+        </div>
       )}
 
       {/* ── Table ── */}
