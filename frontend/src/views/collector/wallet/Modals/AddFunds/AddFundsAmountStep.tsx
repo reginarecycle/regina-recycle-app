@@ -5,6 +5,7 @@ import { AmountInput, QuickAmountBtn, ModalFooter } from "../../components";
 
 const QUICK_AMOUNTS = [25, 50, 100, 200, 500, 1000];
 import { addFundsAmountSchema, type AddFundsAmountFormValues } from "@/lib/validation";
+import { formatAmount } from "@/lib/utils";
 
 interface AddFundsAmountStepProps {
   defaultAmount: number | null;
@@ -67,7 +68,7 @@ export const AddFundsAmountStep: React.FC<AddFundsAmountStepProps> = ({
         {currentAmount > 0 && !errors.amount && (
           <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-light-green">
             <span className="text-sm text-foreground">Amount to add:</span>
-            <span className="text-base font-bold text-green-600">${currentAmount?.toFixed(2)}</span>
+            <span className="text-base font-bold text-green-600">${formatAmount(currentAmount)}</span>
           </div>
         )}
       </div>

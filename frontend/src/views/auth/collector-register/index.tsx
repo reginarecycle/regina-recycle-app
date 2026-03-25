@@ -23,10 +23,10 @@ const CollectiorRegistration = () => {
     control,
     setValue,
     trigger,
-    formState: { errors, isValid },
+    formState: { errors, isDirty },
   } = useForm<CollectorRegistrationFormValues>({
     resolver: zodResolver(collectorRegistrationSchema),
-    mode: "onChange",
+    mode: "onBlur",
   });
 
   const onSubmit = (data: CollectorRegistrationFormValues) => {
@@ -130,7 +130,7 @@ const CollectiorRegistration = () => {
           }
         />
       </div>
-      <Button type="submit" className="w-full" disabled={!isValid || isPending} loading={isPending}>
+      <Button type="submit" className="w-full" disabled={!isDirty || isPending} loading={isPending}>
         Create Account
       </Button>
 

@@ -1,4 +1,6 @@
 import { X, MapPin, CheckCircle2, XCircle } from "lucide-react";
+import { formatAmount } from "@/lib/utils";
+//import { RequestsData } from "@/components/requests/requests-data";
 import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -49,6 +51,9 @@ export function RequestDetailsModal({
 
 
 
+                        <div className="mb-6 text-[30px] leading-none font-bold text-white">
+                            ${formatAmount(earnings)}
+                        </div>
 
 // const earningsLabel = isCompleted ? "Actual Payout" : "Potential Earnings";
 
@@ -70,6 +75,7 @@ const earningsValue = isCompleted
          estimatedUnits: item.estimatedUnits,
          price: item.price,
        }));
+                                
 
 
 

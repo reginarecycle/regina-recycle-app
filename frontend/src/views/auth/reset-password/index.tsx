@@ -28,7 +28,7 @@ const ResetPassword = () => {
     formState: { errors, isValid },
   } = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
-    mode: "onChange",
+    mode: "onBlur",
   });
 
   const onSubmit = ({ newPassword }: ResetPasswordFormValues) => {

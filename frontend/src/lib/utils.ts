@@ -88,6 +88,13 @@ export function buildDateRange(dateRange: DateRange): { startDate?: string; endD
   return {};
 }
 
+export function formatAmount(amount: number): string {
+  return new Intl.NumberFormat("en-CA", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
 export function maskEmail(email: string): string {
   const [local, domain] = email.split("@");
   if (!local || !domain) return email;

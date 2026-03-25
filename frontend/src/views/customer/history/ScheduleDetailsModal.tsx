@@ -12,8 +12,11 @@ function buildPrintHTML(record: RecycleRecord): string {
   const statusLabel = record.status === "COMPLETED" ? "APPROVED" : record.status;
   const statusColor =
     record.status === "COMPLETED" ? "#22c55e" :
-    record.status === "PENDING"   ? "#f59e0b" : "#ef4444";
+    record.status === "PENDING" ? "#f59e0b" : "#ef4444";
   const statusTextColor = record.status === "PENDING" ? "#92400e" : "#fff";
+
+  const collectorName = record.collectorName ?? "Not assigned yet";
+  const collectorId = record.collectorId ?? "N/A";
 
   return `<!DOCTYPE html>
 <html>
@@ -58,7 +61,11 @@ function buildPrintHTML(record: RecycleRecord): string {
   </head>
   <body>
     <div class="page-title">Schedule Details</div>
-    <div class="page-sub">Generated on ${new Date().toLocaleDateString("en-CA", { year: "numeric", month: "long", day: "numeric" })}</div>
+    <div class="page-sub">Generated on ${new Date().toLocaleDateString("en-CA", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })}</div>
 
     <div class="ref-row">
       <div>
@@ -74,10 +81,11 @@ function buildPrintHTML(record: RecycleRecord): string {
       <div class="icon-box">👤</div>
       <div>
         <div class="detail-label">Collector Name</div>
-        <div class="detail-value">${record.collectorName}</div>
-        <div class="detail-sub">ID: ${record.collectorId}</div>
+        <div class="detail-value">${collectorName}</div>
+        <div class="detail-sub">ID: ${collectorId}</div>
       </div>
     </div>
+
     <div class="detail-row">
       <div class="icon-box">📄</div>
       <div>
@@ -85,6 +93,7 @@ function buildPrintHTML(record: RecycleRecord): string {
         <div class="detail-value">${record.requestDate}</div>
       </div>
     </div>
+
     <div class="detail-row">
       <div class="icon-box">📅</div>
       <div>
@@ -92,6 +101,7 @@ function buildPrintHTML(record: RecycleRecord): string {
         <div class="detail-value">${record.scheduledPickupDate}</div>
       </div>
     </div>
+
     <div class="detail-row">
       <div class="icon-box">📍</div>
       <div>
@@ -121,13 +131,13 @@ interface DetailRowProps {
 
 const DetailRow: React.FC<DetailRowProps> = ({ icon, label, value, subValue }) => (
   <div className="flex items-start gap-4">
-    <div className="w-11 h-11 rounded-xl bg-muted flex items-center justify-center shrink-0 mt-0.5">
+    <div className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-muted">
       {icon}
     </div>
     <div>
-      <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
+      <p className="mb-0.5 text-xs text-muted-foreground">{label}</p>
       <p className="text-base font-bold text-foreground">{value}</p>
-      {subValue && <p className="text-xs text-muted-foreground mt-0.5">{subValue}</p>}
+      {subValue && <p className="mt-0.5 text-xs text-muted-foreground">{subValue}</p>}
     </div>
   </div>
 );
@@ -147,37 +157,43 @@ export const ScheduleDetailsModal: React.FC<ScheduleDetailsModalProps> = ({
 }) => {
   if (!record) return null;
 
+  const collectorName = record.collectorName ?? "Not assigned yet";
+  const collectorId = record.collectorId ?? "N/A";
+
   const handleDownload = () => {
     const printWindow = window.open("", "_blank", "width=800,height=950");
     if (!printWindow) return;
+
     printWindow.document.open();
     printWindow.document.write(buildPrintHTML(record));
     printWindow.document.close();
     printWindow.focus();
-    setTimeout(() => { printWindow.print(); printWindow.close(); }, 400);
+
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 400);
   };
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="p-0 gap-0 max-w-130 w-full rounded-2xl overflow-hidden border border-border [&>button]:hidden">
-
-        {/* Header */}
+      <DialogContent className="max-w-130 w-full gap-0 overflow-hidden rounded-2xl border border-border p-0 [&>button]:hidden">
         <div className="flex items-center justify-between px-7 pt-7 pb-5">
           <h2 className="text-2xl font-bold text-foreground">Schedule Details</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted"
           >
-            <X className="w-4 h-4" />
+            <X className="h-4 w-4" />
           </button>
         </div>
+
         <div className="h-px bg-border" />
 
-        {/* Body */}
-        <div className="px-7 py-6 overflow-y-auto max-h-[calc(90vh-180px)] flex flex-col gap-6">
+        <div className="flex max-h-[calc(90vh-180px)] flex-col gap-6 overflow-y-auto px-7 py-6">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs text-muted-foreground mb-1">Reference Number</p>
+              <p className="mb-1 text-xs text-muted-foreground">Reference Number</p>
               <p className="text-xl font-bold text-foreground">{record.referenceNumber}</p>
             </div>
             <StatusBadge
@@ -189,15 +205,35 @@ export const ScheduleDetailsModal: React.FC<ScheduleDetailsModalProps> = ({
           <div className="h-px bg-border" />
 
           <div className="flex flex-col gap-5">
-            <DetailRow icon={<User className="w-5 h-5 text-muted-foreground" />}     label="Collector Name"        value={record.collectorName}       subValue={`ID: ${record.collectorId}`} />
-            <DetailRow icon={<FileText className="w-5 h-5 text-muted-foreground" />} label="Request Date"          value={record.requestDate} />
-            <DetailRow icon={<Calendar className="w-5 h-5 text-muted-foreground" />} label="Scheduled Pickup Date" value={record.scheduledPickupDate} />
-            <DetailRow icon={<MapPin className="w-5 h-5 text-muted-foreground" />}   label="Pickup Location"       value={record.pickupLocation} />
+            <DetailRow
+              icon={<User className="h-5 w-5 text-muted-foreground" />}
+              label="Collector Name"
+              value={collectorName}
+              subValue={`ID: ${collectorId}`}
+            />
+
+            <DetailRow
+              icon={<FileText className="h-5 w-5 text-muted-foreground" />}
+              label="Request Date"
+              value={record.requestDate}
+            />
+
+            <DetailRow
+              icon={<Calendar className="h-5 w-5 text-muted-foreground" />}
+              label="Scheduled Pickup Date"
+              value={record.scheduledPickupDate}
+            />
+
+            <DetailRow
+              icon={<MapPin className="h-5 w-5 text-muted-foreground" />}
+              label="Pickup Location"
+              value={record.pickupLocation}
+            />
           </div>
 
-          <div className="rounded-2xl bg-muted border border-border p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <Package className="w-5 h-5 text-muted-foreground" />
+          <div className="rounded-2xl border border-border bg-muted p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <Package className="h-5 w-5 text-muted-foreground" />
               <p className="text-sm font-bold text-foreground">Materials Collected</p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -208,17 +244,24 @@ export const ScheduleDetailsModal: React.FC<ScheduleDetailsModalProps> = ({
           </div>
         </div>
 
-        {/* Footer */}
         <div className="h-px bg-border" />
+
         <div className="flex items-center justify-end gap-3 px-7 py-5">
-          <Button variant="outline" className="min-w-30 h-12 font-semibold rounded-xl" onClick={onClose}>
+          <Button
+            variant="outline"
+            className="min-w-30 h-12 rounded-xl font-semibold"
+            onClick={onClose}
+          >
             Close
           </Button>
-          <Button variant="default" className="min-w-45 h-12 font-semibold rounded-xl" onClick={handleDownload}>
+          <Button
+            variant="default"
+            className="min-w-45 h-12 rounded-xl font-semibold"
+            onClick={handleDownload}
+          >
             Download Report
           </Button>
         </div>
-
       </DialogContent>
     </Dialog>
   );

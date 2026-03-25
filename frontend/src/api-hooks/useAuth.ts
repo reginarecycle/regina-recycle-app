@@ -1,4 +1,4 @@
-import { useCreate, useGetOne } from "@/lib/queryHelpers";
+import { useCreate, useGetOne, usePatch } from "@/lib/queryHelpers";
 import type { RegisterPayload } from "@/views/auth/user-register/interface/register.interface";
 
 export interface AuthUser {
@@ -23,6 +23,7 @@ export interface CurrentUser {
     emailVerified: boolean;
     phoneNumber?: string;
     status: string;
+    createdAt: string;
     addresses: {
       addressId: string;
       line1: string;
@@ -32,7 +33,9 @@ export interface CurrentUser {
       postalCode: string;
       isPrimary: boolean;
     }[];
-    dateOfBirth?: string | null;
+    customerDOB: {
+    dob: string | null;
+  } | null;
     collectorProfile?: {
       licenseId: string;
       serviceFee: number;
@@ -82,5 +85,12 @@ export function useCurrentUser() {
         staleTime: 1000 * 60 * 5, 
         gcTime: 1000 * 60 * 10, 
       });
+}
+
+export function useChangePassword() {
+    return usePatch<null, { currentPassword: string; newPassword: string }>(
+        "/auth/change-password",
+        ["auth"]
+    );
 }
 

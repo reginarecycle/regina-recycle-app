@@ -4,6 +4,11 @@ import {
   BadRequestException,
   UnauthorizedException,
 } from '@nestjs/common';
+
+function generateReferenceNumber(): string {
+  const digits = Math.floor(100000 + Math.random() * 900000); // 6-digit number
+  return `RRY-${digits}`;
+}
 import { PrismaService } from '../prisma/prisma.service';
 import { ErrorMessage } from '../common/error-message';
 import { TxStatus, TxType, PaymentMethodType } from '@prisma/client';
@@ -96,6 +101,11 @@ export class WalletService {
 
   // ── Collector wallet ──────────────────────────────────────────────────────────
 
+  private calculatePercentageChange(current: number, previous: number): number {
+    if (previous === 0) return 0;
+    return ((current - previous) / previous) * 100;
+  }
+
   async getOrCreateCollectorWallet(userId: string) {
     const { wallet } = await this.findOrCreateWallet(userId);
 
@@ -104,15 +114,29 @@ export class WalletService {
 
     const [monthlyCredits, monthlyDebits, pendingRequests] = await Promise.all([
       this.prisma.walletTransaction.aggregate({
-        where: { walletId: wallet.walletId, type: TxType.CREDIT, status: TxStatus.COMPLETED, createdAt: { gte: monthStart } },
+        where: {
+          walletId: wallet.walletId,
+          type: TxType.CREDIT,
+          status: TxStatus.COMPLETED,
+          createdAt: { gte: monthStart },
+        },
         _sum: { amount: true },
       }),
       this.prisma.walletTransaction.aggregate({
-        where: { walletId: wallet.walletId, type: TxType.DEBIT, status: TxStatus.COMPLETED, createdAt: { gte: monthStart } },
+        where: {
+          walletId: wallet.walletId,
+          type: TxType.DEBIT,
+          status: TxStatus.COMPLETED,
+          createdAt: { gte: monthStart },
+        },
         _sum: { amount: true },
       }),
       this.prisma.walletTransaction.aggregate({
-        where: { walletId: wallet.walletId, type: TxType.DEBIT, status: TxStatus.PENDING },
+        where: {
+          walletId: wallet.walletId,
+          type: TxType.DEBIT,
+          status: TxStatus.PENDING,
+        },
         _sum: { amount: true },
       }),
     ]);
@@ -121,12 +145,47 @@ export class WalletService {
     const debits = Number(monthlyDebits._sum.amount ?? 0);
     const pending = Number(pendingRequests._sum.amount ?? 0);
 
+    const currentNetFlow = credits - debits;
+
+    const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
+    const [previousCredits, previousDebits] = await Promise.all([
+      this.prisma.walletTransaction.aggregate({
+        where: {
+          walletId: wallet.walletId,
+          type: TxType.CREDIT,
+          status: TxStatus.COMPLETED,
+          createdAt: { gte: previousMonthStart, lte: previousMonthEnd },
+        },
+        _sum: { amount: true },
+      }),
+      this.prisma.walletTransaction.aggregate({
+        where: {
+          walletId: wallet.walletId,
+          type: TxType.DEBIT,
+          status: TxStatus.COMPLETED,
+          createdAt: { gte: previousMonthStart, lte: previousMonthEnd },
+        },
+        _sum: { amount: true },
+      }),
+    ]);
+
+    const prevCredits = Number(previousCredits._sum.amount ?? 0);
+    const prevDebits = Number(previousDebits._sum.amount ?? 0);
+    const previousNetFlow = prevCredits - prevDebits;
+
+    const monthlyPayoutsChange = this.calculatePercentageChange(debits, prevDebits);
+    const monthlyNetChange = this.calculatePercentageChange(currentNetFlow, previousNetFlow);
+
     return {
       userId: wallet.userId,
       walletId: wallet.walletId,
       balance: Number(wallet.balance),
       monthlyPayouts: debits,
-      monthlyNetFlow: credits - debits,
+      monthlyPayoutsChange,
+      monthlyNetFlow: currentNetFlow,
+      monthlyNetChange,
       pendingRequestsAmount: pending,
       pendingApprovalAmount: pending,
     };
@@ -179,6 +238,8 @@ export class WalletService {
 
     return {
       data: transactions.map((t) => ({
+        transactionId: t.transactionId,
+        referenceNumber: t.referenceNumber ?? undefined,
         userId: wallet.userId,
         walletId: t.walletId,
         type: t.type,
@@ -239,6 +300,7 @@ export class WalletService {
           status: TxStatus.COMPLETED,
           description: `Top-up via ${methodLabel}`,
           referenceType: 'TOP_UP',
+          referenceNumber: generateReferenceNumber(),
         },
       }),
       this.prisma.wallet.update({
@@ -300,6 +362,7 @@ export class WalletService {
           status: TxStatus.COMPLETED,
           description: `Interac withdrawal to ${dto.interacEmail}`,
           referenceType: 'WITHDRAWAL',
+          referenceNumber: generateReferenceNumber(),
         },
       }),
       this.prisma.wallet.update({
@@ -362,6 +425,7 @@ export class WalletService {
           status: TxStatus.COMPLETED,
           description: `Bank withdrawal to ${dto.bankName} — ${dto.accountHolderName}`,
           referenceType: 'WITHDRAWAL',
+          referenceNumber: generateReferenceNumber(),
         },
       }),
       this.prisma.wallet.update({

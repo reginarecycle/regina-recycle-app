@@ -8,6 +8,7 @@ import { RequestDetailsModal } from "./request-details-modal";
 import { RequestAcceptedModal } from "./request-accepted-modal";
 import { CompleteRequestModal } from "./complete-request-modal";
 import { RejectRequestModal } from "./reject-request-modal";
+import { RequestCompletedModal } from "./request-completed-modal";
 import {
  getCollectorPickups,
  getCollectorPricing,
@@ -15,20 +16,11 @@ import {
 import { getCollectorWallet } from "@/api/wallet";
 import type { RequestRow } from "./types";
 import { mapPickupToRequestRow } from "./request-mapper";
-import { acceptPickup, cancelPickup, completePickup } from "@/api/pickups";
+import { acceptPickup, cancelPickupV2, completePickup } from "@/api/pickups";
 import type { CollectionItem } from "./complete-request-modal";
-
 
 type RequestTab = "incoming" | "accepted" | "completed";
 
-
-// type CompleteModalItem = {
-//   materialId: string;
-//   material: string;
-//   expectedUnits: number;
-//   unitPrice: number;
-//   actualUnits: number;
-// };
 
 
 export default function RequestsTable() {
@@ -39,11 +31,10 @@ export default function RequestsTable() {
    completed: 0,
  });
 
+    const [activeTab, setActiveTab] = useState<"incoming" | "accepted" | "completed">("incoming");
+    const [selectedRequest, setSelectedRequest] = useState<RequestRow | null>(null);
+    const [completedOpen, setCompletedOpen] = useState(false);
 
- const [activeTab, setActiveTab] = useState<RequestTab>("incoming");
- const [selectedRequest, setSelectedRequest] = useState<RequestRow | null>(
-   null,
- );
 
 
  const [detailsOpen, setDetailsOpen] = useState(false);
@@ -261,7 +252,7 @@ export default function RequestsTable() {
 
 
  try {
-   await cancelPickup(selectedRequest.pickupId);
+   await cancelPickupV2(selectedRequest.pickupId);
 
 
    setRejectOpen(false);
@@ -677,6 +668,7 @@ export default function RequestsTable() {
 
 
      {selectedRequest && (
+      <>
        <CompleteRequestModal
          isOpen={completeOpen}
          onClose={() => setCompleteOpen(false)}
@@ -697,6 +689,19 @@ export default function RequestsTable() {
            actualUnits: item.actualUnits,
          }))}
        />
+
+       {selectedRequest && (
+                        <RequestCompletedModal
+                            isOpen={completedOpen}
+                            onClose={() => setCompletedOpen(false)}
+                            onViewCompletePickups={() => {
+                                setCompletedOpen(false);
+                                setActiveTab("completed");
+                            }}
+                        />
+                    )}
+                    </>
+       
      )}
 
 
