@@ -33,9 +33,7 @@ export interface CurrentUser {
       postalCode: string;
       isPrimary: boolean;
     }[];
-    customerDOB: {
-    dob: string | null;
-  } | null;
+    dateOfBirth: string | null;
     collectorProfile?: {
       licenseId: string;
       serviceFee: number;
