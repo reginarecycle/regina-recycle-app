@@ -66,19 +66,25 @@ export class CollectorsController {
     );
   }
 
+  @Get('customers/stats')
+  @Auth()
+  getCustomerStats(@CurrentUser() user: CurrentUserPayload) {
+    return this.collectorsService.getCustomerStats(user.userId);
+  }
+
   @Get('customers')
-   @Auth()
+  @Auth()
   getCustomers(
-     @CurrentUser() user: CurrentUserPayload,
-  @Query() query: CollectorQueryDto,
-) {
-  return this.collectorsService.getCustomers(user.userId, query);
-}
+    @CurrentUser() user: CurrentUserPayload,
+    @Query() query: CollectorQueryDto,
+  ) {
+    return this.collectorsService.getCustomers(user.userId, query);
+  }
 
   @Get('customers/:customerId')
-   @Auth()
+  @Auth()
   getCustomerDetails(
-   @CurrentUser() user: CurrentUserPayload,
+    @CurrentUser() user: CurrentUserPayload,
     @Param('customerId') customerId: string,
   ) {
     return this.collectorsService.getCustomerDetails(user.userId, customerId);

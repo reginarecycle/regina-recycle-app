@@ -152,9 +152,7 @@ export class CollectorsService {
           requester: { select: { userId: true, name: true, email: true, phoneNumber: true } },
           address: true,
           items: { include: { material: true } },
-          snapshots: {
-              include:{material: true},
-          },
+          snapshots: { include: { material: true } },
         },
         orderBy: { scheduledAt: 'asc' },
         skip,
@@ -207,73 +205,141 @@ export class CollectorsService {
     };
   }
 
+  async getCustomerStats(collectorId: string) {
+    await this.ensureCollectorExists(collectorId);
+
+    const [uniqueCustomerRows, completedPickups] = await Promise.all([
+      this.prisma.pickup.findMany({
+        where: { collectorUserId: collectorId, requesterUserId: { not: null } },
+        select: { requesterUserId: true },
+        distinct: ['requesterUserId'],
+      }),
+      this.prisma.pickup.findMany({
+        where: { collectorUserId: collectorId, status: PickupStatus.COMPLETED, requesterUserId: { not: null } },
+        select: { requesterUserId: true, actualEarning: true },
+      }),
+    ]);
+
+    const totalUsers = uniqueCustomerRows.length;
+    const totalCollections = completedPickups.length;
+    const totalRevenue = completedPickups.reduce((sum, p) => sum + Number(p.actualEarning), 0);
+    const avgRevenuePerUser = totalUsers > 0 ? totalRevenue / totalUsers : 0;
+
+    return { totalUsers, avgRevenuePerUser, totalCollections };
+  }
+
   async getCustomers(collectorId: string, query: CollectorQueryDto) {
     await this.ensureCollectorExists(collectorId);
 
-    const { page = 1, limit = 10, search } = query;
+    const { page = 1, limit = 10, search, status } = query;
     const { skip, take } = getPaginationParams(page, limit);
 
-    const where = {
-      collectorUserId: collectorId,
-      requesterUserId: { not: null as null },
-      ...(search ? { requester: { name: { contains: search, mode: 'insensitive' as const } } } : {}),
+    const customerWhere = {
+      role: 'CUSTOMER' as const,
+      pickupsRequested: { some: { collectorUserId: collectorId } },
+      ...(search ? { name: { contains: search, mode: 'insensitive' as const } } : {}),
     };
 
-    const [pickups, total] = await Promise.all([
-      this.prisma.pickup.findMany({
-        where,
-        include: {
-          requester: { select: { userId: true, name: true, email: true, phoneNumber: true } },
-          items: true,
+    const [total, customers] = await Promise.all([
+      this.prisma.user.count({ where: customerWhere }),
+      this.prisma.user.findMany({
+        where: customerWhere,
+        select: {
+          userId: true,
+          name: true,
+          email: true,
+          phoneNumber: true,
+          status: true,
+          addresses: { select: { city: true }, take: 1 },
+          pickupsRequested: {
+            where: { collectorUserId: collectorId },
+            select: { status: true, actualEarning: true },
+          },
         },
-        orderBy: { scheduledAt: 'desc' },
+        orderBy: { createdAt: 'desc' },
         skip,
         take,
       }),
-      this.prisma.pickup.count({ where }),
     ]);
 
-    const customers = pickups.reduce(
-      (acc, pickup) => {
-        if (!pickup.requester) return acc;
-        const key = pickup.requester.userId;
-        if (!acc[key]) {
-          acc[key] = {
-            customerId: pickup.requester.userId,
-            name: pickup.requester.name,
-            email: pickup.requester.email,
-            phoneNumber: pickup.requester.phoneNumber,
-            totalPickups: 0,
-            totalUnits: 0,
-          };
-        }
-        acc[key].totalPickups += 1;
-        acc[key].totalUnits += pickup.items.reduce((sum, item) => sum + item.quantity, 0);
-        return acc;
-      },
-      {} as Record<string, { customerId: string; name: string; email: string; phoneNumber: string | null; totalPickups: number; totalUnits: number }>,
-    );
+    const data = customers.map((c) => {
+      const completed = c.pickupsRequested.filter((p) => p.status === PickupStatus.COMPLETED);
+      const totalCollections = completed.length;
+      const totalRevenue = completed.reduce((sum, p) => sum + Number(p.actualEarning), 0);
+      const derivedStatus = totalCollections === 0 ? 'NEW' : c.status;
 
-    return paginate(Object.values(customers), total, page, limit);
+      return {
+        customerId: c.userId,
+        name: c.name,
+        email: c.email,
+        phoneNumber: c.phoneNumber,
+        status: derivedStatus,
+        neighborhood: c.addresses[0]?.city ?? null,
+        totalCollections,
+        totalRevenue,
+      };
+    });
+
+    // Filter by status after mapping since derivedStatus is computed
+    const filtered = status ? data.filter((c) => c.status === status) : data;
+
+    return paginate(filtered, status ? filtered.length : total, page, limit);
   }
 
   async getCustomerDetails(collectorId: string, customerId: string) {
     await this.ensureCollectorExists(collectorId);
 
-    const customer = await this.prisma.user.findUnique({
-      where: { userId: customerId },
-      select: { userId: true, name: true, email: true, phoneNumber: true, addresses: true },
-    });
+    const [customer, pickups] = await Promise.all([
+      this.prisma.user.findUnique({
+        where: { userId: customerId },
+        select: {
+          userId: true,
+          name: true,
+          email: true,
+          phoneNumber: true,
+          status: true,
+          addresses: { select: { line1: true, city: true, province: true }, take: 1 },
+        },
+      }),
+      this.prisma.pickup.findMany({
+        where: { collectorUserId: collectorId, requesterUserId: customerId },
+        include: { address: true, items: { include: { material: true } } },
+        orderBy: { scheduledAt: 'desc' },
+      }),
+    ]);
 
     if (!customer) throw new NotFoundException('Customer not found');
 
-    const pickups = await this.prisma.pickup.findMany({
-      where: { collectorUserId: collectorId, requesterUserId: customerId },
-      include: { address: true, items: { include: { material: true } } },
-      orderBy: { scheduledAt: 'desc' },
-    });
+    const completed = pickups.filter((p) => p.status === PickupStatus.COMPLETED);
+    const collections = completed.length;
+    const revenue = completed.reduce((sum, p) => sum + Number(p.actualEarning), 0);
+    const avgOrder = collections > 0 ? revenue / collections : 0;
 
-    return { collectorId, customer, pickups };
+    const collectedItems = [
+      ...new Set(completed.flatMap((p) => p.items.map((i) => i.material.name))),
+    ];
+
+    const nextCollection = pickups.find(
+      (p) =>
+        (p.status === PickupStatus.ACCEPTED || p.status === PickupStatus.PENDING) &&
+        new Date(p.scheduledAt) > new Date(),
+    );
+
+    const derivedStatus = collections === 0 ? 'NEW' : customer.status;
+
+    return {
+      customer: {
+        customerId: customer.userId,
+        name: customer.name,
+        email: customer.email,
+        phoneNumber: customer.phoneNumber,
+        status: derivedStatus,
+        address: customer.addresses[0] ?? null,
+      },
+      stats: { collections, revenue, avgOrder },
+      collectedItems,
+      nextCollection: nextCollection?.scheduledAt ?? null,
+    };
   }
 
   async updateProfile(collectorId: string, dto: UpdateCollectorDto) {
@@ -401,12 +467,12 @@ export class CollectorsService {
       throw new BadRequestException('Collector pricing not found for this material');
     }
 
-    const unitPrice      = Number(collectorPricing.basePrice ?? 0);
-    const grossPayout    = quantity * unitPrice;
-    const feeType        = profile?.feeType ?? 'FLAT_FEE';
-    const feeValue       = Number(profile?.serviceFee ?? 0);
-    const serviceFee     = this.calculateServiceFee(feeType, feeValue, grossPayout);
-    const netPayout      = Math.max(0, grossPayout - serviceFee);
+    const unitPrice   = Number(collectorPricing.basePrice ?? 0);
+    const grossPayout = quantity * unitPrice;
+    const feeType     = profile?.feeType ?? 'FLAT_FEE';
+    const feeValue    = Number(profile?.serviceFee ?? 0);
+    const serviceFee  = this.calculateServiceFee(feeType, feeValue, grossPayout);
+    const netPayout   = Math.max(0, grossPayout - serviceFee);
 
     return {
       collectorId,
@@ -425,39 +491,27 @@ export class CollectorsService {
     return ServiceFeeFactory.create(feeType, feeValue).calculate(amount);
   }
 
-async getAverageMaterialPrice(materialId: string) {
-   const result = await this.prisma.collectorPricing.aggregate({
-     where: {
-       materialId,
-       status: PricingStatus.ACTIVE,
-     },
-     _min: {
-       basePrice: true,
-     },
-     _max: {
-       basePrice: true,
-     },
-     _avg: {
-       basePrice: true,
-     },
-   });
+  async getAverageMaterialPrice(materialId: string) {
+    const result = await this.prisma.collectorPricing.aggregate({
+      where: { materialId },
+      _min: { basePrice: true },
+      _max: { basePrice: true },
+      _avg: { basePrice: true },
+    });
 
+    return {
+      minPrice: Number(result._min.basePrice ?? 0),
+      maxPrice: Number(result._max.basePrice ?? 0),
+      avgPrice: Number(result._avg.basePrice ?? 0),
+    };
+  }
 
-   return {
-     minPrice: Number(result._min.basePrice ?? 0),
-     maxPrice: Number(result._max.basePrice ?? 0),
-     avgPrice: Number(result._avg.basePrice ?? 0),
-   };
- }
-
- private getStartDate(period?: string): Date | undefined {
-   if (!period) return undefined;
-   const date = new Date();
-   if (period === 'weekly') date.setDate(date.getDate() - 7);
-   else if (period === 'monthly') date.setDate(date.getDate() - 30);
-   else return undefined;
-   return date;
- }
-
+  private getStartDate(period?: string): Date | undefined {
+    if (!period) return undefined;
+    const date = new Date();
+    if (period === 'weekly') date.setDate(date.getDate() - 7);
+    else if (period === 'monthly') date.setDate(date.getDate() - 30);
+    else return undefined;
+    return date;
+  }
 }
-
