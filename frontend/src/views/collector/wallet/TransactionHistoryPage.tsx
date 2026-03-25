@@ -1,8 +1,9 @@
 import * as React from "react";
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { ChevronLeft } from "lucide-react";
-import { buildDateRange } from "@/lib/utils";
+import { buildDateRange, formatAmount } from "@/lib/utils";
 import { DataTable, type ColumnDef, type DataTableTabItem } from "@/components/ui/data-table";
 import {
   DataTableHeaderControls,
@@ -18,6 +19,8 @@ import useDebounce from "@/hooks/useDebounce";
 // ─── Transaction mapper ───────────────────────────────────────────────────────
 
 function mapTransaction(tx: {
+  transactionId: string;
+  referenceNumber?: string;
   walletId: string;
   type: string;
   amount: number;
@@ -32,7 +35,7 @@ function mapTransaction(tx: {
   else if (tx.description?.toLowerCase().includes("payout") || tx.referenceType === "PICKUP") uiType = "payout";
   else if (tx.referenceType === "TOP_UP" || tx.type === "CREDIT") uiType = "topup";
   return {
-    id: tx.referenceId ?? tx.walletId,
+    id: tx.referenceNumber ?? `RRY-${parseInt(tx.transactionId.replace(/-/g, "").slice(0, 8), 16) % 900000 + 100000}`,
     name: tx.description ?? "Transaction",
     type: uiType,
     date: new Date(tx.createdAt).toLocaleDateString("en-CA", {
@@ -90,8 +93,6 @@ const STATUS_OPTIONS: StatusOption<TransactionStatus>[] = [
 
 const PAGE_SIZE = 8;
 
-// ─── Columns ──────────────────────────────────────────────────────────────────
-
 function buildColumns(): ColumnDef<Transaction>[] {
   return [
     {
@@ -115,14 +116,12 @@ function buildColumns(): ColumnDef<Transaction>[] {
     {
       key: "date",
       header: "Date",
-      className: "w-48",
-      cell: (row) => <span className="text-sm text-muted-foreground">{row.date}</span>,
+      cell: (row) => <span className="text-sm ">{row.date}</span>,
     },
     {
       key: "amount",
       header: "Amount",
-      className: "w-44",
-      cell: (row) => <span className="text-sm font-medium text-foreground">${row.amount.toFixed(2)}</span>,
+      cell: (row) => <span className="text-sm font-medium text-foreground">${formatAmount(row.amount)}</span>,
     },
     {
       key: "status",
@@ -142,11 +141,8 @@ function buildColumns(): ColumnDef<Transaction>[] {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-interface TransactionHistoryPageProps {
-  onBack: () => void;
-}
-
-export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({ onBack }) => {
+export default function TransactionHistoryPage() {
+  const navigate = useNavigate();
   const [tab, setTab]       = useState<TransactionStatus | "ALL">("ALL");
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<TableFilterState<TransactionStatus>>(
@@ -195,7 +191,7 @@ export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({ 
   return (
     <div className="flex-1 p-6 lg:p-8 overflow-auto bg-background">
       <button
-        onClick={onBack}
+        onClick={() => navigate(-1)}
         className="flex items-center gap-1 text-sm font-semibold text-foreground hover:text-primary mb-5 transition-colors"
       >
         <ChevronLeft className="w-4 h-4" /> Back

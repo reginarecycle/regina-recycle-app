@@ -9,12 +9,16 @@ export interface CollectorWallet {
   walletId: string;
   balance: number;
   monthlyPayouts: number;
+  monthlyPayoutsChange: number;
   monthlyNetFlow: number;
+  monthlyNetChange: number;
   pendingRequestsAmount: number;
   pendingApprovalAmount: number;
 }
 
 export interface WalletTransaction {
+  transactionId: string;
+  referenceNumber?: string;
   userId?: string;
   walletId: string;
   type: TxType;
@@ -64,9 +68,11 @@ export interface CollectorWithdrawPayload {
   amount: number;
 }
 
+// GET /wallet/collector
 export const useGetCollectorWallet = () =>
   useGetOne<CollectorWallet>(["wallet", "collector"], "/wallet/collector");
 
+// GET /wallet/transactions
 export const useGetWalletTransactions = (query?: TransactionQuery) => {
   const params = new URLSearchParams();
   if (query?.page) params.append("page", String(query.page));
