@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import DataTable, { type Column } from "@/components/ui/data-table";
-import { ChevronRight, ChevronsUpDown, ListFilter, Search } from "lucide-react";
+import { ChevronRight, ListFilter, Search } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RequestDetailsModal } from "./request-details-modal";
 import { RequestAcceptedModal } from "./request-accepted-modal";
@@ -335,7 +335,7 @@ export default function RequestsTable({ onRefreshStats }: RequestsTableProps) {
           {
             key: "payment",
             header: payoutLabel,
-            render: (row) => (
+            render: (row:any) => (
               <span className="font-bold text-sm">
                 $
                 {payoutLabel === "Payout ($)"

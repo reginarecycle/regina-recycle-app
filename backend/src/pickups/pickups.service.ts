@@ -10,11 +10,17 @@ import { UpdatePickupDto } from './dto/update-pickup.dto';
 import { NotificationGatewayService } from '../notifications/notifications.gateway.service';
 import { PickupQueryDto } from './dto/pickup-query.dto';
 import { paginate, getPaginationParams } from '../common/pagination/pagination-helper';
+import { RejectPickupDto } from './dto/reject-pickup.dto';
+import { CollectorsService } from 'src/collectors/collectors.service';
+import { CompletePickupDto } from './dto/complete-pickup.dto';
+import { Wallet } from '@prisma/client';
+
 
 @Injectable()
 export class PickupsService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly collectorsService: CollectorsService,
     private readonly notificationService: NotificationGatewayService,
   ) { }
 
@@ -627,4 +633,287 @@ export class PickupsService {
 
     return result;
   }
+
+  /*******************************************ADDED NEW FUNCTIONS *************************/
+ async CompletePickup(
+   pickupId: string,
+   collectorUserId: string,
+   dto: CompletePickupDto,
+ ) {
+   const pickup = await this.prisma.pickup.findUnique({
+     where: { pickupId },
+     include: {
+       items: {
+         include: {
+           material: true,
+         },
+       },
+       snapshots: true,
+     },
+   });
+   if (!pickup) {
+     throw new NotFoundException('Pickup not found');
+   }
+
+
+   if (pickup.status !== 'ACCEPTED') {
+     throw new BadRequestException(
+       pickup.status === 'PENDING'
+         ? 'This pickup must be accepted before it can be completed'
+         : pickup.status === 'COMPLETED'
+           ? 'This pickup has already been completed'
+           : pickup.status === 'CANCELLED'
+             ? 'This pickup has been cancelled and cannot be completed'
+             : `Pickup cannot be completed from status ${pickup.status}`,
+     );
+   }
+
+
+   if (pickup.collectorUserId !== collectorUserId) {
+     throw new ForbiddenException(
+       'Only the assigned collector can complete this pickup',
+     );
+   }
+   let actualEarning = 0;
+
+
+   const snapshotRows: {
+     materialId: string;
+     quantity: number;
+     basePrice: number;
+     bulkPrice: number | null;
+     bulkThreshold: number | null;
+     priceUsed: number;
+   }[] = [];
+
+
+   for (const submittedItem of dto.items) {
+     const pickupItem = pickup.items.find(
+       (item) => item.materialId === submittedItem.materialId,
+     );
+
+
+     if (!pickupItem) {
+       throw new BadRequestException(
+         `Material ${submittedItem.materialId} does not belong to this pickup`,
+       );
+     }
+
+
+     const payout = await this.collectorsService.calculateMaterialPayout(
+       collectorUserId,
+       submittedItem.materialId,
+       submittedItem.quantity,
+     );
+
+
+     actualEarning += Number(payout.netPayout);
+
+
+     snapshotRows.push({
+       materialId: submittedItem.materialId,
+       quantity: submittedItem.quantity,
+       basePrice: Number(payout.unitPrice),
+       bulkPrice: null,
+       bulkThreshold: null,
+       priceUsed:
+         submittedItem.quantity > 0
+           ? Number(payout.netPayout) / submittedItem.quantity
+           : 0,
+     });
+   }
+   const updated = await this.prisma.$transaction(async (tx) => {
+     const collectorWallet = await tx.wallet.findUnique({
+       where: { userId: collectorUserId },
+     });
+
+
+     if (!collectorWallet) {
+       throw new NotFoundException('Collector wallet not found');
+     }
+
+
+     if (Number(collectorWallet.balance) < actualEarning) {
+       throw new BadRequestException('Insufficient collector wallet balance');
+     }
+
+
+     let customerWallet: Wallet | null = null;
+
+
+     if (pickup.requesterUserId) {
+       customerWallet = await tx.wallet.findUnique({
+         where: { userId: pickup.requesterUserId },
+       });
+
+
+       if (!customerWallet) {
+         customerWallet = await tx.wallet.create({
+           data: {
+             userId: pickup.requesterUserId,
+             balance: 0,
+           },
+         });
+       }
+     }
+
+
+     await tx.pickupSnapshot.deleteMany({
+       where: { pickupId },
+     });
+
+
+     if (snapshotRows.length > 0) {
+       await tx.pickupSnapshot.createMany({
+         data: snapshotRows.map((row) => ({
+           pickupId,
+           materialId: row.materialId,
+           quantity: row.quantity,
+           basePrice: row.basePrice,
+           bulkPrice: row.bulkPrice,
+           bulkThreshold: row.bulkThreshold,
+           priceUsed: row.priceUsed,
+         })),
+       });
+     }
+
+
+     await tx.wallet.update({
+       where: { walletId: collectorWallet.walletId },
+       data: {
+         balance: { decrement: actualEarning },
+       },
+     });
+
+
+     await tx.walletTransaction.create({
+       data: {
+         walletId: collectorWallet.walletId,
+         userId: collectorUserId,
+         type: 'DEBIT',
+         amount: actualEarning,
+         status: 'COMPLETED',
+         description: `Pickup payout deducted for pickup ${pickupId}`,
+         referenceType: 'PICKUP',
+         referenceId: pickupId,
+       },
+     });
+
+
+     if (pickup.requesterUserId && customerWallet && actualEarning > 0) {
+       await tx.wallet.update({
+         where: { walletId: customerWallet.walletId },
+         data: {
+           balance: { increment: actualEarning },
+         },
+       });
+
+
+       await tx.walletTransaction.create({
+         data: {
+           walletId: customerWallet.walletId,
+           userId: pickup.requesterUserId,
+           type: 'CREDIT',
+           amount: actualEarning,
+           status: 'COMPLETED',
+           description: `Pickup completed payout credited`,
+           referenceType: 'PICKUP',
+           referenceId: pickupId,
+         },
+       });
+     }
+
+
+     const completedPickup = await tx.pickup.update({
+       where: { pickupId },
+       data: {
+         status: 'COMPLETED',
+         collectorNote: dto.note || null,
+         actualEarning,
+       },
+       include: {
+         items: { include: { material: true } },
+         address: true,
+         snapshots: true,
+       },
+     });
+
+
+     return completedPickup;
+   });
+   if (pickup.requesterUserId) {
+     const requester = await this.prisma.user.findUnique({
+       where: { userId: pickup.requesterUserId },
+       select: { email: true },
+     });
+
+
+     if (requester) {
+       await this.notificationService.notifyPickupStatusChanged({
+         userId: pickup.requesterUserId,
+         recipientEmail: requester.email,
+         pickupId,
+         status: 'COMPLETED',
+       });
+     }
+   }
+   return {
+     message: 'Pickup completed successfully',
+     pickup: updated,
+     actualEarning,
+   };
+ }
+
+
+ async cancelV2(
+   pickupId: string,
+   collectorUserId: string,
+   dto: RejectPickupDto,
+ ) {
+   // //\\
+   // console.log('cancelV2 called with:', {
+   //   pickupId,
+   //   collectorUserId,
+   //   dto,
+   // });
+   //
+   const pickup = await this.prisma.pickup.findUnique({
+     where: { pickupId },
+   });
+
+
+   if (!pickup) {
+     throw new NotFoundException('Pickup not found');
+   }
+
+
+   if (pickup.status !== 'PENDING') {
+     throw new BadRequestException('Only pending pickups can be rejected');
+   }
+
+
+   if (pickup.collectorUserId && pickup.collectorUserId !== collectorUserId) {
+     throw new ForbiddenException(
+       'Only the assigned collector can reject this pickup',
+     );
+   }
+
+
+   const updatedPickup = await this.prisma.pickup.update({
+     where: { pickupId },
+     data: {
+       status: 'CANCELLED',
+       rejectionReason: dto.reason,
+       collectorNote: dto.comment ?? null,
+     },
+   });
+
+
+   return {
+     message: 'Pickup rejected successfully',
+     pickup: updatedPickup,
+   };
+ }
+
+
 }

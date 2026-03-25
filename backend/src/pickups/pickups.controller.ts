@@ -21,6 +21,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Auth } from '../common/decorator/auth.decorator';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { PickupQueryDto } from './dto/pickup-query.dto';
+import { CompletePickupDto } from './dto/complete-pickup.dto';
+import { RejectPickupDto } from './dto/reject-pickup.dto';
 
 @ApiTags('Pickups')
 @UseGuards(JwtAuthGuard)
@@ -116,4 +118,30 @@ getRequests(@Query() query: PickupQueryDto) {
   cancelPickup(@Param('id') id: string, @Request() req) {
     return this.pickupsService.cancel(id, req.user.userId);
   }
+
+  /*NEW*/
+  @ApiOperation({ summary: 'Complete a pickup (collector)' })
+ @Patch(':id/complete-v2')
+ @Auth('COLLECTOR')
+ completePickup2(
+   @Param('id') id: string,
+   @Request() req,
+   @Body() dto: CompletePickupDto,
+ ) {
+   return this.pickupsService.CompletePickup(id, req.user.userId, dto);
+ }
+
+
+ //reject v2
+ @Patch(':id/cancel-v2')
+ @Auth('COLLECTOR')
+ cancelPickupV2(
+   @Param('id') id: string,
+   @Body() dto: RejectPickupDto,
+   @Request() req,
+ ) {
+   return this.pickupsService.cancelV2(id, req.user.userId, dto);
+ }
+
+
 }

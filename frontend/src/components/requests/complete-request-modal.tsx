@@ -4,7 +4,8 @@ import { X, Wallet, CheckCircle } from "lucide-react";
 import { Button } from "../ui/button";
 
 
-interface CollectionItem {
+export interface CollectionItem {
+   materialId: string;
    material: string;
    expectedUnits: number;
    unitPrice: number;
@@ -30,18 +31,21 @@ interface CompleteRequestModalProps {
 
 const defaultItems: CollectionItem[] = [
    {
+       materialId: "1",
        material: "Plastic Bottles",
        expectedUnits: 50,
        unitPrice: 1.5,
        actualUnits: 50,
    },
    {
+         materialId: "2",
        material: "Cardboard Boxes",
        expectedUnits: 20,
        unitPrice: 2,
        actualUnits: 20,
    },
    {
+     materialId: "3",
        material: "Glass Jars",
        expectedUnits: 10,
        unitPrice: 2,

@@ -223,6 +223,8 @@ model Pickup {
   actualEarning   Decimal?   @db.Decimal(14,2)
   estimatedCost   Decimal?   @db.Decimal(14, 2)
   note            String?
+  collectorNote   String?
+  rejectionReason String?
   items     PickupItem[]
   snapshots PickupSnapshot[]
   requester       User?      @relation("requester", fields: [requesterUserId], references: [userId], onDelete: SetNull)

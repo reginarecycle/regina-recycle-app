@@ -39,7 +39,7 @@ const compatibility =
       };
     }) ?? [];
 
-  const estUnits = items.reduce((sum, item) => sum + item.estimatedUnits, 0);
+  const estUnits = items.reduce((sum: number, item:any) => sum + item.estimatedUnits, 0);
 
   const snapshots =
    pickup.snapshots?.map((snapshot: any) => ({

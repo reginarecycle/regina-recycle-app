@@ -5,8 +5,10 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
+import { CollectorsModule } from '../collectors/collectors.module';
+
 @Module({
-  imports: [PrismaModule, NotificationsModule, CloudinaryModule],
+  imports: [PrismaModule, NotificationsModule, CloudinaryModule, CollectorsModule],
   controllers: [PickupsController],
   providers: [PickupsService],
 })
