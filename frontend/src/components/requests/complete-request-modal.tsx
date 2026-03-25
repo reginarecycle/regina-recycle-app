@@ -106,8 +106,8 @@ export function CompleteRequestModal({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-            <div className="relative max-h-[90vh] w-full max-w-[820px] overflow-y-auto rounded-[24px] bg-white shadow-2xl">
-                <div className="relative border-b border-[#E5E7EB] px-6 py-6">
+            <div className="flex flex-col max-h-[90vh] w-full max-w-140 rounded-[24px] bg-white shadow-2xl">
+                <div className="relative shrink-0 border-b border-[#E5E7EB] px-6 py-6">
                     <button
                         onClick={onClose}
                         className="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F6] text-[#6B7280] transition hover:bg-[#E5E7EB]"
@@ -124,7 +124,7 @@ export function CompleteRequestModal({
                     </p>
                 </div>
 
-                <div className="space-y-6 px-6 py-6">
+                <div className="flex-1 overflow-y-auto space-y-6 px-6 py-6">
                     <div className="grid grid-cols-1 gap-y-6 rounded-[18px] bg-[#F7F7F7] px-5 py-5 md:grid-cols-2">
                         <div className="space-y-6">
                             <div>
@@ -307,7 +307,7 @@ export function CompleteRequestModal({
                     </div>
                 </div>
 
-                <div className="border-t border-[#E5E7EB] bg-white px-6 py-4">
+                <div className="shrink-0 border-t border-[#E5E7EB] bg-white px-6 py-4">
                     <div className="grid grid-cols-2 gap-4">
                         <Button
                             onClick={onClose}

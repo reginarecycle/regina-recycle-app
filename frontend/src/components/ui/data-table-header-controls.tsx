@@ -1,8 +1,8 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Search, SlidersHorizontal } from "lucide-react";
+import { Input } from "./input";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
 
 export type DateRange = "today" | "7days" | "30days" | "alltime";
 
@@ -21,7 +21,6 @@ export interface StatusOption<TStatus extends string = string> {
   label: string;
 }
 
-// ── Filter Panel ──────────────────────────────────────────────────────────────
 
 const DATE_OPTIONS: { key: DateRange; label: string }[] = [
   { key: "today",   label: "Today"        },
@@ -97,20 +96,16 @@ function FilterPanel<TStatus extends string>({
   );
 }
 
-// ── DataTableHeaderControls ────────────────────────────────────────────────────
 
 export interface DataTableHeaderControlsProps<TStatus extends string = string> {
-  /** Controlled search value */
   search: string;
   onSearchChange: (v: string) => void;
   searchPlaceholder?: string;
-  /** Controlled filter state */
   filters: TableFilterState<TStatus>;
   onFiltersChange: (f: TableFilterState<TStatus>) => void;
-  /** Status pills shown in the filter panel */
   statusOptions: StatusOption<TStatus>[];
-  /** Hide the date-range section of the filter panel */
   showDateRange?: boolean;
+  stretch?: boolean;
 }
 
 export function DataTableHeaderControls<TStatus extends string = string>({
@@ -121,6 +116,7 @@ export function DataTableHeaderControls<TStatus extends string = string>({
   onFiltersChange,
   statusOptions,
   showDateRange = true,
+  stretch = false,
 }: DataTableHeaderControlsProps<TStatus>) {
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
@@ -136,18 +132,18 @@ export function DataTableHeaderControls<TStatus extends string = string>({
   return (
     <>
       {/* Search */}
-      <div className="flex items-center gap-2 border border-border rounded-xl px-3 py-2 bg-white w-64 focus-within:border-primary transition-colors">
-        <Search className="w-4 h-4 text-muted-foreground shrink-0" />
-        <input
+      <div className={cn("relative", stretch ? "flex-1" : "w-64")}>
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+        <Input
           type="text"
           placeholder={searchPlaceholder}
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="text-sm bg-transparent outline-none flex-1 text-foreground placeholder:text-muted-foreground"
+          className="pl-9"
         />
       </div>
 
-      {/* Filter toggle */}
+
       <div className="relative" ref={ref}>
         <button
           type="button"
