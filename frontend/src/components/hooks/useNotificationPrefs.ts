@@ -6,11 +6,6 @@ import {
   type UpdateNotificationPreferencePayload,
 } from "@/api-hooks/useNotifications";
 import type { NotificationKey, NotificationPrefs } from "@/types/notification";
-import {
-  useNotificationPreferences,
-  useUpdateNotificationPreferences,
-  type NotificationPreferencesDto,
-} from "@/api-hooks/useNotifications";
 
 const DEFAULT_PREFS: NotificationPrefs = {
   "email:pickup": true,
