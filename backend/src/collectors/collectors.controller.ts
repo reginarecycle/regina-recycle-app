@@ -137,7 +137,7 @@ export class CollectorsController {
   }
 
   // ─── Pricing ──────────────────────────────────────────────────────────────
-@Get('me/pricing')
+@Get('/me/pricing')
  @Auth()
  getPricing(
    @CurrentUser() user: CurrentUserPayload,

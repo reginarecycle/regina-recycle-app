@@ -438,7 +438,10 @@ export class CollectorsService {
   async getPricing(collectorId: string, query: CollectorQueryDto) {
     await this.ensureCollectorExists(collectorId);
 
-    const { page = 1, limit = 10, search, status } = query;
+    const page = Number(query.page ?? 1);
+    const limit = Number(query.limit ?? 10);
+    const search = query.search ?? "";
+    const status = query.status ?? "ACTIVE"
     const { skip, take } = getPaginationParams(page, limit);
 
     const where = {
