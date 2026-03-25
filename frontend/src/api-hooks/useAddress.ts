@@ -1,6 +1,5 @@
-import { useGetOne, useUpdate } from "../lib/queryHelpers";
+import { useCreate, useGetOne, useUpdate } from "../lib/queryHelpers";
 
-// Type
 export interface Address {
   addressId: string;
   line1: string;
@@ -13,13 +12,11 @@ export interface Address {
   isPrimary?: boolean;
 }
 
-// Query keys
 export const addressKeys = {
   default: () => ["address", "default"] as const,
   detail: (id: string) => ["address", "detail", id] as const,
 };
 
-// Hooks
 export const useGetDefaultAddress = () =>
   useGetOne<Address>(addressKeys.default(), "/addresses/default");
 
@@ -29,3 +26,16 @@ export const useUpdateAddress = () =>
     addressKeys.default(),
     addressKeys.detail
   );
+
+export interface CreateAddressDto {
+  line1: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  latitude?: number;
+  longitude?: number;
+  isPrimary?: boolean;
+}
+
+export const useCreateAddress = () =>
+  useCreate<Address, CreateAddressDto>("/addresses", addressKeys.default());
