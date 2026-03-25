@@ -65,9 +65,8 @@ function TimeSlotPicker({
               key={slot.id}
               type="button"
               onClick={() => onSelect(slot)}
-              className={`w-full flex items-center justify-between rounded-xl border px-4 py-4 transition-colors ${
-                active ? "border-primary bg-background-green-100" : "border-border hover:border-muted-foreground"
-              }`}
+              className={`w-full flex items-center justify-between rounded-xl border px-4 py-4 transition-colors ${active ? "border-primary bg-background-green-100" : "border-border hover:border-muted-foreground"
+                }`}
             >
               <span className="text-sm font-medium text-foreground">{slot.label}</span>
               <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center ${active ? "border-primary bg-primary" : "border-border"}`}>
@@ -116,7 +115,7 @@ export default function Step2Time({ onBack, onNext }: Props) {
 
   // Derive view month from selected date (Calendar manages its own view state)
   const viewMonth = selectedDate ? selectedDate.getMonth() + 1 : today.getMonth() + 1;
-  const viewYear  = selectedDate ? selectedDate.getFullYear()  : today.getFullYear();
+  const viewYear = selectedDate ? selectedDate.getFullYear() : today.getFullYear();
 
   const { data: slotsResult, isLoading: slotsLoading } = useGetAvailableSlots(viewMonth, viewYear);
 
@@ -156,7 +155,11 @@ export default function Step2Time({ onBack, onNext }: Props) {
           value={selectedDate}
           onChange={handleDateChange}
           isLoading={slotsLoading}
-          isDisabled={(date) => date < today}
+          isDisabled={(date) => {
+            const d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            return d <= today;
+          }}
           isAvailable={(date) => !!slotsByDate[toDateKey(date)]}
         />
 
