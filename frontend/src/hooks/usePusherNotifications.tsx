@@ -3,15 +3,6 @@ import Pusher from "pusher-js";
 import { Bell } from "lucide-react";
 import type { Notification, BackendNotification } from "@/types/notification";
 
-// type BackendNotification = {
-//   notificationId: string;
-//   type: "IN_APP_PICKUP_REMINDER" | "ALERT" | "ACCOUNT_ACTIVITY" | "PAYMENT_ACTIVITY" | "MARKETING" | "EMAIL_PICKUP_REMINDER";
-//   title: string;
-//   message: string;
-//   isRead: boolean;
-//   createdAt: string;
-// };
-
 function mapToFrontend(n: BackendNotification): Notification {
   const typeMap: Record<string, Notification["type"]> = {
     PICKUP_SCHEDULED: "info",

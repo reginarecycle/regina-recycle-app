@@ -30,8 +30,8 @@ export interface NotificationQueryParams {
 export interface NotificationUnreadCount {
     count: number;
 }
-
-export interface NotificationsPreference {
+// previously named NotificationsPreference
+export interface NotificationsPreferencesDto {
     emailPickupReminder?: boolean;
     emailAccountActivity?: boolean;
     emailMarketing?: boolean;
@@ -83,15 +83,15 @@ export function useUnreadNotificationCount() {
 }
 
 export function useNotificationsPreferences() {
-    return useGetOne<NotificationsPreference>(
+    return useGetOne<NotificationsPreferencesDto>(
         ["notifications", "preferences"],
         "/notifications/preferences"
     );
 }
-
-export function useUpdateNotificationPreferences() {
+// previously named useUpdateNotificationPreferences
+export function useCreateNotificationPreferences() {
     return useCreate<
-        NotificationsPreference,
+        NotificationsPreferencesDto,
         UpdateNotificationPreferencePayload
     >("/notifications/preferences", ["notifications", "preferences"]);
 }
