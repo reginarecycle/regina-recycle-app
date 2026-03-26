@@ -301,31 +301,58 @@ export class CollectorsService {
     return { message: 'Collector profile updated successfully', data: updatedProfile };
   }
 
-  async getPricing(collectorId: string, query: CollectorQueryDto) {
-    await this.ensureCollectorExists(collectorId);
+async getPricing(collectorId: string, query: CollectorQueryDto) {
+  await this.ensureCollectorExists(collectorId);
 
-    const { page = 1, limit = 10, search, status } = query;
-    const { skip, take } = getPaginationParams(page, limit);
+  const { page = 1, limit = 10, search, status } = query;
+  const { skip, take } = getPaginationParams(page, limit);
 
-    const where = {
-      collectorUserId: collectorId,
-      ...(search ? { material: { name: { contains: search, mode: 'insensitive' as const } } } : {}),
-      ...(status ? { status: status as PricingStatus } : {}),
-    };
-
-    const [pricing, total] = await Promise.all([
-      this.prisma.collectorPricing.findMany({
-        where,
-        include: { material: true },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take,
-      }),
-      this.prisma.collectorPricing.count({ where }),
-    ]);
-
-    return paginate(pricing, total, page, limit);
+  if (status && status !== 'ACTIVE') {
+    return paginate([], 0, page, limit);
   }
+
+  const materialWhere = {
+    ...(search
+      ? {
+          name: {
+            contains: search,
+            mode: 'insensitive' as const,
+          },
+        }
+      : {}),
+  };
+
+  const [materials, total] = await Promise.all([
+    this.prisma.material.findMany({
+      where: materialWhere,
+      skip,
+      take,
+      orderBy: { createdAt: 'desc' },
+      select: {
+        materialId: true,
+        name: true,
+        type: true,
+      },
+    }),
+    this.prisma.material.count({
+      where: materialWhere,
+    }),
+  ]);
+
+  const pricingData = materials.map((material) => ({
+    collectorPricingId: null,
+    basePrice: 0,
+    bulkPrice: 0,
+    status: 'ACTIVE',
+    material: {
+      materialId: material.materialId,
+      name: material.name,
+      type: material.type,
+    },
+  }));
+
+  return paginate(pricingData, total, page, limit);
+}
 
   async createMaterialPricing(collectorId: string, dto: CreateMaterialPricingDto) {
     await this.ensureCollectorExists(collectorId);
