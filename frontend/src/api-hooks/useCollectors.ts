@@ -1,6 +1,4 @@
 import { useGetOne, useGetList, usePatch } from "@/lib/queryHelpers";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiFetch } from "@/lib/apiFetch";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -172,118 +170,6 @@ export interface CreateMaterialPricingPayload {
   status?:    string;
 }
 
-// ─── Collector Users types ────────────────────────────────────────────────────
-
-export interface CollectorUser {
-  customerId:     string;
-  name:           string;
-  email:          string;
-  phone:          string | null;
-  neighborhood:   string;
-  status:         string;
-  collections:    number;
-  revenue:        number;
-  avgPerOrder:    number;
-  collectedItems: string[];
-}
-
-export interface CollectorUsersStats {
-  totalUsers:        number;
-  avgRevenuePerUser: number;
-  totalCollection:   number;
-}
-
-export interface CollectorUsersResponse {
-  stats:      CollectorUsersStats;
-  data:       CollectorUser[];
-  total:      number;
-  page:       number;
-  limit:      number;
-  totalPages: number;
-}
-
-// ─── Collector Pickup Request types ──────────────────────────────────────────
-
-export interface PickupItemMaterial {
-  materialId: string;
-  name:       string;
-  type:       string;
-}
-
-export interface PickupRequestItem {
-  materialId: string;
-  quantity:   number;
-  unitPrice?: number;
-  material?:  PickupItemMaterial;
-}
-
-export interface PickupSnapshot {
-  materialId: string;
-  quantity:   number;
-  priceUsed:  number;
-  material?:  PickupItemMaterial;
-}
-
-export interface PickupRequester {
-  userId:       string;
-  name:         string;
-  email:        string;
-  phoneNumber?: string;
-}
-
-export interface PickupAddress {
-  line1:       string;
-  line2?:      string;
-  city?:       string;
-  province?:   string;
-  postalCode?: string;
-}
-
-export interface CollectorPickup {
-  pickupId:          string;
-  requestNumber?:    string;
-  status:            'PENDING' | 'ACCEPTED' | 'COMPLETED' | 'CANCELLED';
-  scheduledAt:       string;
-  /** Customer's estimated payout — always set on creation */
-  estimatedCost?:    number | string;
-  /** Collector's net earning after service fee — set on acceptance */
-  estimatedEarning?: number | string;
-  actualEarning?:    number | string;
-  note?:             string;
-  isCompatible?:     boolean;
-  requester?:        PickupRequester;
-  address?:          PickupAddress;
-  items?:            PickupRequestItem[];
-  snapshots?:        PickupSnapshot[];
-}
-
-export interface CollectorPickupsPaginated {
-  data: CollectorPickup[];
-  meta: {
-    total:           number;
-    page:            number;
-    limit:           number;
-    totalPages:      number;
-    hasNextPage:     boolean;
-    hasPreviousPage: boolean;
-  };
-}
-
-export interface CollectorPickupsQuery {
-  status?:    'PENDING' | 'ACCEPTED' | 'COMPLETED' | 'CANCELLED';
-  search?:    string;
-  page?:      number;
-  limit?:     number;
-  startDate?: string;
-  endDate?:   string;
-}
-
-export interface CollectorPickupStats {
-  pendingRequests:  number;
-  acceptedRequests: number;
-  potentialRevenue: number;
-}
-
 // ─── Query keys ───────────────────────────────────────────────────────────────
 
 export const collectorKeys = {
@@ -294,18 +180,10 @@ export const collectorKeys = {
   topLocations:         (limit?: number, period?: string) => ["collectors", "top-locations", limit, period]   as const,
   customers:            (query?: object)                  => ["collectors", "customers", query ?? {}]          as const,
   customerStats:        ()                                => ["collectors", "customers", "stats"]              as const,
-  customerDetail:       (id: string)                      => ["collectors", "customers", id]                   as const,
+  customerDetail:       (id: string)                      => ["collectors", "customers", id]                  as const,
   pricing:              (query?: object)                  => ["collectors", "pricing", query ?? {}]            as const,
   pricingSettings:      ()                                => ["collectors", "pricing-settings"]                as const,
   payoutCalculation:    (materialId: string, qty: number) => ["collectors", "payout", materialId, qty]        as const,
-  users:                (id: string, query?: object)      => ["collectors", id, "users", query ?? {}]         as const,
-  usersStats:           (id: string)                      => ["collectors", id, "users", "stats"]             as const,
-};
-
-export const pickupRequestKeys = {
-  all:   ()            => ["pickups", "collector"]                    as const,
-  list:  (q?: object)  => ["pickups", "collector", "list", q ?? {}]  as const,
-  stats: ()            => ["pickups", "collector", "stats"]          as const,
 };
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
@@ -345,12 +223,14 @@ export const useCollectorTopLocations = (limit?: number, period?: string) => {
   );
 };
 
+// ─── Customer Stats — GET /collectors/customers/stats ────────────────────────
 export const useCollectorCustomerStats = () =>
   useGetOne<CollectorCustomerStats>(
     collectorKeys.customerStats(),
     "/collectors/customers/stats",
   );
 
+// ─── Customers list — GET /collectors/customers ───────────────────────────────
 export const useCollectorCustomers = (query?: {
   search?: string;
   status?: string;
@@ -369,6 +249,7 @@ export const useCollectorCustomers = (query?: {
   );
 };
 
+// ─── Customer detail — GET /collectors/customers/:customerId ─────────────────
 export const useCollectorCustomerDetail = (customerId: string) =>
   useGetOne<CustomerDetails>(
     collectorKeys.customerDetail(customerId),
@@ -399,6 +280,7 @@ export const useCalculatePayout = (materialId: string, quantity: number) =>
     { enabled: Boolean(materialId) && quantity > 0 },
   );
 
+// ─── Mutations — using usePatch (correct PATCH method) ───────────────────────
 export const useUpdateCollectorProfile = () =>
   usePatch<{ message: string }, UpdateCollectorPayload>(
     "/collectors/profile",
@@ -416,88 +298,3 @@ export const useUpdateMaterialPricing = (materialId: string) =>
     `/collectors/pricing/${materialId}`,
     collectorKeys.pricing(),
   );
-
-// ─── Collector Users hooks ────────────────────────────────────────────────────
-
-export const useCollectorUsers = (
-  collectorId: string,
-  query?: { keyword?: string; page?: number; limit?: number },
-) => {
-  const params = new URLSearchParams();
-  if (query?.keyword) params.append("keyword", query.keyword);
-  if (query?.page)    params.append("page",    String(query.page));
-  if (query?.limit)   params.append("limit",   String(query.limit));
-  const qs = params.toString();
-  return useGetOne<CollectorUsersResponse>(
-    collectorKeys.users(collectorId, query),
-    `/collectors/${collectorId}/users${qs ? `?${qs}` : ""}`,
-    { enabled: Boolean(collectorId) },
-  );
-};
-
-export const useCollectorUsersStats = (collectorId: string) =>
-  useGetOne<CollectorUsersStats>(
-    collectorKeys.usersStats(collectorId),
-    `/collectors/${collectorId}/users/stats`,
-    { enabled: Boolean(collectorId) },
-  );
-
-// ─── Collector Pickup Request hooks ──────────────────────────────────────────
-
-export const useGetCollectorPickupStats = () =>
-  useGetOne<CollectorPickupStats>(pickupRequestKeys.stats(), "/pickups/collector/stats");
-
-export const useGetCollectorPickupRequests = (query?: CollectorPickupsQuery, enabled = true) => {
-  const params = new URLSearchParams();
-  if (query?.status)    params.append("status",    query.status);
-  if (query?.search)    params.append("search",    query.search);
-  if (query?.page)      params.append("page",      String(query.page));
-  if (query?.limit)     params.append("limit",     String(query.limit));
-  if (query?.startDate) params.append("startDate", query.startDate);
-  if (query?.endDate)   params.append("endDate",   query.endDate);
-  const qs = params.toString();
-  return useGetOne<CollectorPickupsPaginated>(
-    pickupRequestKeys.list(query),
-    `/pickups/collector${qs ? `?${qs}` : ""}`,
-    { enabled },
-  );
-};
-
-export const useAcceptPickup = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (pickupId: string) =>
-      apiFetch(`/pickups/${pickupId}/accept`, { method: "PATCH" }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: pickupRequestKeys.all() }),
-  });
-};
-
-export const useRejectPickup = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ pickupId, reason, comment }: { pickupId: string; reason?: string; comment?: string }) =>
-      apiFetch(`/pickups/${pickupId}/reject`, {
-        method: "PATCH",
-        data: { reason, comment },
-      }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: pickupRequestKeys.all() }),
-  });
-};
-
-export const useCompletePickup = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (pickupId: string) =>
-      apiFetch(`/pickups/${pickupId}/complete`, { method: "PATCH" }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: pickupRequestKeys.all() }),
-  });
-};
-
-export const useCancelPickupByCollector = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (pickupId: string) =>
-      apiFetch(`/pickups/${pickupId}/cancel`, { method: "DELETE" }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: pickupRequestKeys.all() }),
-  });
-};
