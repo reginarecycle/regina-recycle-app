@@ -9,7 +9,6 @@ import {
   Body,
   BadRequestException,
   Request,
-  UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { Auth } from '../common/decorator/auth.decorator';
@@ -34,7 +33,7 @@ type CurrentUserPayload = {
 @ApiTags('Collectors')
 @Controller('collectors')
 export class CollectorsController {
-  constructor(private readonly collectorsService: CollectorsService) {}
+  constructor(private readonly collectorsService: CollectorsService) { }
 
   @Get('stats')
   @Auth()
