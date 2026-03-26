@@ -29,8 +29,8 @@ const TABS: DataTableTabItem[] = [
 ];
 
 const STATUS_OPTIONS: StatusOption<RecycleStatus>[] = [
-  { key: "COMPLETED", label: "Completed" },
   { key: "PENDING", label: "Pending" },
+  { key: "COMPLETED", label: "Completed" },
   { key: "CANCELLED", label: "Cancelled" },
 ];
 
@@ -113,9 +113,9 @@ function mapPickupToRecord(
     location: buildLocation(pickup),
     pickupLocation: buildLocation(pickup),
     materials,
-    date: formatDate(pickup.createdAt ?? pickup.scheduledAt),
+    date: formatDate(pickup.scheduledAt ?? pickup.createdAt),
     scheduledPickupDate: formatDate(pickup.scheduledAt),
-    status: (pickup.status === "ACCEPTED" ? "PENDING" : pickup.status) as RecycleStatus,
+    status: pickup.status as RecycleStatus,
     requestDate: formatDate(pickup.createdAt),
     collectorId: pickup.collector?.userId,
     collectorName: pickup.collector?.name,
@@ -132,40 +132,18 @@ export const RecycleHistory: React.FC = () => {
   const [selectedRecord, setSelectedRecord] = useState<RecycleRecord | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const selectedStatus =
-    filters.statuses[0] || (tab === "ALL" ? undefined : tab);
+  const selectedStatus = tab !== "ALL" ? tab : filters.statuses[0];
 
-  const isPendingView = selectedStatus === "PENDING";
-
-  const defaultQuery = {
+  const {
+    data: pickupsResult,
+    isLoading: pickupsLoading,
+    error: pickupsError,
+  } = useGetCustomerPickups({
     page,
     limit: PAGE_SIZE,
-    search: search || undefined,
-  };
-
-  const {
-    data: mainPickupsResult,
-    isLoading: mainPickupsLoading,
-  } = useGetCustomerPickups(
-    { ...defaultQuery, status: selectedStatus as RecycleStatus | undefined },
-    !isPendingView
-  );
-
-  const {
-    data: pendingPickupsResult,
-    isLoading: pendingPickupsLoading,
-  } = useGetCustomerPickups(
-    { ...defaultQuery, status: "PENDING" as RecycleStatus },
-    isPendingView
-  );
-
-  const {
-    data: acceptedPickupsResult,
-    isLoading: acceptedPickupsLoading,
-  } = useGetCustomerPickups(
-    { ...defaultQuery, status: "ACCEPTED" as RecycleStatus },
-    isPendingView
-  );
+    search: search.trim() || undefined,
+    status: selectedStatus as RecycleStatus | undefined,
+  });
 
   const {
     data: materialsResult,
@@ -180,38 +158,14 @@ export const RecycleHistory: React.FC = () => {
     }, {});
   }, [materialsResult]);
 
-  const records = useMemo(() => {
-    let rawPickups: any[];
-    if (isPendingView) {
-      const pending = pendingPickupsResult?.data?.data ?? [];
-      const accepted = acceptedPickupsResult?.data?.data ?? [];
-      const seen = new Set<string>();
-      rawPickups = [...pending, ...accepted].filter((p: any) => {
-        if (seen.has(p.pickupId)) return false;
-        seen.add(p.pickupId);
-        return true;
-      });
-    } else {
-      rawPickups = mainPickupsResult?.data?.data ?? [];
-    }
-    return rawPickups.map((p: any) => mapPickupToRecord(p, materialNameById));
-  }, [isPendingView, mainPickupsResult, pendingPickupsResult, acceptedPickupsResult, materialNameById]);
+  const allRecords = useMemo(
+    () => (pickupsResult?.data?.data ?? []).map((p: any) => mapPickupToRecord(p, materialNameById)),
+    [pickupsResult, materialNameById]
+  );
 
-  const totalItems = isPendingView
-    ? records.length
-    : mainPickupsResult?.data?.total ?? records.length;
-
-  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
-
-  const handleTabChange = (t: string) => {
-    setTab(t as HistoryTab);
-    setPage(1);
-  };
-
-  const handleSearchChange = (value: string) => {
-    setSearch(value);
-    setPage(1);
-  };
+  const meta = pickupsResult?.data?.meta;
+  const totalPages = meta ? Math.max(1, Math.ceil(meta.total / PAGE_SIZE)) : 1;
+  const filtered = allRecords;
 
   const handleViewMore = (record: RecycleRecord) => {
     setSelectedRecord(record);
@@ -220,24 +174,29 @@ export const RecycleHistory: React.FC = () => {
 
   const columns = useMemo(() => buildColumns(handleViewMore), []);
 
-  const isLoading =
-    materialsLoading ||
-    mainPickupsLoading ||
-    (isPendingView && (pendingPickupsLoading || acceptedPickupsLoading));
+  if (pickupsError) {
+    return (
+      <div className="h-full flex flex-col bg-background p-6 lg:p-8">
+        Failed to load recycle history.
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col bg-background p-6 lg:p-8">
       <DataTable
         className="flex-1"
-        data={records}
+        data={pickupsLoading || materialsLoading ? [] : filtered}
         columns={columns}
         rowKey={(r) => r.id}
-        isLoading={isLoading}
         title="Recycle History"
         headerRight={
           <DataTableHeaderControls<RecycleStatus>
             search={search}
-            onSearchChange={handleSearchChange}
+            onSearchChange={(value) => {
+              setSearch(value);
+              setPage(1);
+            }}
             searchPlaceholder="Search"
             filters={filters}
             onFiltersChange={(f) => {
@@ -248,13 +207,24 @@ export const RecycleHistory: React.FC = () => {
           />
         }
         tabs={TABS}
-        tabBarProps={{ mode: "none", value: tab, onChange: handleTabChange }}
+        tabBarProps={{
+          mode: "none",
+          value: tab,
+          onChange: (t) => {
+            setTab(t as HistoryTab);
+            setPage(1);
+          },
+        }}
         page={page}
         totalPages={totalPages}
-        totalItems={totalItems}
+        totalItems={meta?.total ?? 0}
         pageSize={PAGE_SIZE}
         onPageChange={setPage}
-        emptyText="No records found"
+        emptyText={
+          pickupsLoading || materialsLoading
+            ? "Loading recycle history..."
+            : "No records found"
+        }
       />
 
       <ScheduleDetailsModal
@@ -270,67 +240,3 @@ export const RecycleHistory: React.FC = () => {
 };
 
 export default RecycleHistory;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
