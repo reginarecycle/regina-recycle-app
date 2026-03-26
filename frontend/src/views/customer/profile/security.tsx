@@ -12,10 +12,11 @@ import { useChangePassword } from "@/api-hooks/useAuth";
 
 const ProfileSecurity = () => {
   const [passwordUpdated, setPasswordUpdated] = useState(false);
+   const [showSaving, setShowSaving] = useState(false);
   const { data: deleteEligibility } = useCheckDeleteEligibility();
   const { mutate: deleteUserAccount } = useDeleteUserAccount();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const { mutate: changePassword } = useChangePassword();
+  const { mutate: changePassword} = useChangePassword();
   const {
     register: registerPassword,
     handleSubmit: handleSubmitPassword,
@@ -26,7 +27,10 @@ const ProfileSecurity = () => {
     mode: "onBlur",
   });
 
- const onSubmitPassword = (data: ChangePasswordFormValues) => {
+const onSubmitPassword = (data: ChangePasswordFormValues) => {
+  setPasswordUpdated(false);
+   setShowSaving(true);
+
   changePassword(
     {
       currentPassword: data.currentPassword,
@@ -34,10 +38,16 @@ const ProfileSecurity = () => {
     },
     {
       onSuccess: () => {
-        resetPassword();
-        setPasswordUpdated(true);
+        setTimeout(() => {
+          resetPassword();
+          setPasswordUpdated(true);
+          setShowSaving(false);
+        }, 800); 
       },
-    }
+      onError: () => {
+      setShowSaving(false);
+    },
+  }
   );
 };
 
@@ -95,9 +105,13 @@ const ProfileSecurity = () => {
           <Button
             type="submit"
             className="w-full sm:w-[174px] h-11 min-w-0 bg-primary hover:bg-primary/90 disabled:opacity-60"
-            disabled={!passwordIsDirty}
+            disabled={!passwordIsDirty || showSaving}
           >
-            Update Password
+            {showSaving ? (
+           <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            ) : (
+            "Update Password"
+            )}
           </Button>
         </div>
 
