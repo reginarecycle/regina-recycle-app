@@ -1,13 +1,17 @@
 import { StatsCards, type StatItem } from "@/components/requests/stats-cards";
 import RequestsTable from "@/components/requests/requests-table";
-
-const STATS: StatItem[] = [
-    { title: "PERFECT MATCH",     data: 5,    color: "green",  unit: "Requests" },
-    { title: "NEEDS COMPLETION",  data: 25000, color: "yellow", unit: "Requests" },
-    { title: "POTENTIAL REVENUE", data: 9100, color: "blue",   currency: "$"    },
-];
+import { useGetCollectorPickupStats } from "@/api-hooks/useCollectors";
 
 export function CollectorRequests() {
+    const { data: statsResult } = useGetCollectorPickupStats();
+    const stats = statsResult?.data;
+
+    const STATS: StatItem[] = [
+        { title: "PERFECT MATCH",     data: stats?.pendingRequests  ?? 0, color: "green",  unit: "Requests" },
+        { title: "NEEDS COMPLETION",  data: stats?.acceptedRequests ?? 0, color: "yellow", unit: "Requests" },
+        { title: "POTENTIAL REVENUE", data: stats?.potentialRevenue ?? 0, color: "blue",   currency: "$"    },
+    ];
+
     return (
         <div className="h-full flex flex-col overflow-auto">
             <div className="pt-6 px-6 shrink-0">
@@ -21,3 +25,4 @@ export function CollectorRequests() {
 }
 
 export default CollectorRequests;
+
