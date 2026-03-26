@@ -132,8 +132,7 @@ export const RecycleHistory: React.FC = () => {
   const [selectedRecord, setSelectedRecord] = useState<RecycleRecord | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const selectedStatus =
-    tab !== "ALL" ? tab : filters.statuses[0];
+  const selectedStatus = tab !== "ALL" ? tab : filters.statuses[0];
 
   const {
     data: pickupsResult,
@@ -164,8 +163,8 @@ export const RecycleHistory: React.FC = () => {
     [pickupsResult, materialNameById]
   );
 
-  const totalItems = pickupsResult?.data?.total ?? 0;
-  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const meta = pickupsResult?.data?.meta;
+  const totalPages = meta ? Math.max(1, Math.ceil(meta.total / PAGE_SIZE)) : 1;
   const filtered = allRecords;
 
   const handleViewMore = (record: RecycleRecord) => {
@@ -218,7 +217,7 @@ export const RecycleHistory: React.FC = () => {
         }}
         page={page}
         totalPages={totalPages}
-        totalItems={totalItems}
+        totalItems={meta?.total ?? 0}
         pageSize={PAGE_SIZE}
         onPageChange={setPage}
         emptyText={
