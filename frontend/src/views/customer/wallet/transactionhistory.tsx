@@ -7,6 +7,7 @@ import { DataTableHeaderControls, type TableFilterState } from "@/components/ui/
 import TransactionDetailsModal from "@/components/modals/transactiondetailmodal";
 import type { TransactionDetails } from "@/components/modals/transactiondetailmodal";
 import { useGetWalletTransactions } from "@/api-hooks/useWallet";
+import { buildDateRange } from "@/lib/utils";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -71,11 +72,22 @@ export default function TransactionHistory() {
 
   // ── Data fetching ──────────────────────────────────────────────────────────
 
+ // ── Data fetching ──────────────────────────────────────────────────────────
+
+  const dateRange = filters.dateRange !== "alltime" ? buildDateRange(filters.dateRange) : {};
+
   const { data: txResult, isLoading } = useGetWalletTransactions({
     page,
     limit:     PAGE_SIZE,
     search:    search.trim() || undefined,
-    startDate: filters.dateRange !== "alltime" ? filters.dateRange : undefined,
+    startDate: dateRange.startDate ? `${dateRange.startDate}T00:00:00.000Z` : undefined,
+    endDate:   dateRange.endDate   ? `${dateRange.endDate}T23:59:59.999Z`   : undefined,
+    type:      filters.statuses.length === 1
+                 ? filters.statuses[0] === "CREDIT"     ? "CREDIT"
+                 : filters.statuses[0] === "WITHDRAWAL" ? "DEBIT"
+                 : undefined
+               : undefined,
+    status:    filters.statuses.includes("FAILED") ? "FAILED" : undefined,
   });
 
   const allTransactions = useMemo(
@@ -85,17 +97,9 @@ export default function TransactionHistory() {
 
   const meta       = txResult?.data?.meta;
   const totalPages = meta ? Math.max(1, Math.ceil(meta.total / PAGE_SIZE)) : 1;
+  const filtered   = allTransactions; // backend handles all filtering
 
-  // ── Client-side status filter (backend handles search + date) ─────────────
-
-  const filtered = useMemo(
-    () =>
-      filters.statuses.length === 0
-        ? allTransactions
-        : allTransactions.filter((tx) => filters.statuses.includes(tx.status)),
-    [allTransactions, filters.statuses],
-  );
-
+  
   // ── Handlers ───────────────────────────────────────────────────────────────
 
   const handleViewMore = (tx: Transaction) => {

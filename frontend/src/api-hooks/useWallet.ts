@@ -103,7 +103,7 @@ export interface CollectorWithdrawPayload {
 
 // GET /wallet/customer
 export const useGetCustomerWallet = () =>
-  useGetOne<CustomerWallet>(["wallet", "customer"], "/wallet/customer");
+  useGetOne<CustomerWallet>(["wallet","customer"],"/wallet/customer");
 
 // GET /wallet/collector
 export const useGetCollectorWallet = () =>
