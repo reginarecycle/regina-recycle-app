@@ -1,332 +1,266 @@
 import { useEffect, useState } from "react";
-import { formatAmount } from "@/lib/utils";
-import { X, Wallet, CheckCircle } from "lucide-react";
-import { Button } from "../ui/button";
+import { Link } from "react-router-dom";
+import { Routes } from "@/routes/routes";
+import { X, Wallet, CheckCircle2, AlertCircle } from "lucide-react";
+import { cn, formatAmount } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 interface CollectionItem {
-    material: string;
-    expectedUnits: number;
-    unitPrice: number;
-    actualUnits: number;
+  material:      string;
+  expectedUnits: number;
+  unitPrice:     number;
+  actualUnits:   number;
 }
 
 interface CompleteRequestModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onComplete?: (updatedItems: CollectionItem[]) => void;
-    requestId?: string;
-    customer?: string;
-    location?: string;
-    dateTime?: string;
-    compatibility?: string;
-    balance?: number;
-    note?: string;
-    setNote?: (value: string) => void;
-    items?: CollectionItem[];
+  isOpen:         boolean;
+  onClose:        () => void;
+  onComplete?:    (items: CollectionItem[]) => void;
+  isPending?:     boolean;
+  requestId?:     string;
+  customer?:      string;
+  location?:      string;
+  dateTime?:      string;
+  compatibility?: string;
+  balance?:       number;
+  serviceFee?:    number;
+  feeType?:       string;
+  note?:          string;
+  setNote?:       (v: string) => void;
+  items?:         CollectionItem[];
+  currentItems?:  CollectionItem[];
 }
-
-const defaultItems: CollectionItem[] = [
-    {
-        material: "Plastic Bottles",
-        expectedUnits: 50,
-        unitPrice: 1.5,
-        actualUnits: 50,
-    },
-    {
-        material: "Cardboard Boxes",
-        expectedUnits: 20,
-        unitPrice: 2,
-        actualUnits: 20,
-    },
-    {
-        material: "Glass Jars",
-        expectedUnits: 10,
-        unitPrice: 2,
-        actualUnits: 10,
-    },
-];
 
 export function CompleteRequestModal({
-    isOpen,
-    onClose,
-    onComplete,
-    requestId = "REQ001",
-    customer = "Nolan Roberts",
-    location = "524, Rae street",
-    dateTime = "14, Jan 2023, 10am - 12pm",
-    compatibility = "100%",
-    balance = 850,
-    note = "",
-    setNote,
-    items = defaultItems,
+  isOpen,
+  onClose,
+  onComplete,
+  isPending     = false,
+  requestId     = "",
+  customer      = "",
+  location      = "",
+  dateTime      = "",
+  compatibility = "100%",
+  balance       = 0,
+  serviceFee    = 0,
+  feeType       = "PERCENTAGE",
+  note          = "",
+  setNote,
+  items         = [],
 }: CompleteRequestModalProps) {
-    const [editableItems, setEditableItems] = useState<CollectionItem[]>(() => items);
+  const [editableItems, setEditableItems] = useState<CollectionItem[]>(items);
 
-    useEffect(() => {
-        if (isOpen) {
-            setEditableItems(items);
-        }
-    }, [isOpen]);
+  useEffect(() => {
+    if (isOpen) setEditableItems(items);
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    if (!isOpen) return null;
-
-    const handleActualUnitsChange = (index: number, value: string) => {
-        const parsedValue = value === "" ? 0 : Math.max(0, Number(value));
-
-        if (Number.isNaN(parsedValue)) return;
-
-        setEditableItems((prev) =>
-            prev.map((item, i) =>
-                i === index
-                    ? {
-                        ...item,
-                        actualUnits: parsedValue,
-                    }
-                    : item
-            )
-        );
-    };
-
-    const estimatedPayout = editableItems.reduce(
-        (sum, item) => sum + item.expectedUnits * item.unitPrice,
-        0
+  function handleUnitsChange(index: number, value: string) {
+    const n = value === "" ? 0 : Math.max(0, Number(value));
+    if (Number.isNaN(n)) return;
+    setEditableItems((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, actualUnits: n } : item)),
     );
+  }
 
-    const updatedTotalPayout = editableItems.reduce(
-        (sum, item) => sum + item.actualUnits * item.unitPrice,
-        0
-    );
+  const estimatedPayout  = items.reduce((s, i) => s + i.expectedUnits * i.unitPrice, 0);
+  const totalPayout      = editableItems.reduce((s, i) => s + i.actualUnits * i.unitPrice, 0);
+  const serviceFeeAmount = feeType === "PERCENTAGE" ? totalPayout * (serviceFee / 100) : serviceFee;
+  const netPayout        = Math.max(0, totalPayout - serviceFeeAmount);
+  const canAfford        = balance >= totalPayout;
+  const feeLabel         = feeType === "PERCENTAGE" ? `${serviceFee}%` : feeType.replace(/_/g, " ");
 
-    const hasEnoughBalance = balance >= updatedTotalPayout;
 
-    const handleCompleteRequest = () => {
-        if (!hasEnoughBalance) return;
-        onComplete?.(editableItems);
-    };
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent
+        className="w-[calc(100vw-2rem)] max-w-2xl p-0 gap-0 flex flex-col max-h-[90vh] sm:max-h-160 rounded-3xl"
+        showCloseButton={false}
+      >
+        {/* ── Header ──────────────────────────────────────────────────────── */}
+        <DialogHeader className="relative shrink-0 px-4 sm:px-6 py-4 sm:py-5 border-b">
+          <button
+            onClick={onClose}
+            className="absolute right-4 top-4 sm:right-5 sm:top-5 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-card text-muted-foreground hover:bg-border transition-colors"
+            aria-label="Close"
+          >
+            <X size={16} />
+          </button>
+          <DialogTitle className="text-base sm:text-lg font-semibold text-foreground">
+            Complete Request
+          </DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm text-muted-foreground">
+            Request ID: {requestId}
+          </DialogDescription>
+        </DialogHeader>
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-            <div className="relative max-h-[90vh] w-full max-w-[820px] overflow-y-auto rounded-[24px] bg-white shadow-2xl">
-                <div className="relative border-b border-[#E5E7EB] px-6 py-6">
-                    <button
-                        onClick={onClose}
-                        className="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F6] text-[#6B7280] transition hover:bg-[#E5E7EB]"
-                        aria-label="Close modal"
-                    >
-                        <X size={20} />
-                    </button>
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5 space-y-4 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
 
-                    <h2 className="text-[20px] font-semibold text-[#111827]">
-                        Complete Request
-                    </h2>
-                    <p className="mt-2 text-[14px] text-[#9CA3AF]">
-                        Request ID: {requestId}
-                    </p>
-                </div>
-
-                <div className="space-y-6 px-6 py-6">
-                    <div className="grid grid-cols-1 gap-y-6 rounded-[18px] bg-[#F7F7F7] px-5 py-5 md:grid-cols-2">
-                        <div className="space-y-6">
-                            <div>
-                                <p className="mb-2 text-[13px] uppercase text-[#9CA3AF]">
-                                    Customer
-                                </p>
-                                <p className="text-[16px] font-medium text-[#111827]">
-                                    {customer}
-                                </p>
-                            </div>
-
-                            <div>
-                                <p className="mb-2 text-[13px] uppercase text-[#9CA3AF]">
-                                    Date & Time
-                                </p>
-                                <p className="text-[16px] font-medium text-[#111827]">
-                                    {dateTime}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="space-y-6">
-                            <div>
-                                <p className="mb-2 text-[13px] uppercase text-[#9CA3AF]">
-                                    Location
-                                </p>
-                                <p className="text-[16px] font-medium text-[#111827]">
-                                    {location}
-                                </p>
-                            </div>
-
-                            <div>
-                                <p className="mb-2 text-[13px] uppercase text-[#9CA3AF]">
-                                    Compatibility
-                                </p>
-
-                                <span
-                                    className={`inline-flex rounded-full px-4 py-1 text-[14px] font-medium ${compatibility === "100%"
-                                        ? "bg-[#DCFCE7] text-[#22C55E]"
-                                        : "bg-[#FEE2E2] text-[#EF4444]"
-                                        }`}
-                                >
-                                    {compatibility}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 className="mb-4 text-[18px] font-medium text-[#111827]">
-                            Update Collection Details
-                        </h3>
-
-                        <div className="space-y-4">
-                            {editableItems.map((item, index) => {
-                                const total = item.actualUnits * item.unitPrice;
-
-                                return (
-                                    <div
-                                        key={`${item.material}-${index}`}
-                                        className="flex flex-col gap-4 rounded-[18px] bg-[#F7F7F7] px-5 py-5 md:flex-row md:items-center md:justify-between"
-                                    >
-                                        <div className="min-w-0 flex-1">
-                                            <p className="text-[16px] font-medium text-[#111827]">
-                                                {item.material}
-                                            </p>
-                                            <p className="mt-1 text-[14px] text-[#9CA3AF]">
-                                                Expected: {item.expectedUnits} units @ $
-                                                {formatAmount(item.unitPrice)}/unit
-                                            </p>
-                                        </div>
-
-                                        <div className="flex items-center justify-between gap-4 md:justify-end">
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-[16px] text-[#9CA3AF]">
-                                                    Actual:
-                                                </span>
-
-                                                <input
-                                                    type="number"
-                                                    min={0}
-                                                    value={item.actualUnits}
-                                                    onChange={(e) =>
-                                                        handleActualUnitsChange(
-                                                            index,
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    className="h-[44px] w-[92px] rounded-[12px] border border-[#D1D5DB] bg-white px-4 text-[16px] text-[#111827] outline-none focus:border-[#9CA3AF]"
-                                                />
-                                            </div>
-
-                                            <div className="min-w-[90px] text-right text-[16px] font-medium text-[#111827]">
-                                                ${formatAmount(total)}
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="mb-3 block text-[16px] font-medium text-[#111827]">
-                            Note (Optional)
-                        </label>
-                        <textarea
-                            value={note}
-                            onChange={(e) => setNote?.(e.target.value)}
-                            placeholder="Add any additional notes about this collection....."
-                            className="min-h-[110px] w-full rounded-[14px] border border-[#D1D5DB] px-4 py-4 text-[16px] text-[#111827] outline-none placeholder:text-[#9CA3AF] focus:border-[#9CA3AF]"
-                        />
-                    </div>
-
-                    <div className="border-t border-[#E5E7EB] pt-6">
-                        <div className="mb-6 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <Wallet className="text-[#3B82F6]" size={22} />
-                                <span className="text-[16px] font-medium text-[#111827]">
-                                    Your Balance:
-                                </span>
-                            </div>
-                            <span className="text-[20px] font-medium text-[#3B82F6]">
-                                ${formatAmount(balance)}
-                            </span>
-                        </div>
-
-                        <div className="mb-5 flex items-center justify-between">
-                            <span className="text-[16px] font-medium text-[#111827]">
-                                Estimated Payout:
-                            </span>
-                            <span className="text-[16px] text-[#9CA3AF]">
-                                ${formatAmount(estimatedPayout)}
-                            </span>
-                        </div>
-
-                        <div className="mb-5 flex items-center justify-between rounded-[18px] bg-[#F7F7F7] px-5 py-5">
-                            <span className="text-[18px] font-medium text-[#111827]">
-                                Updated Total Payout:
-                            </span>
-                            <span className="text-[20px] font-medium text-[#22C55E]">
-                                ${formatAmount(updatedTotalPayout)}
-                            </span>
-                        </div>
-
-                        <div
-                            className={`rounded-[16px] border px-5 py-5 ${hasEnoughBalance
-                                ? "border-[#22C55E] bg-[#DCFCE7]"
-                                : "border-[#EF4444] bg-[#FEE2E2]"
-                                }`}
-                        >
-                            <div className="flex items-start gap-3">
-                                <CheckCircle
-                                    size={20}
-                                    className={
-                                        hasEnoughBalance
-                                            ? "text-[#22C55E]"
-                                            : "text-[#EF4444]"
-                                    }
-                                />
-                                <div>
-                                    <p
-                                        className={`text-[16px] font-medium ${hasEnoughBalance
-                                            ? "text-[#22C55E]"
-                                            : "text-[#EF4444]"
-                                            }`}
-                                    >
-                                        {hasEnoughBalance
-                                            ? "Ready to Complete"
-                                            : "Insufficient Balance"}
-                                    </p>
-                                    <p className="mt-2 text-[14px] text-[#6B7280]">
-                                        {hasEnoughBalance
-                                            ? "You have sufficient balance to complete this request. The payout amount will be deducted from your account."
-                                            : "Your balance is too low to complete this request. Please top up your balance first."}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="border-t border-[#E5E7EB] bg-white px-6 py-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <Button
-                            onClick={onClose}
-                            variant="destructive"
-                            className="min-w-[210px] h-[56px] rounded-[14px] border border-red-400 bg-white text-[16px] font-semibold text-red-500 hover:bg-red-50"
-                        >
-                            Cancel
-                        </Button>
-
-                        <Button
-                            onClick={handleCompleteRequest}
-                            disabled={!hasEnoughBalance}
-                            className="min-w-[210px] h-[56px] rounded-[14px] bg-[#344E41] text-[16px] font-semibold text-white hover:bg-[#2B4035] disabled:cursor-not-allowed disabled:bg-[#A7B3AC]"
-                        >
-                            Complete Request
-                        </Button>
-                    </div>
-                </div>
+          {/* Request info */}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-2xl bg-card px-4 py-3 sm:px-5 sm:py-4">
+            {[
+              { label: "Customer",    value: customer },
+              { label: "Location",    value: location },
+              { label: "Date & Time", value: dateTime },
+            ].map(({ label, value }) => (
+              <div key={label}>
+                <p className="mb-0.5 text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+                <p className="text-xs sm:text-sm font-medium text-foreground leading-snug">{value}</p>
+              </div>
+            ))}
+            <div>
+              <p className="mb-0.5 text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">Compatibility</p>
+              <span className={cn(
+                "inline-flex rounded-full px-2.5 py-0.5 text-[10px] sm:text-xs font-medium",
+                compatibility === "100%"
+                  ? "bg-light-green text-accent-foreground"
+                  : "bg-destructive/10 text-destructive",
+              )}>
+                {compatibility}
+              </span>
             </div>
+          </div>
+
+          {/* Collection items */}
+          <div>
+            <h3 className="mb-2.5 text-sm sm:text-base font-semibold text-foreground">Update Collection Details</h3>
+            <div className="space-y-2">
+              {editableItems.map((item, i) => (
+                <div
+                  key={`${item.material}-${i}`}
+                  className="rounded-2xl bg-card px-4 py-3 sm:px-5 sm:py-4"
+                >
+                  {/* Material info */}
+                  <div className="mb-2.5">
+                    <p className="text-sm font-medium text-foreground">{item.material}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Expected: {item.expectedUnits} units · ${formatAmount(item.unitPrice)}/unit
+                    </p>
+                  </div>
+                  {/* Actual units row */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs sm:text-sm text-muted-foreground shrink-0">Actual units:</span>
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <Input
+                        type="number"
+                        min={0}
+                        value={item.actualUnits}
+                        onChange={(e) => handleUnitsChange(i, e.target.value)}
+                        className="h-8 sm:h-9 w-16 sm:w-20 text-center"
+                      />
+                      <span className="w-16 sm:w-20 text-right text-sm font-semibold text-foreground tabular-nums">
+                        ${formatAmount(item.actualUnits * item.unitPrice)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Note */}
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">
+              Note (Optional)
+            </label>
+            <Textarea
+              value={note}
+              onChange={(e) => setNote?.(e.target.value)}
+              placeholder="Add any additional notes about this collection....."
+              className="min-h-16 sm:min-h-20 resize-none"
+            />
+          </div>
+
+          {/* Financial summary */}
+          <div className="space-y-2.5 border-t border-border pt-4">
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Wallet size={16} className="text-blue-500 shrink-0" />
+                <span className="text-sm font-medium text-foreground">Your Balance</span>
+              </div>
+              <span className="text-base sm:text-lg font-semibold text-blue-500 tabular-nums">${formatAmount(balance)}</span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Estimated Payout</span>
+              <span className="text-sm text-muted-foreground tabular-nums">${formatAmount(estimatedPayout)}</span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-foreground">New Total</span>
+              <span className="text-sm font-semibold text-foreground tabular-nums">${formatAmount(totalPayout)}</span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-sm font-medium text-foreground shrink-0">Service Fee</span>
+                <span className="rounded-full border border-border bg-card px-2 py-0.5 text-[10px] sm:text-xs font-medium text-foreground shrink-0">
+                  {feeLabel}
+                </span>
+              </div>
+              <span className="text-sm font-semibold text-destructive tabular-nums shrink-0">
+                -${formatAmount(serviceFeeAmount)}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between rounded-2xl bg-card px-4 py-3 sm:px-5 sm:py-4">
+              <span className="text-sm font-medium text-foreground">Total Payout</span>
+              <span className="text-lg sm:text-xl font-semibold text-green-600 tabular-nums">${formatAmount(netPayout)}</span>
+            </div>
+
+            <div className={cn(
+              "flex items-start gap-3 rounded-2xl border px-4 py-3 sm:px-5 sm:py-4",
+              canAfford ? "border-green-400 bg-light-green" : "border-destructive bg-destructive/10",
+            )}>
+              {canAfford
+                ? <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-green-600" />
+                : <AlertCircle  size={16} className="mt-0.5 shrink-0 text-destructive" />}
+              <div className="min-w-0">
+                <p className={cn("text-sm font-medium", canAfford ? "text-green-700" : "text-destructive")}>
+                  {canAfford ? "Ready to Complete" : "Insufficient Balance"}
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">
+                  {canAfford
+                    ? "You have sufficient balance to complete this request. The payout will be deducted from your wallet."
+                    : <>
+                        Your balance is too low.{" "}
+                        <Link
+                          to={Routes.collectorwallet}
+                          className="font-medium text-primary underline underline-offset-2"
+                        >
+                          Top up your wallet
+                        </Link>
+                        {" "}to continue.
+                      </>}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-    );
+
+        <div className="shrink-0 flex flex-col-reverse min-[420px]:grid min-[420px]:grid-cols-2 gap-3 border-t border-border px-4 sm:px-6 py-3 sm:py-4">
+          <Button onClick={onClose} variant="destructiveoutline">
+            Cancel
+          </Button>
+          <Button
+            onClick={() => canAfford && !isPending && onComplete?.(editableItems)}
+            disabled={!canAfford || isPending}
+            loading={isPending}
+          >
+            Complete Request
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
+

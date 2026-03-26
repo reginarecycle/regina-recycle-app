@@ -16,7 +16,6 @@ function buildPrintHTML(record: RecycleRecord): string {
   const statusTextColor = record.status === "PENDING" ? "#92400e" : "#fff";
 
   const collectorName = record.collectorName ?? "Not assigned yet";
-  const collectorId = record.collectorId ?? "N/A";
 
   return `<!DOCTYPE html>
 <html>
@@ -82,7 +81,6 @@ function buildPrintHTML(record: RecycleRecord): string {
       <div>
         <div class="detail-label">Collector Name</div>
         <div class="detail-value">${collectorName}</div>
-        <div class="detail-sub">ID: ${collectorId}</div>
       </div>
     </div>
 
@@ -158,7 +156,6 @@ export const ScheduleDetailsModal: React.FC<ScheduleDetailsModalProps> = ({
   if (!record) return null;
 
   const collectorName = record.collectorName ?? "Not assigned yet";
-  const collectorId = record.collectorId ?? "N/A";
 
   const handleDownload = () => {
     const printWindow = window.open("", "_blank", "width=800,height=950");
@@ -209,7 +206,6 @@ export const ScheduleDetailsModal: React.FC<ScheduleDetailsModalProps> = ({
               icon={<User className="h-5 w-5 text-muted-foreground" />}
               label="Collector Name"
               value={collectorName}
-              subValue={`ID: ${collectorId}`}
             />
 
             <DetailRow

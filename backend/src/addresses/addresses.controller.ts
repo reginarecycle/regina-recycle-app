@@ -26,13 +26,13 @@ export class AddressesController {
 
   @Get()
   @Auth()
-  async findAll(@CurrentUser('id') userId: string) {
+  async findAll(@CurrentUser('userId') userId: string) {
     return this.addressesService.findAll(userId);
   }
 
   @Get('default')
   @Auth()
-  async getDefault(@CurrentUser('id') userId: string) {
+  async getDefault(@CurrentUser('userId') userId: string) {
     return this.addressesService.getDefaultAddress(userId);
   }
 
@@ -40,7 +40,7 @@ export class AddressesController {
   @Auth()
   async findOne(
     @Param('id') id: string,
-    @CurrentUser('id') userId: string,
+    @CurrentUser('userId') userId: string,
   ) {
     const isOwner = await this.addressesService.validateOwnership(id, userId);
     if (!isOwner) {
@@ -54,7 +54,7 @@ export class AddressesController {
   async update(
     @Param('id') id: string,
     @Body() updateAddressDto: UpdateAddressDto,
-    @CurrentUser('id') userId: string,
+    @CurrentUser('userId') userId: string,
   ) {
     const isOwner = await this.addressesService.validateOwnership(id, userId);
     if (!isOwner) {
@@ -67,7 +67,7 @@ export class AddressesController {
   @Auth()
   async remove(
     @Param('id') id: string,
-    @CurrentUser('id') userId: string,
+    @CurrentUser('userId') userId: string,
   ) {
     const isOwner = await this.addressesService.validateOwnership(id, userId);
     if (!isOwner) {
@@ -80,7 +80,7 @@ export class AddressesController {
   @Auth()
   async setDefault(
     @Param('id') id: string,
-    @CurrentUser('id') userId: string,
+    @CurrentUser('userId') userId: string,
   ) {
     return this.addressesService.setDefault(userId, id);
   }

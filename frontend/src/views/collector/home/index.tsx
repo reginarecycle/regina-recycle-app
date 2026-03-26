@@ -23,14 +23,13 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import {
-  useGetCollectorStats,
   useGetPickupOverview,
   useGetMaterialDistribution,
   useGetTopLocations,
   useGetCollectorPickups,
+  useGetCollectorDashboardStats,
+  useGetCollectorDashboardPickups,
 } from "@/api-hooks/useCollectors";
-
-// ─── Constants ────────────────────────────────────────────────────────────────
 
 const MATERIAL_COLORS = [
   "#001E62", "#0F6C74", "#7AC70C",
@@ -41,8 +40,6 @@ const chartConfig = {
   current:  { label: "Current",  color: "#344E41" },
   previous: { label: "Previous", color: "#999CA0" },
 };
-
-// ─── Priority Badge ───────────────────────────────────────────────────────────
 
 const PriorityBadge = ({ type }: { type: string }) => {
   const styles: Record<string, string> = {
@@ -58,8 +55,6 @@ const PriorityBadge = ({ type }: { type: string }) => {
   );
 };
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
-
 const StatSkeleton = () => (
   <div className="flex min-h-[141px] w-full flex-col gap-3 rounded-[8px] border border-[#E5E7EB] bg-white px-[12px] py-[16px] animate-pulse">
     <div className="h-4 bg-gray-200 rounded w-1/2" />
@@ -67,8 +62,6 @@ const StatSkeleton = () => (
     <div className="h-4 bg-gray-200 rounded w-2/3" />
   </div>
 );
-
-// ─── Request Row ──────────────────────────────────────────────────────────────
 
 const RequestRow = ({
   item,
@@ -110,13 +103,11 @@ const RequestRow = ({
         onClick={onAssignNow}
         className="h-[36px] w-full rounded-[8px] border border-[#344E41] bg-white px-[16px] text-[14px] text-[#344E41] md:h-[24px] md:w-auto"
       >
-        Assign now
+        Accept
       </Button>
     </div>
   </div>
 );
-
-// ─── Main Component ───────────────────────────────────────────────────────────
 
 const CollectorDashboard = () => {
   const navigate = useNavigate();
@@ -125,30 +116,27 @@ const CollectorDashboard = () => {
   const goToAcceptedRequests  = () => navigate("/app/collector/requests?tab=accepted");
   const goToCompletedRequests = () => navigate("/app/collector/requests?tab=completed");
 
-  // ── API hooks ──────────────────────────────────────────────────────────────
-  const { data: statsResult,        isLoading: statsLoading        } = useGetCollectorStats();
-  const { data: overviewResult,     isLoading: overviewLoading     } = useGetPickupOverview();
+  const { data: statsResult, isLoading: statsLoading } = useGetCollectorDashboardStats();
+  const { data: overviewResult, isLoading: overviewLoading } = useGetPickupOverview();
   const { data: distributionResult, isLoading: distributionLoading } = useGetMaterialDistribution();
-  const { data: topLocationsResult                                  } = useGetTopLocations(3);
-  const { data: acceptedResult                                      } = useGetCollectorPickups("ACCEPTED", 1, 1);
-  const { data: pendingResult                                       } = useGetCollectorPickups("PENDING",  1, 4);
+  const { data: topLocationsResult } = useGetTopLocations(3);
 
-  // ── Derived data ───────────────────────────────────────────────────────────
-  const stats        = statsResult?.data;
-  const overviewDays = overviewResult?.data?.overview ?? [];
-  const materials    = distributionResult?.data?.materials ?? [];
-  const topLocations = topLocationsResult?.data?.data ?? [];
-  const activePickup = acceptedResult?.data?.data?.[0] ?? null;
+  const { data: acceptedResult } = useGetCollectorPickups("ACCEPTED", 1, 1);
+  const { data: pendingResult } = useGetCollectorDashboardPickups("PENDING", 4);
+
+  const stats         = statsResult?.data;
+  const overviewDays  = overviewResult?.data?.overview ?? [];
+  const materials     = distributionResult?.data?.materials ?? [];
+  const topLocations  = topLocationsResult?.data?.data ?? [];
+  const activePickup  = acceptedResult?.data?.data?.[0] ?? null;
   const urgentPickups = pendingResult?.data?.data ?? [];
 
-  // Map overview to chart shape — merge current week with empty previous
   const chartData = overviewDays.map((d) => ({
     day:      d.day,
     current:  d.units,
     previous: 0,
   }));
 
-  // Map materials to pie chart shape
   const materialChartData = materials.map((m, i) => ({
     name:  m.name,
     value: m.totalQuantity,
@@ -164,25 +152,22 @@ const CollectorDashboard = () => {
 
   const totalItems = materials.reduce((sum, m) => sum + m.totalQuantity, 0);
 
-  // Map pending pickups to urgent request row shape
   const urgentRequests = urgentPickups.map((p) => ({
     date:     new Date(p.scheduledAt).toLocaleDateString("en-CA", { day: "numeric", month: "short", year: "numeric" }),
     title:    `${p.requester?.name ?? "Customer"} Pickup`,
-    subtitle: `${p.address?.line1 ?? "Unknown address"} • ${p.items.reduce((s, i) => s + i.quantity, 0)} Units`,
+    subtitle: `${p.address?.line1 ?? "Unknown address"} • ${(p.items ?? []).reduce((s, i) => s + i.quantity, 0)} Units`,
     priority: "NORMAL",
-    details:  p.items.map((i) => i.material.name),
+    details:  (p.items ?? []).map((i) => i.material?.name ?? "Unknown"),
   }));
 
   return (
     <div className="min-h-screen bg-gray-100 p-6 md:p-6">
 
-      {/* Row 1 — Stat Cards */}
       <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         {statsLoading ? (
           Array.from({ length: 4 }).map((_, i) => <StatSkeleton key={i} />)
         ) : (
           <>
-            {/* Pending Requests */}
             <div className="flex min-h-[141px] w-full flex-col items-start gap-[12px] rounded-[8px] border border-[#E5E7EB] bg-white px-[12px] py-[16px]">
               <div className="flex w-full items-start justify-between">
                 <p className="text-[14px] font-medium text-[#4B5563]">Pending Requests</p>
@@ -202,7 +187,6 @@ const CollectorDashboard = () => {
               </div>
             </div>
 
-            {/* Accepted Requests */}
             <div className="flex min-h-[141px] w-full flex-col items-start gap-[12px] rounded-[8px] border border-[#E5E7EB] bg-white px-[12px] py-[16px]">
               <div className="flex w-full items-start justify-between">
                 <p className="text-[14px] font-medium text-[#4B5563]">Accepted Requests</p>
@@ -222,7 +206,6 @@ const CollectorDashboard = () => {
               </div>
             </div>
 
-            {/* Total Items */}
             <div className="flex min-h-[141px] w-full flex-col items-start gap-[12px] rounded-[8px] border border-[#E5E7EB] bg-white px-[12px] py-[16px]">
               <div className="flex w-full items-start justify-between">
                 <p className="text-[14px] font-medium text-[#4B5563]">Total Items</p>
@@ -240,7 +223,6 @@ const CollectorDashboard = () => {
               </div>
             </div>
 
-            {/* Pending Amount */}
             <div className="flex min-h-[141px] w-full flex-col items-start gap-[12px] rounded-[8px] border border-[#E5E7EB] bg-white px-[12px] py-[16px]">
               <div className="flex w-full items-start justify-between">
                 <p className="text-[14px] font-medium text-[#4B5563]">Pending Amount</p>
@@ -260,11 +242,9 @@ const CollectorDashboard = () => {
         )}
       </div>
 
-      {/* Row 2 — Charts */}
       <div className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_476px] xl:items-stretch">
         <div className="min-w-0 flex flex-col gap-6 h-full">
 
-          {/* Pickup Overview Chart */}
           <div className="w-full rounded-[16px] border border-[#E5E7EB] bg-white">
             <div className="flex w-full flex-col gap-3 border-b border-[#E5E7EB] px-4 py-4 md:h-[82px] md:flex-row md:items-center md:justify-between md:px-[24px] md:py-[12px]">
               <div>
@@ -298,7 +278,6 @@ const CollectorDashboard = () => {
             </div>
           </div>
 
-          {/* Active Pickup */}
           <div className="flex flex-1 flex-col w-full rounded-[16px] border border-[#E5E7EB] bg-white">
             <div className="flex items-center justify-between border-b border-[#E5E7EB] px-4 py-4 md:h-[58px] md:px-[24px] md:py-[12px]">
               <div>
@@ -343,7 +322,7 @@ const CollectorDashboard = () => {
                       </div>
                       <div className="flex items-center gap-1">
                         <span>📦</span>
-                        <span>{activePickup.items.reduce((s, i) => s + i.quantity, 0)} units</span>
+                        <span>{(activePickup.items ?? []).reduce((s, i) => s + i.quantity, 0)} units</span>
                       </div>
                     </div>
                   </div>
@@ -369,7 +348,6 @@ const CollectorDashboard = () => {
           </div>
         </div>
 
-        {/* Material Distribution */}
         <div className="h-full w-full rounded-[16px] border border-[#E5E7EB] bg-white xl:max-w-[476px]">
           <div className="flex h-[82px] items-center justify-between border-b border-[#E5E7EB] px-4 py-4 md:px-[24px] md:py-[12px]">
             <p className="text-[14px] font-semibold text-[#111827]">Material Distribution</p>
@@ -414,7 +392,6 @@ const CollectorDashboard = () => {
             </div>
           </div>
 
-          {/* Top Locations */}
           <div className="mt-8 border-t border-[#E5E7EB] px-4 pt-6 md:px-6">
             <p className="text-[14px] font-medium text-[#999CA0]">
               Current month's top performing zones
@@ -435,7 +412,6 @@ const CollectorDashboard = () => {
         </div>
       </div>
 
-      {/* Urgent Requests */}
       <div className="mt-6 rounded-[16px] border border-[#E5E7EB] bg-white">
         <div className="flex items-center justify-between border-b border-[#E5E7EB] px-4 py-4 md:px-6">
           <div className="flex items-center gap-2">

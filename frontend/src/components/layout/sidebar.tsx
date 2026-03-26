@@ -121,21 +121,21 @@ export function Sidebar({
             )
           ) : (
             <>
-              <div className={cn(userRole=== 'COLLECTOR' && "flex-col", "flex items-center gap-3")}>
+              <div className={cn(userRole=== 'COLLECTOR' && "flex-col", "flex items-center gap-2")}>
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={userAvatar} alt={userName} />
                   <AvatarFallback className="bg-primary/10 text-primary font-medium">
                     {getInitials(userName)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold leading-tight">{userName ?? "User"}</span>
-                  <span className="text-xs text-muted-foreground leading-tight">{formatRole(userRole)}</span>
+                <div className="flex flex-col items-center gap-1.5">
+                  <span className="font-bold leading-tight text-center">{userName}</span>
+                  <span className="text-xs text-foreground/60 leading-tight">{formatRole(userRole)}</span>
                 </div>
               </div>
               {
                 userRole=== 'COLLECTOR' ?
-                <Button variant="destructiveoutline" size={"md"}  className= "bg-transparent" onClick={handleLogout}>
+                <Button variant="destructiveoutline" size={"md"}  className= "bg-transparent mt-1.5" onClick={handleLogout}>
                   Logout
                 <LogOut className="h-4 w-4 ml-2" />
                 </Button>
