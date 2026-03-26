@@ -1,4 +1,5 @@
 import axios, { type AxiosRequestConfig, AxiosError } from "axios";
+import { clearAuth } from "@/lib/helper";
 
 export interface ApiError extends Error {
   status?: number;
@@ -34,6 +35,12 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError<{ message?: string; error?: string }>) => {
+    if (error.response?.status === 401 && !window.location.pathname.startsWith("/auth")) {
+      clearAuth();
+      window.location.href = "/auth/login";
+      return Promise.reject(error);
+    }
+
     const message =
       error.response?.data?.message ??
       error.response?.data?.error ??

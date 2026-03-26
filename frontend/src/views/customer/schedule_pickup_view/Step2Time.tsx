@@ -11,8 +11,6 @@ function toDateKey(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
-// ── Time slot picker ───────────────────────────────────────────────────────────
-
 interface Slot { id: string; label: string }
 
 function TimeSlotPicker({
@@ -89,8 +87,6 @@ function EmptyState({ title, subtitle }: { title: string; subtitle: string }) {
   );
 }
 
-// ── Step 2 ─────────────────────────────────────────────────────────────────────
-
 type Props = { onBack: () => void; onNext: () => void };
 
 export default function Step2Time({ onBack, onNext }: Props) {
@@ -113,7 +109,6 @@ export default function Step2Time({ onBack, onNext }: Props) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(restoredDate);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(scheduleData.slotId ?? null);
 
-  // Derive view month from selected date (Calendar manages its own view state)
   const viewMonth = selectedDate ? selectedDate.getMonth() + 1 : today.getMonth() + 1;
   const viewYear = selectedDate ? selectedDate.getFullYear() : today.getFullYear();
 
@@ -136,7 +131,6 @@ export default function Step2Time({ onBack, onNext }: Props) {
 
   return (
     <div className="rounded-xl border border-border bg-white p-5 sm:p-6 shadow-sm">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
@@ -149,7 +143,6 @@ export default function Step2Time({ onBack, onNext }: Props) {
         </span>
       </div>
 
-      {/* Calendar + Slots */}
       <div className="mt-6 flex flex-col lg:grid lg:grid-cols-[500px_1fr] gap-6 items-start">
         <Calendar
           value={selectedDate}
@@ -172,7 +165,6 @@ export default function Step2Time({ onBack, onNext }: Props) {
         />
       </div>
 
-      {/* Navigation */}
       <div className="mt-6 border-t border-border pt-4 flex items-center justify-between gap-3">
         <Button
           type="button"

@@ -65,12 +65,19 @@ getUserPickups(@Request() req, @Query() query: PickupQueryDto) {
   return this.pickupsService.findAll(req.user.userId, query);
 }
 
-@ApiOperation({ summary: 'Get all pickup requests (collector)' })
-@Get('requests')
-@Auth('COLLECTOR')
-getRequests(@Query() query: PickupQueryDto) {
-  return this.pickupsService.getRequests(query);
-}
+  @ApiOperation({ summary: 'Request-level stats for logged-in collector' })
+  @Get('collector/stats')
+  @Auth('COLLECTOR')
+  getCollectorPickupStats(@Request() req) {
+    return this.pickupsService.getCollectorPickupStats(req.user.userId);
+  }
+
+  @ApiOperation({ summary: 'Get pickup requests for logged-in collector' })
+  @Get('collector')
+  @Auth('COLLECTOR')
+  getCollectorPickups(@Request() req, @Query() query: PickupQueryDto) {
+    return this.pickupsService.getCollectorPickups(req.user.userId, query);
+  }
 
   @ApiOperation({ summary: 'Get available pickup slots for a month' })
   @Get('available-slots')
@@ -87,6 +94,13 @@ getRequests(@Query() query: PickupQueryDto) {
   @Auth()
   getPickupById(@Param('id') id: string) {
     return this.pickupsService.findOne(id);
+  }
+
+  @ApiOperation({ summary: 'Reject a pickup request (collector)' })
+  @Patch(':id/reject')
+  @Auth('COLLECTOR')
+  rejectPickup(@Param('id') id: string, @Request() req, @Body() body: { reason?: string; comment?: string }) {
+    return this.pickupsService.rejectPickup(req.user.userId, id, body?.reason, body?.comment);
   }
 
   @ApiOperation({ summary: 'Accept a pickup (collector)' })
