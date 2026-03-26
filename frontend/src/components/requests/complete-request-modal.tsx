@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Routes } from "@/routes/routes";
-import { X, Wallet, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { X, Wallet, CheckCircle2, AlertCircle } from "lucide-react";
 import { cn, formatAmount } from "@/lib/utils";
 import {
   Dialog,
@@ -56,7 +56,6 @@ export function CompleteRequestModal({
   note          = "",
   setNote,
   items         = [],
-  currentItems,
 }: CompleteRequestModalProps) {
   const [editableItems, setEditableItems] = useState<CollectionItem[]>(items);
 
