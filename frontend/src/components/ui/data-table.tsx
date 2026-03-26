@@ -1,4 +1,5 @@
 import { type ReactNode } from "react";
+import emptyTrash from "@/assets/empty_trash.gif";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -297,7 +298,7 @@ export function DataTable<T>({
 
           <TableBody>
             {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
+              Array.from({ length: pageSize }).map((_, i) => (
                 <TableRow key={i} className="border-b border-border last:border-0 hover:bg-transparent">
                   {columns.map((col) => (
                     <TableCell key={col.key} className={cn("px-4 sm:px-6 py-4", col.className, col.cellClassName)}>
@@ -308,11 +309,13 @@ export function DataTable<T>({
               ))
             ) : data.length === 0 ? (
               <TableRow className="hover:bg-transparent border-0">
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-40 text-center text-sm text-muted-foreground"
-                >
-                  {emptyText}
+                <TableCell colSpan={columns.length} className="h-64 text-center align-middle">
+                  <div className="flex flex-col items-center justify-center gap-3 h-full">
+                    <div className="flex h-24 w-24 items-center justify-center rounded-full bg-muted">
+                      <img src={emptyTrash} alt="Empty" className="object-contain" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">{emptyText}</p>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (

@@ -2,13 +2,16 @@ import {
   Controller,
   Get,
   Put,
+  Patch,
   Post,
   Param,
   Query,
   Body,
   BadRequestException,
+  Request,
 } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { Auth } from '../common/decorator/auth.decorator';
 import { CollectorsService } from './collectors.service';
 import { CollectorUsersQueryDto } from './dto/collectors-query.dto';
 import { PickupQueryDto } from './dto/pickup-query.dto';
@@ -16,7 +19,6 @@ import { UpdateCollectorDto } from './dto/update-collector.dto';
 import { UpdateMaterialPricingDto } from './dto/update-material-pricing.dto';
 import { UpdateMaterialSettingsDto } from './dto/update-material-settings.dto';
 import { CreateMaterialPricingDto } from './dto/create-material-pricing.dto';
-import { Auth } from '../common/decorator/auth.decorator';
 
 @ApiTags('Collectors')
 @Controller('collectors')
@@ -51,6 +53,30 @@ export class CollectorsController {
   @ApiOperation({ summary: 'Get average material price across all collectors' })
   async getAverageMaterialPrice(@Param('id') id: string) {
     return this.collectorsService.getAverageMaterialPrice(id);
+  }
+
+  @Get('pricing-settings')
+  @ApiOperation({ summary: 'Get pricing settings for the authenticated collector' })
+  @ApiBearerAuth()
+  @Auth('COLLECTOR')
+  getPricingSettings(@Request() req: any) {
+    return this.collectorsService.getMaterialSettings(req.user.userId);
+  }
+
+  @Patch('pricing-settings')
+  @ApiOperation({ summary: 'Update pricing settings for the authenticated collector' })
+  @ApiBearerAuth()
+  @Auth('COLLECTOR')
+  updatePricingSettings(@Request() req: any, @Body() dto: UpdateMaterialSettingsDto) {
+    return this.collectorsService.updateMaterialSettings(req.user.userId, dto);
+  }
+
+  @Get('me/pricing')
+  @ApiOperation({ summary: 'Get material pricing for the authenticated collector' })
+  @ApiBearerAuth()
+  @Auth('COLLECTOR')
+  getMyPricing(@Request() req: any, @Query() query: CollectorUsersQueryDto) {
+    return this.collectorsService.getPricing(req.user.userId, query);
   }
 
   @Get(':collectorId/stats')
