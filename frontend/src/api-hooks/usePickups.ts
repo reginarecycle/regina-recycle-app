@@ -1,36 +1,41 @@
-import { useGetOne, useGetList, useCreate, useUpdate, useRemove } from "@/lib/queryHelpers";
+import { useGetOne } from "@/lib/queryHelpers";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiFetch } from "@/lib/apiFetch";
 import { apiClient } from "@/lib/apiFetch";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-
 export interface PickupAddress {
-  line1:      string;
-  line2?:     string;
-  city:       string;
-  province:   string;
-  postalCode: string;
-  latitude?:  number;
-  longitude?: number;
+  addressId?:  string;
+  line1:       string;
+  line2?:      string;
+  city:        string;
+  province:    string;
+  postalCode:  string;
+  latitude?:   number;
+  longitude?:  number;
+}
+
+export interface PickupMaterial {
+  materialId: string;
+  name:       string;
+  type:       string;
 }
 
 export interface PickupItem {
   materialId: string;
   quantity:   number;
-  material?:  { name: string; type: string };
+  material?:  PickupMaterial;
 }
 
 export interface Pickup {
-  pickupId:        string;
-  status:          PickupStatus;
-  scheduledAt:     string;
-  estimatedCost?:  number;
-  note?:           string;
-  photoUrl?:       string;
-  address?:        PickupAddress;
-  items?:          PickupItem[];
+  pickupId:       string;
+  status:         PickupStatus;
+  scheduledAt:    string;
+  estimatedCost?: number;
+  note?:          string;
+  photoUrl?:      string;
+  address?:       PickupAddress;
+  items?:         PickupItem[];
   requester?: {
     userId:      string;
     name:        string;
@@ -56,69 +61,61 @@ export interface PickupQuery {
 export type PickupStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "ACCEPTED" | "CANCELLED";
 
 export interface TimeSlot {
-    id: string;
-    label: string;
+  id:    string;
+  label: string;
 }
 
 export interface AvailableSlotsResponse {
-    [date: string]: TimeSlot[];
+  [date: string]: TimeSlot[];
 }
 
 export interface PickupAddressPayload {
-    line1: string;
-    line2?: string;
-    city: string;
-    province: string;
-    postalCode: string;
-    latitude?: number;
-    longitude?: number;
+  line1:      string;
+  line2?:     string;
+  city:       string;
+  province:   string;
+  postalCode: string;
+  latitude?:  number;
+  longitude?: number;
 }
 
 export interface CreatePickupItemPayload {
-    materialId: string;
-    quantity: number;
+  materialId: string;
+  quantity:   number;
 }
 
 export interface CreatePickupPayload {
-    address: PickupAddressPayload;
-    scheduledAt: string;
-    estimatedCost?: number;
-    note?: string;
-    items: CreatePickupItemPayload[];
-}
-
-export interface Pickup {
-    pickupId: string;
-    status: PickupStatus;
-    scheduledAt: string;
-    estimatedCost?: number;
-    note?: string;
+  address:        PickupAddressPayload;
+  scheduledAt:    string;
+  estimatedCost?: number;
+  note?:          string;
+  items:          CreatePickupItemPayload[];
 }
 
 export interface CustomerPickupsQuery {
-  search?: string;
-  status?: PickupStatus;
-  page?: number;
-  limit?: number;
+  search?:    string;
+  status?:    PickupStatus;
+  page?:      number;
+  limit?:     number;
   startDate?: string;
-  endDate?: string;
+  endDate?:   string;
 }
 
 export interface CustomerPaginatedPickups {
-  data: Pickup[];
+  data:  Pickup[];
   total: number;
-  page: number;
+  page:  number;
   limit: number;
 }
 
 // ─── Query keys ───────────────────────────────────────────────────────────────
 
 export const pickupKeys = {
-  all:            ()                                  => ["pickups"]                                as const,
-  list:           (query?: object)                    => ["pickups", "list", query ?? {}]           as const,
-  requests:       (query?: object)                    => ["pickups", "requests", query ?? {}]       as const,
-  detail:         (id: string)                        => ["pickups", "detail", id]                  as const,
-  availableSlots: (month: number, year: number)       => ["pickups", "available-slots", month, year] as const,
+  all:            ()                             => ["pickups"]                                 as const,
+  list:           (query?: object)               => ["pickups", "list", query ?? {}]            as const,
+  requests:       (query?: object)               => ["pickups", "requests", query ?? {}]        as const,
+  detail:         (id: string)                   => ["pickups", "detail", id]                   as const,
+  availableSlots: (month: number, year: number)  => ["pickups", "available-slots", month, year] as const,
 };
 
 // ─── Customer hooks ───────────────────────────────────────────────────────────
@@ -160,39 +157,51 @@ export const useGetPickupById = (id: string) =>
   });
 
 export const useGetAvailableSlots = (month: number, year: number) =>
-    useGetOne<AvailableSlotsResponse>(
-        ["pickups", "available-slots", month, year],
-        `/pickups/available-slots?month=${month}&year=${year}`,
-        { enabled: Boolean(month && year) }
-    );
+  useGetOne<AvailableSlotsResponse>(
+    ["pickups", "available-slots", month, year],
+    `/pickups/available-slots?month=${month}&year=${year}`,
+    { enabled: Boolean(month && year) },
+  );
 
 export const useCreatePickup = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: async (formData: FormData) => {
-            const response = await apiClient.post("/pickups", formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
-            return response.data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["pickups"] });
-        },
-    });
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (formData: FormData) => {
+      const response = await apiClient.post("/pickups", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pickups"] });
+    },
+  });
+};
+
+export const useCancelPickup = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (pickupId: string) => {
+      const response = await apiClient.delete(`/pickups/${pickupId}/cancel`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pickups"] });
+    },
+  });
 };
 
 export const useGetCustomerPickups = (query?: CustomerPickupsQuery, enabled = true) => {
   const params = new URLSearchParams();
-
-  if (query?.page) params.append("page", String(query.page));
-  if (query?.limit) params.append("limit", String(query.limit));
-  if (query?.search) params.append("search", query.search);
-  if (query?.status) params.append("status", query.status);
+  if (query?.page)      params.append("page",      String(query.page));
+  if (query?.limit)     params.append("limit",     String(query.limit));
+  if (query?.search)    params.append("search",    query.search);
+  if (query?.status)    params.append("status",    query.status);
   if (query?.startDate) params.append("startDate", query.startDate);
-  if (query?.endDate) params.append("endDate", query.endDate);
+  if (query?.endDate)   params.append("endDate",   query.endDate);
 
   const queryString = params.toString();
-  const endpoint = queryString ? `/pickups?${queryString}` : "/pickups";
+  const endpoint    = queryString ? `/pickups?${queryString}` : "/pickups";
 
   return useGetOne<CustomerPaginatedPickups>(
     ["pickups", "customer", query ?? {}],

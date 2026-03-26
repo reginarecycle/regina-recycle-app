@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { formatDate, formatTimeRange } from "@/lib/utils";
 import WelcomeMessage from "@/components/customer-dashboard/welcome-message";
 import { StatsCards, type StatItem } from "@/components/customer-dashboard/stats-cards";
 import ComingNext from "@/components/customer-dashboard/coming-next";
@@ -55,16 +56,13 @@ const UserHome = () => {
   const comingNext = nextPickup ? (
     <ComingNext
       pickup="Recycling Pickup"
-      date={new Date(nextPickup.scheduledAt).toLocaleDateString("en-CA", {
-    month: "short", day: "numeric", year: "numeric",
-    })}
-     time={new Date(nextPickup.scheduledAt).toLocaleTimeString("en-CA", {
-     hour: "numeric", minute: "2-digit", hour12: true,
-    })}
+      date={formatDate(nextPickup.scheduledAt)}
+      time={formatTimeRange(nextPickup.scheduledAt)}
       address={nextPickup.address
         ? `${nextPickup.address.line1}, ${nextPickup.address.city}`
         : "N/A"}
       bagNumber={nextPickup.items?.length ?? 0}
+      pickupId={nextPickup.pickupId}
     />
   ) : (
     <ComingNext />
@@ -98,7 +96,7 @@ const UserHome = () => {
           {/* Main column */}
           <div className="flex flex-col gap-4 sm:gap-6">
             {comingNext}
-            <Schedule />
+            <Schedule recentSchedule={recentSchedule} />
             <div className="xl:hidden">
               <DashboardTip content={tipError ? undefined : tip?.content} />
             </div>

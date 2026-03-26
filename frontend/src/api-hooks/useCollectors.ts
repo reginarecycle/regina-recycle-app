@@ -280,7 +280,7 @@ export const useCalculatePayout = (materialId: string, quantity: number) =>
     { enabled: Boolean(materialId) && quantity > 0 },
   );
 
-// ─── Mutations — fixed to use useMutate with correct method ──────────────────
+// ─── Mutations — using usePatch (correct PATCH method) ───────────────────────
 export const useUpdateCollectorProfile = () =>
   usePatch<{ message: string }, UpdateCollectorPayload>(
     "/collectors/profile",
