@@ -155,6 +155,8 @@ export default function Step1Items({ onNext }: Props) {
   const debouncedSearch = useDebounce(search, 400);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
+  const MAX_QUANTITY = 500;
+
   const {
     data: materialsResult,
     isLoading,
@@ -329,8 +331,8 @@ export default function Step1Items({ onNext }: Props) {
                         type="button"
                         onClick={() => toggleItem(item.id)}
                         className={`w-full flex items-center justify-between rounded-lg border px-4 py-4 transition-colors ${isSelected(item.id)
-                            ? "border-primary bg-background-green-100"
-                            : "border-border bg-white hover:border-muted-foreground"
+                          ? "border-primary bg-background-green-100"
+                          : "border-border bg-white hover:border-muted-foreground"
                           }`}
                       >
                         <div className="flex items-center gap-3">
@@ -400,27 +402,33 @@ export default function Step1Items({ onNext }: Props) {
                             <AveragePriceLabel materialId={item.id} />
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <Input
-                            type="number"
-                            min={1}
-                            value={itemPicked[item.id] || ""}
-                            onChange={(e) =>
-                              setQuantity(item.id, e.target.value === "" ? 0 : Number(e.target.value))
-                            }
-                            onBlur={(e) => {
-                              const v = Number(e.target.value);
-                              setQuantity(item.id, v > 0 ? v : 1);
-                            }}
-                            className="h-9 w-14 rounded-md border border-border text-center text-sm [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeItem(item.id)}
-                            className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-foreground hover:bg-muted"
-                          >
-                            ×
-                          </button>
+                        <div className="flex flex-col items-end gap-1 shrink-0">
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              min={1}
+                              max={MAX_QUANTITY}
+                              value={itemPicked[item.id] || ""}
+                              onChange={(e) =>
+                                setQuantity(item.id, e.target.value === "" ? 0 : Math.min(MAX_QUANTITY, Number(e.target.value)))
+                              }
+                              onBlur={(e) => {
+                                const v = Number(e.target.value);
+                                setQuantity(item.id, v > 0 ? Math.min(MAX_QUANTITY, v) : 1);
+                              }}
+                              className="h-9 w-14 rounded-md border border-border text-center text-sm [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeItem(item.id)}
+                              className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-foreground hover:bg-muted"
+                            >
+                              ×
+                            </button>
+                          </div>
+                          {(itemPicked[item.id] ?? 0) >= MAX_QUANTITY && (
+                            <p className="text-[10px] text-destructive font-medium">Max {MAX_QUANTITY} units</p>
+                          )}
                         </div>
                       </div>
                     ))}
