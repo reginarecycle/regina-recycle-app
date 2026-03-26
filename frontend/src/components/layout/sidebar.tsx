@@ -20,8 +20,9 @@ interface SidebarProps {
 }
 
 function formatRole(role?: string) {
-  if (!role) return "Verified User";
-  return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase() + " User";
+  if (role === "COLLECTOR") return "Verified Collector";
+  if (role === "CUSTOMER") return "Verified Customer";
+  return "Verified User";
 }
 
 function getInitials(name: string) {
@@ -92,32 +93,56 @@ export function Sidebar({
       {/* User card */}
       <div className="relative p-4 pb-10">
         <img src="/design.png" alt="" className="absolute bottom-1" />
-        <div className="relative z-10 flex w-56 h-14.5 items-center justify-between rounded-lg border border-primary bg-background-green-100 px-3 py-2">
-          {isLoading ? (
-            <>
-              <Skeleton className="h-10 w-10 rounded-full shrink-0" />
-              <div className="flex flex-col gap-1.5 flex-1 ml-3">
-                <Skeleton className="h-3.5 w-24 rounded" />
-                <Skeleton className="h-3 w-16 rounded" />
-              </div>
-            </>
+        <div className={cn( userRole=== 'COLLECTOR'? 'h-43.25 flex-col py-4' : "h-14.5 py-2" , "relative z-10 flex w-56 items-center justify-between rounded-lg border border-primary bg-background-green-100 px-3 ")}>
+          {isLoading ?  (
+            userRole === 'COLLECTOR' ? (
+                <>
+                  <div className="flex flex-col items-center gap-3">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="flex flex-col items-center gap-1.5">
+                      <Skeleton className="h-3.5 w-24 rounded" />
+                      <Skeleton className="h-3 w-16 rounded" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-9 w-24 rounded-md" />
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="flex flex-col gap-1.5">
+                      <Skeleton className="h-3.5 w-24 rounded" />
+                      <Skeleton className="h-3 w-16 rounded" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-8 w-8 rounded-md" />
+                </>
+            )
           ) : (
             <>
-              <div className="flex items-center gap-3">
+              <div className={cn(userRole=== 'COLLECTOR' && "flex-col", "flex items-center gap-2")}>
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={userAvatar} alt={userName} />
                   <AvatarFallback className="bg-primary/10 text-primary font-medium">
                     {getInitials(userName)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold leading-tight">{userName}</span>
-                  <span className="text-xs text-muted-foreground leading-tight">{formatRole(userRole)}</span>
+                <div className="flex flex-col items-center gap-1.5">
+                  <span className="font-bold leading-tight text-center">{userName}</span>
+                  <span className="text-xs text-foreground/60 leading-tight">{formatRole(userRole)}</span>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" className="hover:bg-destructive hover:text-white" onClick={handleLogout}>
-                <LogOut className="h-4 w-4" />
-              </Button>
+              {
+                userRole=== 'COLLECTOR' ?
+                <Button variant="destructiveoutline" size={"md"}  className= "bg-transparent mt-1.5" onClick={handleLogout}>
+                  Logout
+                <LogOut className="h-4 w-4 ml-2" />
+                </Button>
+                :
+                <Button variant="ghost" size="icon" className="hover:bg-destructive hover:text-white" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              }
             </>
           )}
         </div>

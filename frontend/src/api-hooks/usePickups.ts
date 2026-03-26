@@ -1,4 +1,4 @@
-import { useGetOne, useGetList, useCreate, useUpdate, useRemove } from "@/lib/queryHelpers";
+import { useGetOne, useUpdate, useRemove } from "@/lib/queryHelpers";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/apiFetch";
 
@@ -68,11 +68,11 @@ export interface CreatePickupItemPayload {
 }
 
 export interface CreatePickupPayload {
-  address:       PickupAddress;
-  scheduledAt:   string;
+  address:        PickupAddress;
+  scheduledAt:    string;
   estimatedCost?: number;
-  note?:         string;
-  items:         CreatePickupItemPayload[];
+  note?:          string;
+  items:          CreatePickupItemPayload[];
 }
 
 export interface UpdatePickupPayload {
@@ -81,14 +81,30 @@ export interface UpdatePickupPayload {
   note?:          string;
 }
 
+export interface CustomerPickupsQuery {
+  search?:    string;
+  status?:    PickupStatus;
+  page?:      number;
+  limit?:     number;
+  startDate?: string;
+  endDate?:   string;
+}
+
+export interface CustomerPaginatedPickups {
+  data:  Pickup[];
+  total: number;
+  page:  number;
+  limit: number;
+}
+
 // ─── Query keys ───────────────────────────────────────────────────────────────
 
 export const pickupKeys = {
-  all:            ()                                  => ["pickups"]                                as const,
-  list:           (query?: object)                    => ["pickups", "list", query ?? {}]           as const,
-  requests:       (query?: object)                    => ["pickups", "requests", query ?? {}]       as const,
-  detail:         (id: string)                        => ["pickups", "detail", id]                  as const,
-  availableSlots: (month: number, year: number)       => ["pickups", "available-slots", month, year] as const,
+  all:            ()                                  => ["pickups"]                                  as const,
+  list:           (query?: object)                    => ["pickups", "list", query ?? {}]             as const,
+  requests:       (query?: object)                    => ["pickups", "requests", query ?? {}]         as const,
+  detail:         (id: string)                        => ["pickups", "detail", id]                    as const,
+  availableSlots: (month: number, year: number)       => ["pickups", "available-slots", month, year]  as const,
 };
 
 // ─── Customer hooks ───────────────────────────────────────────────────────────
@@ -167,6 +183,25 @@ export const useCancelPickup = () =>
     pickupKeys.detail,
   );
 
+export const useGetCustomerPickups = (query?: CustomerPickupsQuery, enabled = true) => {
+  const params = new URLSearchParams();
+  if (query?.page)      params.append("page",      String(query.page));
+  if (query?.limit)     params.append("limit",     String(query.limit));
+  if (query?.search)    params.append("search",    query.search);
+  if (query?.status)    params.append("status",    query.status);
+  if (query?.startDate) params.append("startDate", query.startDate);
+  if (query?.endDate)   params.append("endDate",   query.endDate);
+
+  const queryString = params.toString();
+  const endpoint    = queryString ? `/pickups?${queryString}` : "/pickups";
+
+  return useGetOne<CustomerPaginatedPickups>(
+    ["pickups", "customer", query ?? {}],
+    endpoint,
+    { enabled }
+  );
+};
+
 // ─── Collector hooks ──────────────────────────────────────────────────────────
 
 export const useGetPickupRequests = (query?: PickupQuery) => {
@@ -179,26 +214,4 @@ export const useGetPickupRequests = (query?: PickupQuery) => {
     pickupKeys.requests(query),
     `/pickups/requests${qs ? `?${qs}` : ""}`,
   );
-};
-
-export const useAcceptPickup = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) =>
-      apiFetch(`/pickups/${id}/accept`, { method: "PATCH" }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: pickupKeys.all() });
-    },
-  });
-};
-
-export const useCompletePickup = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) =>
-      apiFetch(`/pickups/${id}/complete`, { method: "PATCH" }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: pickupKeys.all() });
-    },
-  });
 };

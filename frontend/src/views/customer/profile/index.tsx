@@ -14,7 +14,7 @@ const profileTabs: TabItem[] = [
 ];
 
 export default function ProfilePage() {
-  const { data } = useCurrentUser();
+  const { data, isLoading } = useCurrentUser();
   const user = data?.data;
   
    const formatMemberSince = (date?: string) => {
@@ -27,13 +27,13 @@ export default function ProfilePage() {
   return (
     <div className="p-6 md:p-8">
       <Card className="p-0 bg-white border-0">
-        {/* Profile Header */}
         <ProfileHeader
           avatarSrc="/avatar.png"
-          avatarFallback={user?.name?.charAt(0) ?? "U"}
+          avatarFallback={user?.name?.charAt(0)??""}
           name={user?.name ?? ""}
           badge="VERIFIED CUSTOMER"
           memberSince={`Member since ${formatMemberSince(user?.createdAt)}`}
+          isLoading={isLoading}
         />
         <NavTabs tabs={profileTabs} mode="query" queryKey="tab" />
       </Card>

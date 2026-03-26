@@ -36,7 +36,7 @@ export function CollectorProfileTab() {
     reset,
   } = useForm<CollectorProfileFormValues>({
     resolver: zodResolver(collectorProfileSchema),
-    mode: "onChange",
+    mode: "onBlur",
     defaultValues: {
       businessName:       "Shahnaz and Sons Recycling",
       businessEmail:      "ssr@gmail.com",

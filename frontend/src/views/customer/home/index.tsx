@@ -1,53 +1,45 @@
+import { useMemo } from "react";
+import { formatDate, formatTimeRange } from "@/lib/utils";
 import WelcomeMessage from "@/components/customer-dashboard/welcome-message";
 import { StatsCards, type StatItem } from "@/components/customer-dashboard/stats-cards";
 import ComingNext from "@/components/customer-dashboard/coming-next";
 import WalletBalance from "@/components/customer-dashboard/wallet-balance";
 import DashboardTip from "@/components/customer-dashboard/tip-card";
 import Schedule from "@/components/customer-dashboard/schedule-table";
+import { useCustomerDashboardStats } from "@/api-hooks/useCustomer";
 import { useCustomerWallet } from "@/api-hooks/useWallet";
 import { useGetTip } from "@/api-hooks/useTips";
-import { useCustomerDashboardStats } from "@/api-hooks/useCustomer.ts";
+import { useGetCustomerPickups } from "@/api-hooks/usePickups";
 
 const UserHome = () => {
-  // ── API data — unwrap .data from ApiResult wrapper ──────────────────────────
-  const { data: walletResult } = useCustomerWallet();
+  const todayStart = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.toISOString();
+  }, []);
+
+  const { data: statsResult                      } = useCustomerDashboardStats();
+  const { data: walletResult                     } = useCustomerWallet();
   const { data: tipResult, isLoading: tipLoading } = useGetTip();
-  const { data: statsResult  } = useCustomerDashboardStats();
+  const { data: upcomingResult                   } = useGetCustomerPickups({ limit: 10, page: 1, startDate: todayStart });
+  const { data: scheduleResult                   } = useGetCustomerPickups({ limit: 5, page: 1 });
 
-  const wallet = walletResult?.data;
-  const tip    = tipResult?.data;
-  const stats  = statsResult?.data;
+  const stats          = (statsResult  as any)?.data ?? statsResult  as any;
+  const wallet         = (walletResult as any)?.data ?? walletResult as any;
+  const tip            = (tipResult    as any)?.data ?? tipResult    as any;
+  const recentSchedule = (scheduleResult as any)?.data?.data ?? [];
 
-  // ── Stats cards ──────────────────────────────────────────────────────────────
+  const nextPickup: any = ((upcomingResult as any)?.data?.data ?? [])
+    .filter((p: any) => p.status === "PENDING" || p.status === "ACCEPTED")
+    .sort((a: any, b: any) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())[0] ?? null;
+
   const STATS: StatItem[] = [
-    {
-      title:  "CO2 Saved",
-      data:   stats?.co2Saved      ?? 0,
-      unit:   "kg",
-      color:  "red",
-    },
-    {
-      title:  "Total Recycle Quantity",
-      data:   stats?.totalQuantity ?? 0,
-      unit:   "units",
-      color:  "green",
-    },
-    {
-      title:  "Water Saved",
-      data:   stats?.waterSaved    ?? 0,
-      unit:   "Liters",
-      color:  "blue",
-    },
-    {
-      title:    "Pending Earnings",
-      data:     wallet?.pendingEarningsAmount ?? 0,
-      unit:     "CAD",
-      color:    "gold",
-      currency: "$",
-    },
+    { title: "CO2 Saved",              data: stats?.co2Saved             ?? 0, unit: "kg",     color: "red"                  },
+    { title: "Total Recycle Quantity", data: stats?.totalRecycleQuantity ?? 0, unit: "units",  color: "green"                },
+    { title: "Water Saved",            data: stats?.waterSaved           ?? 0, unit: "Liters", color: "blue"                 },
+    { title: "Pending Earnings",       data: stats?.pendingEarnings      ?? 0, unit: "CAD",    color: "gold", currency: "$"  },
   ];
 
-  // ── Wallet card ──────────────────────────────────────────────────────────────
   const walletCard = (
     <WalletBalance
       balance={wallet?.balance ?? 0}
@@ -57,12 +49,19 @@ const UserHome = () => {
     />
   );
 
-  // ── Tip card ─────────────────────────────────────────────────────────────────
-  const tipCard = (
-    <DashboardTip
-      content={tip?.content ?? undefined}
-      isLoading={tipLoading}
+  const comingNext = nextPickup ? (
+    <ComingNext
+      pickup="Recycling Pickup"
+      date={formatDate(nextPickup.scheduledAt)}
+      time={formatTimeRange(nextPickup.scheduledAt)}
+      address={nextPickup.address
+        ? `${nextPickup.address.line1}, ${nextPickup.address.city}`
+        : "N/A"}
+      bagNumber={nextPickup.items?.length ?? 0}
+      pickupId={nextPickup.pickupId}
     />
+  ) : (
+    <ComingNext />
   );
 
   return (
@@ -78,23 +77,17 @@ const UserHome = () => {
         <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_288px] gap-6 items-start">
           {/* Main column */}
           <div className="flex flex-col gap-4 sm:gap-6">
-            <ComingNext
-              pickup="Doorstep Pickup"
-              date="Jan. 25, 2026"
-              time="9:00AM - 11:00AM"
-              address="123 Lane, Str."
-              bagNumber={3}
-            />
-            <Schedule />
-
-            {/* Tip — mobile only */}
-            <div className="xl:hidden">{tipCard}</div>
+            {comingNext}
+            <Schedule recentSchedule={recentSchedule} />
+            <div className="xl:hidden">
+              <DashboardTip content={tip?.content} isLoading={tipLoading} />
+            </div>
           </div>
 
           {/* Sidebar — xl+ only */}
           <div className="hidden xl:flex flex-col gap-4">
             {walletCard}
-            {tipCard}
+            <DashboardTip content={tip?.content} isLoading={tipLoading} />
           </div>
         </div>
       </div>

@@ -1,8 +1,10 @@
 import { useGetOne, useCreate } from "@/lib/queryHelpers";
 
-export type TxType = "CREDIT" | "DEBIT";
-export type TxStatus = "PENDING" | "FAILED" | "COMPLETED";
-export type PaymentMethodType = "CARD" | "MOBILE_PAYMENT";
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export type TxType = 'CREDIT' | 'DEBIT';
+export type TxStatus = 'PENDING' | 'FAILED' | 'COMPLETED';
+export type PaymentMethodType = 'CARD' | 'MOBILE_PAYMENT';
 
 export interface CustomerWallet {
   userId:                string;
@@ -12,30 +14,34 @@ export interface CustomerWallet {
   yearlyEarnings:        number;
   pendingEarningsAmount: number;
   earningsChangeAmount:  number;
+  totalEarned?:          number;
+  totalWithdrawn?:       number;
 }
 
 export interface CollectorWallet {
-  userId: string;
-  walletId: string;
-  balance: number;
-  monthlyPayouts: number;
-  monthlyPayoutsChange: number;
-  monthlyNetFlow: number;
-  monthlyNetChange: number;
+  userId:                string;
+  walletId:              string;
+  balance:               number;
+  monthlyPayouts:        number;
+  monthlyPayoutsChange:  number;
+  monthlyNetFlow:        number;
+  monthlyNetChange:      number;
   pendingRequestsAmount: number;
   pendingApprovalAmount: number;
 }
 
 export interface WalletTransaction {
-  userId?:       string;
-  walletId:      string;
-  type:          TxType;
-  amount:        number;
-  status:        TxStatus;
-  description?:  string;
-  referenceType?: string;
-  referenceId?:  string;
-  createdAt:     string;
+  transactionId:    string;
+  referenceNumber?: string;
+  userId?:          string;
+  walletId:         string;
+  type:             TxType;
+  amount:           number;
+  status:           TxStatus;
+  description?:     string;
+  referenceType?:   string;
+  referenceId?:     string;
+  createdAt:        string;
 }
 
 export interface PaginatedTransactions {
@@ -76,29 +82,32 @@ export interface CollectorWithdrawPayload {
   amount:            number;
 }
 
-// GET /wallet/collector
-export const useGetCollectorWallet = () =>
-  useGetOne<CollectorWallet>(["wallet", "collector"], "/wallet/collector");
+// ─── Hooks ────────────────────────────────────────────────────────────────────
 
-// GET /wallet/transactions
+export const useGetCollectorWallet = () =>
+  useGetOne<CollectorWallet>(['wallet', 'collector'], '/wallet/collector');
+
+export const useCustomerWallet = () =>
+  useGetOne<CustomerWallet>(['wallet', 'customer'], '/wallet/customer');
+
 export const useGetWalletTransactions = (query?: TransactionQuery) => {
   const params = new URLSearchParams();
-  if (query?.page)      params.append("page",      String(query.page));
-  if (query?.limit)     params.append("limit",     String(query.limit));
-  if (query?.search)    params.append("search",    query.search);
-  if (query?.type)      params.append("type",      query.type);
-  if (query?.status)    params.append("status",    query.status);
-  if (query?.startDate) params.append("startDate", query.startDate);
-  if (query?.endDate)   params.append("endDate",   query.endDate);
+  if (query?.page)      params.append('page',      String(query.page));
+  if (query?.limit)     params.append('limit',     String(query.limit));
+  if (query?.search)    params.append('search',    query.search);
+  if (query?.type)      params.append('type',      query.type);
+  if (query?.status)    params.append('status',    query.status);
+  if (query?.startDate) params.append('startDate', query.startDate);
+  if (query?.endDate)   params.append('endDate',   query.endDate);
 
   const queryString = params.toString();
-  const endpoint = queryString ? `/wallet/transactions?${queryString}` : "/wallet/transactions";
+  const endpoint = queryString ? `/wallet/transactions?${queryString}` : '/wallet/transactions';
 
-  return useGetOne<PaginatedTransactions>(["wallet", "transactions", query ?? {}], endpoint);
+  return useGetOne<PaginatedTransactions>(['wallet', 'transactions', query ?? {}], endpoint);
 };
 
 export const useTopUp = () =>
-  useCreate<unknown, TopUpPayload>("/wallet/top-up", ["wallet"]);
+  useCreate<unknown, TopUpPayload>('/wallet/top-up', ['wallet']);
 
 export const useCollectorWithdraw = () =>
-  useCreate<unknown, CollectorWithdrawPayload>("/wallet/withdraw/collector", ["wallet"]);
+  useCreate<unknown, CollectorWithdrawPayload>('/wallet/withdraw/collector', ['wallet']);

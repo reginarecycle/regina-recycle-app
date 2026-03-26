@@ -1,5 +1,7 @@
 import { type ReactNode } from "react";
+import emptyTrash from "@/assets/empty_trash.gif";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -179,6 +181,9 @@ export interface DataTableProps<T> {
   /** Forwarded to DataTableTabBar */
   tabBarProps?: Omit<DataTableTabBarProps, "tabs" | "className">;
 
+  /** Slot rendered between the tab bar and the table (e.g. search + filter row) */
+  subHeader?: ReactNode;
+
   // Table body
   emptyText?: string;
   minHeight?: string;
@@ -195,6 +200,9 @@ export interface DataTableProps<T> {
 
   // Container
   className?: string;
+
+  // Loading
+  isLoading?: boolean;
 }
 
 // ── DataTable ─────────────────────────────────────────────────────────────────
@@ -214,6 +222,8 @@ export function DataTable<T>({
   showTabs = true,
   tabBarClassName,
   tabBarProps,
+  // subHeader
+  subHeader,
   // table
   emptyText = "No records found",
   minHeight = "300px",
@@ -228,12 +238,14 @@ export function DataTable<T>({
   paginationClassName,
   // container
   className,
+  // loading
+  isLoading = false,
 }: DataTableProps<T>) {
   const hasTabs       = showTabs && tabs && tabs.length > 0;
   const hasPagination = showPagination && !!onPageChange;
 
   return (
-    <div className={cn("rounded-2xl bg-white border border-border overflow-visible shadow-sm", className)}>
+    <div className={cn("rounded-2xl bg-white border border-border shadow-sm flex flex-col min-h-0", className)}>
 
       {/* ── Header ── */}
       {showHeader && (title || headerRight) && (
@@ -257,8 +269,15 @@ export function DataTable<T>({
         />
       )}
 
+      {/* ── Sub-header (between tabs and table) ── */}
+      {subHeader && (
+        <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-3 border-b border-border">
+          {subHeader}
+        </div>
+      )}
+
       {/* ── Table ── */}
-      <div style={{ minHeight }} className="overflow-x-auto">
+      <div style={{ minHeight }} className="flex-1 overflow-auto min-h-0">
         <Table className={tableClassName}>
           <TableHeader>
             <TableRow className="hover:bg-transparent border-b border-border">
@@ -278,20 +297,32 @@ export function DataTable<T>({
           </TableHeader>
 
           <TableBody>
-            {data.length === 0 ? (
+            {isLoading ? (
+              Array.from({ length: pageSize }).map((_, i) => (
+                <TableRow key={i} className="border-b border-border last:border-0 hover:bg-transparent">
+                  {columns.map((col) => (
+                    <TableCell key={col.key} className={cn("px-4 sm:px-6 py-4", col.className, col.cellClassName)}>
+                      <Skeleton className="h-4 w-full" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : data.length === 0 ? (
               <TableRow className="hover:bg-transparent border-0">
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-40 text-center text-sm text-muted-foreground"
-                >
-                  {emptyText}
+                <TableCell colSpan={columns.length} className="h-64 text-center align-middle">
+                  <div className="flex flex-col items-center justify-center gap-3 h-full">
+                    <div className="flex h-24 w-24 items-center justify-center rounded-full bg-muted">
+                      <img src={emptyTrash} alt="Empty" className="object-contain" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">{emptyText}</p>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
               data.map((row, index) => (
                 <TableRow
                   key={rowKey(row)}
-                  className="border-b border-border last:border-0 hover:bg-muted/30"
+                  className="border-b border-border hover:bg-muted/30"
                 >
                   {columns.map((col) => (
                     <TableCell

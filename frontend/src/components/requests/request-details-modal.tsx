@@ -1,4 +1,5 @@
 import { X, MapPin, CheckCircle2, XCircle } from "lucide-react";
+import { formatAmount } from "@/lib/utils";
 import { RequestsData } from "@/components/requests/requests-data";
 import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
@@ -49,8 +50,8 @@ export function RequestDetailsModal({
     return (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
             <div className="absolute inset-y-0 right-0 flex w-full justify-end">
-                <div className="h-full w-full max-w-[490px] overflow-y-auto bg-[#F8F8F8] shadow-2xl">
-                    <div className="relative border-b border-gray-200 bg-white px-6 pt-6 pb-5">
+                <div className="h-full w-full max-w-[490px] flex flex-col bg-[#F8F8F8] shadow-2xl">
+                    <div className="relative border-b border-gray-200 bg-white px-6 pt-6 pb-5 shrink-0">
                         <button
                             onClick={onClose}
                             className="absolute top-5 right-5 flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition hover:bg-gray-200"
@@ -66,8 +67,7 @@ export function RequestDetailsModal({
                     </div>
 
                     <div
-                        className={`px-4 py-6 md:px-5 ${isIncompatible ? "bg-[#DC2626]" : "bg-[#344E41] top-[92px]"
-                            }`}
+                        className={`px-4 py-6 md:px-5 shrink-0 ${isIncompatible ? "bg-[#DC2626]" : "bg-[#344E41]"}`}
                     >
                         <div className="mb-4 flex items-start justify-between gap-3">
                             <div className="text-[14px] font-medium uppercase tracking-wide text-white/95">
@@ -85,7 +85,7 @@ export function RequestDetailsModal({
                         </div>
 
                         <div className="mb-6 text-[30px] leading-none font-bold text-white">
-                            ${earnings.toFixed(2)}
+                            ${formatAmount(earnings)}
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -115,7 +115,7 @@ export function RequestDetailsModal({
                         </div>
                     </div>
 
-                    <div className="space-y-6 px-4 py-5 md:px-5">
+                    <div className="flex-1 overflow-y-auto space-y-6 px-4 py-5 md:px-5">
                         <div>
                             <h3 className="mb-3 text-[14px] font-medium uppercase tracking-wide text-[#999CA0]">
                                 Order Summary
@@ -141,7 +141,7 @@ export function RequestDetailsModal({
                                             {item.estimatedUnits}
                                         </div>
                                         <div className="text-right font-semibold text-[#111827]">
-                                            ${item.price.toFixed(2)}
+                                            ${formatAmount(item.price)}
                                         </div>
                                     </div>
                                 ))}
@@ -185,7 +185,7 @@ export function RequestDetailsModal({
                     </div>
 
                     {showActionButtons && (
-                        <div className="border-t border-[#E5E7EB] bg-[#F8F8F8] p-5">
+                        <div className="shrink-0 border-t border-[#E5E7EB] bg-[#F8F8F8] p-5">
                             <div className="flex w-full gap-4">
                                 <Button
                                     onClick={onReject ?? onClose}
