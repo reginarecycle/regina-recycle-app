@@ -6,7 +6,7 @@ import { UpdateCollectorDto } from './dto/update-collector.dto';
 import { UpdateMaterialPricingDto } from './dto/update-material-pricing.dto';
 import { UpdateMaterialSettingsDto } from './dto/update-material-settings.dto';
 import { CreateMaterialPricingDto } from './dto/create-material-pricing.dto';
-import { CollectorQueryDto } from './dto/collectors-query.dto';
+import { CollectorUsersQueryDto as CollectorQueryDto } from './dto/collectors-query.dto';
 import { PickupQueryDto } from './dto/pickup-query.dto';
 import { getPaginationParams, paginate } from '../common/pagination/pagination-helper';
 
