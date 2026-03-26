@@ -1,4 +1,4 @@
-import { useGetOne, useGetList, useUpdate } from "@/lib/queryHelpers";
+import { useGetOne, useGetList, usePatch } from "@/lib/queryHelpers";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/apiFetch";
 
@@ -51,12 +51,20 @@ export interface TopLocations {
 }
 
 export interface CollectorCustomer {
-  customerId:   string;
-  name:         string;
-  email:        string;
-  phoneNumber:  string | null;
-  totalPickups: number;
-  totalUnits:   number;
+  customerId:       string;
+  name:             string;
+  email:            string;
+  phoneNumber:      string | null;
+  status:           string;
+  neighborhood:     string | null;
+  totalCollections: number;
+  totalRevenue:     number;
+}
+
+export interface CollectorCustomerStats {
+  totalUsers:        number;
+  avgRevenuePerUser: number;
+  totalCollections:  number;
 }
 
 export interface PaginatedCustomers {
@@ -73,15 +81,21 @@ export interface CustomerPickup {
 }
 
 export interface CustomerDetails {
-  collectorId: string;
   customer: {
-    userId:      string;
+    customerId:  string;
     name:        string;
     email:       string;
     phoneNumber: string | null;
-    addresses:   { addressId: string; line1: string; city: string; province: string }[];
+    status:      string;
+    address:     { line1: string; city: string; province: string } | null;
   };
-  pickups: CustomerPickup[];
+  stats: {
+    collections: number;
+    revenue:     number;
+    avgOrder:    number;
+  };
+  collectedItems:  string[];
+  nextCollection:  string | null;
 }
 
 export interface MaterialPricing {
@@ -273,97 +287,110 @@ export interface CollectorPickupStats {
 // ─── Query keys ───────────────────────────────────────────────────────────────
 
 export const collectorKeys = {
-  stats:                ()                                => ['collectors', 'stats']                          as const,
-  materialDistribution: (period?: string)                 => ['collectors', 'material-distribution', period]  as const,
-  pickupOverview:       ()                                => ['collectors', 'pickup-overview']                 as const,
-  pickups:              (query?: object)                  => ['collectors', 'pickups', query ?? {}]            as const,
-  topLocations:         (limit?: number, period?: string) => ['collectors', 'top-locations', limit, period]   as const,
-  customers:            (query?: object)                  => ['collectors', 'customers', query ?? {}]          as const,
-  customerDetail:       (id: string)                      => ['collectors', 'customers', id]                   as const,
-  pricing:              (query?: object)                  => ['collectors', 'pricing', query ?? {}]            as const,
-  pricingSettings:      ()                                => ['collectors', 'pricing-settings']                as const,
-  payoutCalculation:    (materialId: string, qty: number) => ['collectors', 'payout', materialId, qty]        as const,
-  users:                (id: string, query?: object)      => ['collectors', id, 'users', query ?? {}]         as const,
-  usersStats:           (id: string)                      => ['collectors', id, 'users', 'stats']             as const,
+  stats:                ()                                => ["collectors", "stats"]                          as const,
+  materialDistribution: (period?: string)                 => ["collectors", "material-distribution", period]  as const,
+  pickupOverview:       ()                                => ["collectors", "pickup-overview"]                 as const,
+  pickups:              (query?: object)                  => ["collectors", "pickups", query ?? {}]            as const,
+  topLocations:         (limit?: number, period?: string) => ["collectors", "top-locations", limit, period]   as const,
+  customers:            (query?: object)                  => ["collectors", "customers", query ?? {}]          as const,
+  customerStats:        ()                                => ["collectors", "customers", "stats"]              as const,
+  customerDetail:       (id: string)                      => ["collectors", "customers", id]                   as const,
+  pricing:              (query?: object)                  => ["collectors", "pricing", query ?? {}]            as const,
+  pricingSettings:      ()                                => ["collectors", "pricing-settings"]                as const,
+  payoutCalculation:    (materialId: string, qty: number) => ["collectors", "payout", materialId, qty]        as const,
+  users:                (id: string, query?: object)      => ["collectors", id, "users", query ?? {}]         as const,
+  usersStats:           (id: string)                      => ["collectors", id, "users", "stats"]             as const,
 };
 
 export const pickupRequestKeys = {
-  all:   ()            => ['pickups', 'collector']                    as const,
-  list:  (q?: object)  => ['pickups', 'collector', 'list', q ?? {}]  as const,
-  stats: ()            => ['pickups', 'collector', 'stats']          as const,
+  all:   ()            => ["pickups", "collector"]                    as const,
+  list:  (q?: object)  => ["pickups", "collector", "list", q ?? {}]  as const,
+  stats: ()            => ["pickups", "collector", "stats"]          as const,
 };
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
 
 export const useCollectorStats = () =>
-  useGetOne<CollectorStats>(collectorKeys.stats(), '/collectors/stats');
+  useGetOne<CollectorStats>(collectorKeys.stats(), "/collectors/stats");
 
 export const useCollectorMaterialDistribution = (period?: string) =>
   useGetOne<MaterialDistribution>(
     collectorKeys.materialDistribution(period),
-    `/collectors/material-distribution${period ? `?period=${period}` : ''}`,
+    `/collectors/material-distribution${period ? `?period=${period}` : ""}`,
   );
 
 export const useCollectorPickupOverview = () =>
-  useGetOne<PickupOverview>(collectorKeys.pickupOverview(), '/collectors/pickup-overview');
+  useGetOne<PickupOverview>(collectorKeys.pickupOverview(), "/collectors/pickup-overview");
 
 export const useCollectorPickups = (query?: { status?: string; page?: number; limit?: number }) => {
   const params = new URLSearchParams();
-  if (query?.status) params.append('status', query.status);
-  if (query?.page)   params.append('page',   String(query.page));
-  if (query?.limit)  params.append('limit',  String(query.limit));
+  if (query?.status) params.append("status", query.status);
+  if (query?.page)   params.append("page",   String(query.page));
+  if (query?.limit)  params.append("limit",  String(query.limit));
   const qs = params.toString();
   return useGetList<CollectorCustomer>(
     collectorKeys.pickups(query),
-    `/collectors/pickups${qs ? `?${qs}` : ''}`,
+    `/collectors/pickups${qs ? `?${qs}` : ""}`,
   );
 };
 
 export const useCollectorTopLocations = (limit?: number, period?: string) => {
   const params = new URLSearchParams();
-  if (limit)  params.append('limit',  String(limit));
-  if (period) params.append('period', period);
+  if (limit)  params.append("limit",  String(limit));
+  if (period) params.append("period", period);
   const qs = params.toString();
   return useGetOne<TopLocations>(
     collectorKeys.topLocations(limit, period),
-    `/collectors/top-locations${qs ? `?${qs}` : ''}`,
+    `/collectors/top-locations${qs ? `?${qs}` : ""}`,
   );
 };
 
-export const useCollectorCustomers = (query?: { search?: string; page?: number; limit?: number }) => {
+export const useCollectorCustomerStats = () =>
+  useGetOne<CollectorCustomerStats>(
+    collectorKeys.customerStats(),
+    "/collectors/customers/stats",
+  );
+
+export const useCollectorCustomers = (query?: {
+  search?: string;
+  status?: string;
+  page?:   number;
+  limit?:  number;
+}) => {
   const params = new URLSearchParams();
-  if (query?.search) params.append('search', query.search);
-  if (query?.page)   params.append('page',   String(query.page));
-  if (query?.limit)  params.append('limit',  String(query.limit));
+  if (query?.search) params.append("search", query.search);
+  if (query?.status) params.append("status", query.status);
+  if (query?.page)   params.append("page",   String(query.page));
+  if (query?.limit)  params.append("limit",  String(query.limit));
   const qs = params.toString();
   return useGetOne<PaginatedCustomers>(
     collectorKeys.customers(query),
-    `/collectors/customers${qs ? `?${qs}` : ''}`,
+    `/collectors/customers${qs ? `?${qs}` : ""}`,
   );
 };
 
-export const useCollectorCustomerDetail = (collectorId: string, customerId: string) =>
+export const useCollectorCustomerDetail = (customerId: string) =>
   useGetOne<CustomerDetails>(
     collectorKeys.customerDetail(customerId),
-    `/collectors/${collectorId}/customers/${customerId}`,
-    { enabled: Boolean(collectorId) && Boolean(customerId) },
+    `/collectors/customers/${customerId}`,
+    { enabled: Boolean(customerId) },
   );
 
 export const useCollectorPricing = (query?: { search?: string; status?: string; page?: number; limit?: number }) => {
   const params = new URLSearchParams();
-  if (query?.search) params.append('search', query.search);
-  if (query?.status) params.append('status', query.status);
-  if (query?.page)   params.append('page',   String(query.page));
-  if (query?.limit)  params.append('limit',  String(query.limit));
+  if (query?.search) params.append("search", query.search);
+  if (query?.status) params.append("status", query.status);
+  if (query?.page)   params.append("page",   String(query.page));
+  if (query?.limit)  params.append("limit",  String(query.limit));
   const qs = params.toString();
   return useGetOne<PaginatedPricing>(
     collectorKeys.pricing(query),
-    `/collectors/me/pricing${qs ? `?${qs}` : ''}`,
+    `/collectors/me/pricing${qs ? `?${qs}` : ""}`,
   );
 };
 
 export const useCollectorPricingSettings = () =>
-  useGetOne<MaterialSettings>(collectorKeys.pricingSettings(), '/collectors/pricing-settings');
+  useGetOne<MaterialSettings>(collectorKeys.pricingSettings(), "/collectors/pricing-settings");
 
 export const useCalculatePayout = (materialId: string, quantity: number) =>
   useGetOne<MaterialPayoutCalculation>(
@@ -373,20 +400,20 @@ export const useCalculatePayout = (materialId: string, quantity: number) =>
   );
 
 export const useUpdateCollectorProfile = () =>
-  useUpdate<{ message: string }, UpdateCollectorPayload>(
-    () => '/collectors/profile',
+  usePatch<{ message: string }, UpdateCollectorPayload>(
+    "/collectors/profile",
     collectorKeys.stats(),
   );
 
 export const useUpdatePricingSettings = () =>
-  useUpdate<{ message: string }, UpdateMaterialSettingsPayload>(
-    () => '/collectors/pricing-settings',
+  usePatch<{ message: string }, UpdateMaterialSettingsPayload>(
+    "/collectors/pricing-settings",
     collectorKeys.pricingSettings(),
   );
 
-export const useUpdateMaterialPricing = () =>
-  useUpdate<{ message: string }, UpdateMaterialPricingPayload>(
-    (materialId) => `/collectors/pricing/${materialId}`,
+export const useUpdateMaterialPricing = (materialId: string) =>
+  usePatch<{ message: string }, UpdateMaterialPricingPayload>(
+    `/collectors/pricing/${materialId}`,
     collectorKeys.pricing(),
   );
 
@@ -397,13 +424,13 @@ export const useCollectorUsers = (
   query?: { keyword?: string; page?: number; limit?: number },
 ) => {
   const params = new URLSearchParams();
-  if (query?.keyword) params.append('keyword', query.keyword);
-  if (query?.page)    params.append('page',    String(query.page));
-  if (query?.limit)   params.append('limit',   String(query.limit));
+  if (query?.keyword) params.append("keyword", query.keyword);
+  if (query?.page)    params.append("page",    String(query.page));
+  if (query?.limit)   params.append("limit",   String(query.limit));
   const qs = params.toString();
   return useGetOne<CollectorUsersResponse>(
     collectorKeys.users(collectorId, query),
-    `/collectors/${collectorId}/users${qs ? `?${qs}` : ''}`,
+    `/collectors/${collectorId}/users${qs ? `?${qs}` : ""}`,
     { enabled: Boolean(collectorId) },
   );
 };
@@ -418,20 +445,20 @@ export const useCollectorUsersStats = (collectorId: string) =>
 // ─── Collector Pickup Request hooks ──────────────────────────────────────────
 
 export const useGetCollectorPickupStats = () =>
-  useGetOne<CollectorPickupStats>(pickupRequestKeys.stats(), '/pickups/collector/stats');
+  useGetOne<CollectorPickupStats>(pickupRequestKeys.stats(), "/pickups/collector/stats");
 
 export const useGetCollectorPickupRequests = (query?: CollectorPickupsQuery, enabled = true) => {
   const params = new URLSearchParams();
-  if (query?.status)    params.append('status',    query.status);
-  if (query?.search)    params.append('search',    query.search);
-  if (query?.page)      params.append('page',      String(query.page));
-  if (query?.limit)     params.append('limit',     String(query.limit));
-  if (query?.startDate) params.append('startDate', query.startDate);
-  if (query?.endDate)   params.append('endDate',   query.endDate);
+  if (query?.status)    params.append("status",    query.status);
+  if (query?.search)    params.append("search",    query.search);
+  if (query?.page)      params.append("page",      String(query.page));
+  if (query?.limit)     params.append("limit",     String(query.limit));
+  if (query?.startDate) params.append("startDate", query.startDate);
+  if (query?.endDate)   params.append("endDate",   query.endDate);
   const qs = params.toString();
   return useGetOne<CollectorPickupsPaginated>(
     pickupRequestKeys.list(query),
-    `/pickups/collector${qs ? `?${qs}` : ''}`,
+    `/pickups/collector${qs ? `?${qs}` : ""}`,
     { enabled },
   );
 };
@@ -440,7 +467,7 @@ export const useAcceptPickup = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (pickupId: string) =>
-      apiFetch(`/pickups/${pickupId}/accept`, { method: 'PATCH' }),
+      apiFetch(`/pickups/${pickupId}/accept`, { method: "PATCH" }),
     onSuccess: () => qc.invalidateQueries({ queryKey: pickupRequestKeys.all() }),
   });
 };
@@ -450,7 +477,7 @@ export const useRejectPickup = () => {
   return useMutation({
     mutationFn: ({ pickupId, reason, comment }: { pickupId: string; reason?: string; comment?: string }) =>
       apiFetch(`/pickups/${pickupId}/reject`, {
-        method: 'PATCH',
+        method: "PATCH",
         data: { reason, comment },
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: pickupRequestKeys.all() }),
@@ -461,7 +488,7 @@ export const useCompletePickup = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (pickupId: string) =>
-      apiFetch(`/pickups/${pickupId}/complete`, { method: 'PATCH' }),
+      apiFetch(`/pickups/${pickupId}/complete`, { method: "PATCH" }),
     onSuccess: () => qc.invalidateQueries({ queryKey: pickupRequestKeys.all() }),
   });
 };
@@ -470,7 +497,7 @@ export const useCancelPickupByCollector = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (pickupId: string) =>
-      apiFetch(`/pickups/${pickupId}/cancel`, { method: 'DELETE' }),
+      apiFetch(`/pickups/${pickupId}/cancel`, { method: "DELETE" }),
     onSuccess: () => qc.invalidateQueries({ queryKey: pickupRequestKeys.all() }),
   });
 };

@@ -1,6 +1,8 @@
 import { Card } from "@/components/ui/card";
 import GreenLightBulb from "@/assets/green-lighbulb.svg";
 
+const DEFAULT_TIP = "Rinse milk containers before storage to ensure that they don't smell.";
+
 interface DashboardTipProps {
   content?:   string;
   isLoading?: boolean;
@@ -16,7 +18,7 @@ export function DashboardTip({ content, isLoading }: DashboardTipProps) {
           {isLoading ? (
             <div className="h-4 w-3/4 rounded bg-primary/20 animate-pulse" />
           ) : (
-            <p className="text-sm text-foreground/75 leading-5">{content}</p>
+            <p className="text-sm text-foreground/75 leading-5">{content ?? DEFAULT_TIP}</p>
           )}
         </div>
       </div>

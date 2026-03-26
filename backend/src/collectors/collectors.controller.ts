@@ -11,237 +11,168 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { Auth } from '../common/decorator/auth.decorator';
+import { CurrentUser } from '../auth/decorator/current-user.decorator';
 import { CollectorsService } from './collectors.service';
-import { CollectorUsersQueryDto } from './dto/collectors-query.dto';
+import { CollectorUsersQueryDto as CollectorQueryDto } from './dto/collectors-query.dto';
 import { PickupQueryDto } from './dto/pickup-query.dto';
 import { UpdateCollectorDto } from './dto/update-collector.dto';
 import { UpdateMaterialPricingDto } from './dto/update-material-pricing.dto';
 import { UpdateMaterialSettingsDto } from './dto/update-material-settings.dto';
 import { CreateMaterialPricingDto } from './dto/create-material-pricing.dto';
 
+type CurrentUserPayload = {
+  userId: string;
+  email: string;
+  name: string;
+  role: 'CUSTOMER' | 'COLLECTOR';
+  status: 'ACTIVE' | 'INACTIVE';
+  emailVerified: boolean;
+};
+
 @ApiTags('Collectors')
 @Controller('collectors')
 export class CollectorsController {
   constructor(private readonly collectorsService: CollectorsService) {}
 
-  // ─── Pricing Settings (authenticated, uses JWT identity) ─────────────────
-
-  @Get('pricing-settings')
-  @ApiOperation({ summary: 'Get pricing settings for the authenticated collector' })
-  @ApiBearerAuth()
-  @Auth('COLLECTOR')
-  getPricingSettings(@Request() req: any) {
-    return this.collectorsService.getMaterialSettings(req.user.userId);
+  @Get('stats')
+  @Auth()
+  getStats(@CurrentUser() user: CurrentUserPayload) {
+    return this.collectorsService.getStats(user.userId);
   }
 
-  @Patch('pricing-settings')
-  @ApiOperation({ summary: 'Update pricing settings for the authenticated collector' })
-  @ApiBearerAuth()
-  @Auth('COLLECTOR')
-  updatePricingSettings(@Request() req: any, @Body() dto: UpdateMaterialSettingsDto) {
-    return this.collectorsService.updateMaterialSettings(req.user.userId, dto);
+  @Get('material-distribution')
+  @Auth()
+  getMaterialDistribution(
+    @CurrentUser() user: CurrentUserPayload,
+    @Query('period') period?: string,
+  ) {
+    return this.collectorsService.getMaterialDistribution(user.userId, period);
   }
 
-  // ─── Me: Pricing list (authenticated) ────────────────────────────────────
-
-  @Get('me/pricing')
-  @ApiOperation({ summary: 'Get material pricing for the authenticated collector' })
-  @ApiBearerAuth()
-  @Auth('COLLECTOR')
-  getMyPricing(@Request() req: any, @Query() query: CollectorUsersQueryDto) {
-    return this.collectorsService.getPricing(req.user.userId, query);
+  @Get('pickup-overview')
+  @Auth()
+  getPickupOverview(@CurrentUser() user: CurrentUserPayload) {
+    return this.collectorsService.getPickupOverview(user.userId);
   }
 
-  // ─── Stats ────────────────────────────────────────────────────────────────
-
-  @Get(':collectorId/stats')
-  @ApiOperation({ summary: 'Get collector stats' })
-  @ApiParam({ name: 'collectorId', type: String })
-  async getStats(@Param('collectorId') collectorId: string) {
-    return this.collectorsService.getStats(collectorId);
-  }
-
-  // ─── Pickups ──────────────────────────────────────────────────────────────
-
-  @Get(':collectorId/pickups')
-  @ApiOperation({ summary: 'Get pickups for a collector' })
-  @ApiParam({ name: 'collectorId', type: String })
-  async getPickups(
-    @Param('collectorId') collectorId: string,
+  @Get('pickups')
+  @Auth()
+  getPickups(
+    @CurrentUser() user: CurrentUserPayload,
     @Query() query: PickupQueryDto,
   ) {
-    return this.collectorsService.getPickups(collectorId, query);
+    return this.collectorsService.getPickups(user.userId, query);
   }
 
-  // ─── Customers ────────────────────────────────────────────────────────────
-
-  @Get(':collectorId/customers')
-  @ApiOperation({ summary: 'Get customers for a collector' })
-  @ApiParam({ name: 'collectorId', type: String })
-  async getCustomers(
-    @Param('collectorId') collectorId: string,
-    @Query() query: CollectorUsersQueryDto,
+  @Get('top-locations')
+  @Auth()
+  getTopLocations(
+    @CurrentUser() user: CurrentUserPayload,
+    @Query('limit') limit?: string,
+    @Query('period') period?: string,
   ) {
-    return this.collectorsService.getCustomers(collectorId, query);
+    return this.collectorsService.getTopLocations(
+      user.userId,
+      Number(limit) || 3,
+      period,
+    );
   }
 
-  @Get(':collectorId/customers/:customerId')
-  @ApiOperation({ summary: 'Get customer detail for a collector' })
-  @ApiParam({ name: 'collectorId', type: String })
-  @ApiParam({ name: 'customerId', type: String })
-  async getCustomerDetails(
-    @Param('collectorId') collectorId: string,
+  @Get('customers/stats')
+  @Auth()
+  getCustomerStats(@CurrentUser() user: CurrentUserPayload) {
+    return this.collectorsService.getCustomerStats(user.userId);
+  }
+
+  @Get('customers')
+  @Auth()
+  getCustomers(
+    @CurrentUser() user: CurrentUserPayload,
+    @Query() query: CollectorQueryDto,
+  ) {
+    return this.collectorsService.getCustomers(user.userId, query);
+  }
+
+  @Get('customers/:customerId')
+  @Auth()
+  getCustomerDetails(
+    @CurrentUser() user: CurrentUserPayload,
     @Param('customerId') customerId: string,
   ) {
-    return this.collectorsService.getCustomerDetails(collectorId, customerId);
+    return this.collectorsService.getCustomerDetails(user.userId, customerId);
   }
 
-  // ─── NEW: Users ────────────────────────────────────────────────────────────
-
-  @Get(':collectorId/users/stats')
-  @ApiOperation({ summary: 'Get user stats for a collector' })
-  @ApiParam({ name: 'collectorId', type: String })
-  async getCollectorUsersStats(
-    @Param('collectorId') collectorId: string,
-  ) {
-    return this.collectorsService.getUsersStats(collectorId);
-  }
-
-  @Get(':collectorId/users')
-  @ApiOperation({ summary: 'Get paginated users for a collector' })
-  @ApiParam({ name: 'collectorId', type: String })
-  async getCollectorUsers(
-    @Param('collectorId') collectorId: string,
-    @Query() query: CollectorUsersQueryDto,
-  ) {
-    return this.collectorsService.getUsers(collectorId, query);
-  }
-
-  // ─── Material Distribution ────────────────────────────────────────────────
-
-  @Get(':collectorId/material-distribution')
-  @ApiOperation({ summary: 'Get material distribution for a collector' })
-  @ApiParam({ name: 'collectorId', type: String })
-  async getMaterialDistribution(
-    @Param('collectorId') collectorId: string,
-    @Query('period') period?: string,
-  ) {
-    return this.collectorsService.getMaterialDistribution(collectorId, period);
-  }
-
-  // ─── Pickup Overview ──────────────────────────────────────────────────────
-
-  @Get(':collectorId/pickup-overview')
-  @ApiOperation({ summary: 'Get weekly pickup overview for a collector' })
-  @ApiParam({ name: 'collectorId', type: String })
-  async getPickupOverview(@Param('collectorId') collectorId: string) {
-    return this.collectorsService.getPickupOverview(collectorId);
-  }
-
-  // ─── Top Locations ────────────────────────────────────────────────────────
-
-  @Get(':collectorId/top-locations')
-  @ApiOperation({ summary: 'Get top pickup locations for a collector' })
-  @ApiParam({ name: 'collectorId', type: String })
-  async getTopLocations(
-    @Param('collectorId') collectorId: string,
-    @Query('limit') limit?: number,
-    @Query('period') period?: string,
-  ) {
-    return this.collectorsService.getTopLocations(collectorId, limit, period);
-  }
-
-  // ─── Profile ──────────────────────────────────────────────────────────────
-
-  @Put(':collectorId/profile')
-  @ApiOperation({ summary: 'Update collector profile' })
-  @ApiParam({ name: 'collectorId', type: String })
-  async updateProfile(
-    @Param('collectorId') collectorId: string,
+  @Put('profile')
+  @Auth()
+  updateProfile(
+    @CurrentUser() user: CurrentUserPayload,
     @Body() dto: UpdateCollectorDto,
   ) {
-    return this.collectorsService.updateProfile(collectorId, dto);
+    return this.collectorsService.updateProfile(user.userId, dto);
   }
 
-  // ─── Pricing ──────────────────────────────────────────────────────────────
-
-  @Get(':collectorId/pricing')
-  @ApiOperation({ summary: 'Get pricing for a collector' })
-  @ApiParam({ name: 'collectorId', type: String })
-  async getPricing(
-    @Param('collectorId') collectorId: string,
-    @Query() query: CollectorUsersQueryDto,
-  ) {
-    return this.collectorsService.getPricing(collectorId, query);
-  }
-
-  @Post(':collectorId/pricing')
-  @ApiOperation({ summary: 'Create material pricing for a collector' })
-  @ApiParam({ name: 'collectorId', type: String })
-  async createMaterialPricing(
-    @Param('collectorId') collectorId: string,
+  @Post('pricing')
+  @Auth()
+  createMaterialPricing(
+    @CurrentUser() user: CurrentUserPayload,
     @Body() dto: CreateMaterialPricingDto,
   ) {
-    return this.collectorsService.createMaterialPricing(collectorId, dto);
+    return this.collectorsService.createMaterialPricing(user.userId, dto);
   }
 
-  @Put(':collectorId/pricing/:materialId')
-  @ApiOperation({ summary: 'Update material pricing for a collector' })
-  @ApiParam({ name: 'collectorId', type: String })
-  @ApiParam({ name: 'materialId', type: String })
-  async updateMaterialPricing(
-    @Param('collectorId') collectorId: string,
+  @Get('me/pricing')
+  @Auth()
+  getPricing(
+    @CurrentUser() user: CurrentUserPayload,
+    @Query() query: CollectorQueryDto,
+  ) {
+    return this.collectorsService.getPricing(user.userId, query);
+  }
+
+  @Put('pricing/:materialId')
+  @Auth()
+  updateMaterialPricing(
+    @CurrentUser() user: CurrentUserPayload,
     @Param('materialId') materialId: string,
     @Body() dto: UpdateMaterialPricingDto,
   ) {
-    return this.collectorsService.updateMaterialPricing(collectorId, materialId, dto);
+    return this.collectorsService.updateMaterialPricing(user.userId, materialId, dto);
   }
 
-  // ─── Material Settings ────────────────────────────────────────────────────
-
-  @Get(':collectorId/material-settings')
-  @ApiOperation({ summary: 'Get material settings for a collector' })
-  @ApiParam({ name: 'collectorId', type: String })
-  async getMaterialSettings(@Param('collectorId') collectorId: string) {
-    return this.collectorsService.getMaterialSettings(collectorId);
+  @Get('pricing-settings')
+  @Auth()
+  getMaterialSettings(@CurrentUser() user: CurrentUserPayload) {
+    return this.collectorsService.getMaterialSettings(user.userId);
   }
 
-  @Put(':collectorId/material-settings')
-  @ApiOperation({ summary: 'Update material settings for a collector' })
-  @ApiParam({ name: 'collectorId', type: String })
-  async updateMaterialSettings(
-    @Param('collectorId') collectorId: string,
+  @Put('pricing-settings')
+  @Auth()
+  updateMaterialSettings(
+    @CurrentUser() user: CurrentUserPayload,
     @Body() dto: UpdateMaterialSettingsDto,
   ) {
-    return this.collectorsService.updateMaterialSettings(collectorId, dto);
+    return this.collectorsService.updateMaterialSettings(user.userId, dto);
   }
 
-  // ─── Material Payout Calculation ──────────────────────────────────────────
-
   @Get('material-pricing/:materialId/calculate')
-  async calculateMaterialPayout(
+  @Auth()
+  calculateMaterialPayout(
+    @CurrentUser() user: CurrentUserPayload,
     @Param('materialId') materialId: string,
-    @Query('collectorId') collectorId: string,
     @Query('quantity') quantity: string,
   ) {
     const qty = Number(quantity);
     if (isNaN(qty) || qty <= 0) {
       throw new BadRequestException('Quantity must be a number greater than 0');
     }
-    return this.collectorsService.calculateMaterialPayout(
-      collectorId,
-      materialId,
-      qty,
-    );
+    return this.collectorsService.calculateMaterialPayout(user.userId, materialId, qty);
   }
 
-  // ─── Average Material Price ───────────────────────────────────────────────
-
   @Get('materials/:id/averagePrice')
-  async getAverageMaterialPrice(@Param('id') id: string) {
+  @Auth()
+  getAverageMaterialPrice(@Param('id') id: string) {
     return this.collectorsService.getAverageMaterialPrice(id);
   }
 }

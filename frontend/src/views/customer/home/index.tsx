@@ -18,11 +18,11 @@ const UserHome = () => {
     return d.toISOString();
   }, []);
 
-  const { data: statsResult                      } = useCustomerDashboardStats();
-  const { data: walletResult                     } = useCustomerWallet();
-  const { data: tipResult, isLoading: tipLoading } = useGetTip();
-  const { data: upcomingResult                   } = useGetCustomerPickups({ limit: 10, page: 1, startDate: todayStart });
-  const { data: scheduleResult                   } = useGetCustomerPickups({ limit: 5, page: 1 });
+  const { data: statsResult,  isError: statsError  } = useCustomerDashboardStats();
+  const { data: walletResult, isError: walletError  } = useCustomerWallet();
+  const { data: tipResult,    isLoading: tipLoading, isError: tipError } = useGetTip();
+  const { data: upcomingResult } = useGetCustomerPickups({ limit: 10, page: 1, startDate: todayStart });
+  const { data: scheduleResult } = useGetCustomerPickups({ limit: 5, page: 1 });
 
   const stats          = (statsResult  as any)?.data ?? statsResult  as any;
   const wallet         = (walletResult as any)?.data ?? walletResult as any;
@@ -64,6 +64,19 @@ const UserHome = () => {
     <ComingNext />
   );
 
+  if (statsError || walletError) {
+    return (
+      <div className="flex flex-col gap-6 overflow-scroll mb-8">
+        <WelcomeMessage />
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+            Failed to load dashboard data. Please refresh the page.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6 overflow-scroll mb-8">
       <WelcomeMessage />
@@ -80,14 +93,14 @@ const UserHome = () => {
             {comingNext}
             <Schedule recentSchedule={recentSchedule} />
             <div className="xl:hidden">
-              <DashboardTip content={tip?.content} isLoading={tipLoading} />
+              <DashboardTip content={tipError ? undefined : tip?.content} isLoading={tipLoading} />
             </div>
           </div>
 
           {/* Sidebar — xl+ only */}
           <div className="hidden xl:flex flex-col gap-4">
             {walletCard}
-            <DashboardTip content={tip?.content} isLoading={tipLoading} />
+            <DashboardTip content={tipError ? undefined : tip?.content} isLoading={tipLoading} />
           </div>
         </div>
       </div>

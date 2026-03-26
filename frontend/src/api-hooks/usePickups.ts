@@ -7,30 +7,37 @@ import { apiFetch } from "@/lib/apiFetch";
 export type PickupStatus = "PENDING" | "ACCEPTED" | "COMPLETED" | "CANCELLED";
 
 export interface PickupAddress {
-  line1:      string;
-  line2?:     string;
-  city:       string;
-  province:   string;
-  postalCode: string;
-  latitude?:  number;
-  longitude?: number;
+  addressId?:  string;
+  line1:       string;
+  line2?:      string;
+  city:        string;
+  province:    string;
+  postalCode:  string;
+  latitude?:   number;
+  longitude?:  number;
+}
+
+export interface PickupMaterial {
+  materialId: string;
+  name:       string;
+  type:       string;
 }
 
 export interface PickupItem {
   materialId: string;
   quantity:   number;
-  material?:  { name: string; type: string };
+  material?:  PickupMaterial;
 }
 
 export interface Pickup {
-  pickupId:        string;
-  status:          PickupStatus;
-  scheduledAt:     string;
-  estimatedCost?:  number;
-  note?:           string;
-  photoUrl?:       string;
-  address?:        PickupAddress;
-  items?:          PickupItem[];
+  pickupId:       string;
+  status:         PickupStatus;
+  scheduledAt:    string;
+  estimatedCost?: number;
+  note?:          string;
+  photoUrl?:      string;
+  address?:       PickupAddress;
+  items?:         PickupItem[];
   requester?: {
     userId:      string;
     name:        string;
@@ -62,13 +69,23 @@ export interface AvailableSlotsResponse {
   [date: string]: TimeSlot[];
 }
 
+export interface PickupAddressPayload {
+  line1:      string;
+  line2?:     string;
+  city:       string;
+  province:   string;
+  postalCode: string;
+  latitude?:  number;
+  longitude?: number;
+}
+
 export interface CreatePickupItemPayload {
   materialId: string;
   quantity:   number;
 }
 
 export interface CreatePickupPayload {
-  address:        PickupAddress;
+  address:        PickupAddressPayload;
   scheduledAt:    string;
   estimatedCost?: number;
   note?:          string;
