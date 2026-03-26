@@ -234,35 +234,33 @@ export class CollectorsService {
     const { page = 1, limit = 10, search, status } = query;
     const { skip, take } = getPaginationParams(page, limit);
 
-    const customerWhere = {
-      role: 'CUSTOMER' as const,
+    // ── Build customer where clause ───────────────────────────────────────────
+    const customerWhere: any = {
+      role: 'CUSTOMER',
       pickupsRequested: { some: { collectorUserId: collectorId } },
-      ...(search ? { name: { contains: search, mode: 'insensitive' as const } } : {}),
+      ...(search ? { name: { contains: search, mode: 'insensitive' } } : {}),
     };
 
-    const [total, customers] = await Promise.all([
-      this.prisma.user.count({ where: customerWhere }),
-      this.prisma.user.findMany({
-        where: customerWhere,
-        select: {
-          userId: true,
-          name: true,
-          email: true,
-          phoneNumber: true,
-          status: true,
-          addresses: { select: { city: true }, take: 1 },
-          pickupsRequested: {
-            where: { collectorUserId: collectorId },
-            select: { status: true, actualEarning: true },
-          },
+    // Fetch all matching customers (no pagination yet) to compute derivedStatus
+    const allCustomers = await this.prisma.user.findMany({
+      where: customerWhere,
+      select: {
+        userId: true,
+        name: true,
+        email: true,
+        phoneNumber: true,
+        status: true,
+        addresses: { select: { city: true }, take: 1 },
+        pickupsRequested: {
+          where: { collectorUserId: collectorId },
+          select: { status: true, actualEarning: true },
         },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take,
-      }),
-    ]);
+      },
+      orderBy: { createdAt: 'desc' },
+    });
 
-    const data = customers.map((c) => {
+    // Map and compute derivedStatus
+    const mapped = allCustomers.map((c) => {
       const completed = c.pickupsRequested.filter((p) => p.status === PickupStatus.COMPLETED);
       const totalCollections = completed.length;
       const totalRevenue = completed.reduce((sum, p) => sum + Number(p.actualEarning), 0);
@@ -280,10 +278,14 @@ export class CollectorsService {
       };
     });
 
-    // Filter by status after mapping since derivedStatus is computed
-    const filtered = status ? data.filter((c) => c.status === status) : data;
+    // ── Apply status filter BEFORE pagination ─────────────────────────────────
+    const filtered = status ? mapped.filter((c) => c.status === status) : mapped;
+    const total    = filtered.length;
 
-    return paginate(filtered, status ? filtered.length : total, page, limit);
+    // ── Apply pagination AFTER filtering ──────────────────────────────────────
+    const data = filtered.slice(skip, skip + take);
+
+    return paginate(data, total, page, limit);
   }
 
   async getCustomerDetails(collectorId: string, customerId: string) {

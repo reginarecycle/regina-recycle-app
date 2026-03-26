@@ -17,8 +17,6 @@ import {
 const fmt = (amount: number) =>
   `CAD ${Number(amount || 0).toLocaleString("en-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 type UserStatus = "ACTIVE" | "INACTIVE" | "NEW";
 
 const statusClasses: Record<UserStatus, string> = {
@@ -26,8 +24,6 @@ const statusClasses: Record<UserStatus, string> = {
   INACTIVE: "bg-[#E2E8F0] text-[#64748B]",
   NEW:      "bg-[#DBEAFE] text-[#2563EB]",
 };
-
-// ─── Avatar ───────────────────────────────────────────────────────────────────
 
 const Avatar = ({ name }: { name: string }) => {
   const initials = name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
@@ -41,14 +37,14 @@ const Avatar = ({ name }: { name: string }) => {
 // ─── Customer Detail Modal ────────────────────────────────────────────────────
 
 const CustomerModal = ({ customerId, onClose }: { customerId: string; onClose: () => void }) => {
-  const { data: result, isLoading } = useCollectorCustomerDetail(customerId);
+  const { data: result, isLoading, isError } = useCollectorCustomerDetail(customerId);
   const detail = (result as any)?.data ?? result as any;
 
-  const stats         = detail?.stats;
-  const materials     = detail?.collectedItems ?? [];
+  const stats          = detail?.stats;
+  const materials      = detail?.collectedItems ?? [];
   const nextCollection = detail?.nextCollection;
-  const address       = detail?.customer?.address;
-  const initials      = detail?.customer?.name
+  const address        = detail?.customer?.address;
+  const initials       = detail?.customer?.name
     ? detail.customer.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()
     : "..";
 
@@ -74,7 +70,11 @@ const CustomerModal = ({ customerId, onClose }: { customerId: string; onClose: (
           <button type="button" onClick={onClose} className="text-[18px] leading-none text-white/90 hover:text-white">×</button>
         </div>
 
-        {isLoading ? (
+        {isError ? (
+          <div className="p-5 text-sm text-red-500">
+            Failed to load customer details. Please try again.
+          </div>
+        ) : isLoading ? (
           <div className="p-5 flex flex-col gap-3">
             {[1, 2, 3].map((i) => <div key={i} className="h-5 rounded bg-gray-100 animate-pulse" />)}
           </div>
@@ -148,9 +148,8 @@ export default function CollectorUsersPage() {
 
   const PAGE_SIZE = 10;
 
-  // ── API calls ──────────────────────────────────────────────────────────────
-  const { data: statsResult } = useCollectorCustomerStats();
-  const { data: customersResult, isLoading } = useCollectorCustomers({
+  const { data: statsResult,     isError: statsError     } = useCollectorCustomerStats();
+  const { data: customersResult, isLoading, isError: customersError } = useCollectorCustomers({
     search: search || undefined,
     status: statusFilter !== "ALL" ? statusFilter : undefined,
     page:   currentPage,
@@ -168,7 +167,6 @@ export default function CollectorUsersPage() {
   const avgRevenue       = stats?.avgRevenuePerUser ?? 0;
   const totalCollections = stats?.totalCollections  ?? 0;
 
-  // ── Table columns ──────────────────────────────────────────────────────────
   const columns: ColumnDef<CollectorCustomer>[] = [
     {
       key: "name",
@@ -212,9 +210,7 @@ export default function CollectorUsersPage() {
       key: "collections",
       header: "Collections",
       cell: (c) => (
-        <span className="text-[11px] font-medium text-[#16A34A]">
-          {fmt(c.totalRevenue)}
-        </span>
+        <span className="text-[11px] font-medium text-[#16A34A]">{fmt(c.totalRevenue)}</span>
       ),
     },
     {
@@ -245,7 +241,9 @@ export default function CollectorUsersPage() {
             <div>
               <p className="text-[10px] font-medium uppercase text-[#9CA3AF]">Total Users</p>
               <div className="mt-1 flex items-baseline gap-2">
-                <span className="text-[32px] font-semibold leading-none text-[#22C55E]">{totalUsers}</span>
+                <span className="text-[32px] font-semibold leading-none text-[#22C55E]">
+                  {statsError ? "—" : totalUsers}
+                </span>
                 <span className="text-[10px] uppercase text-[#9CA3AF]">Users</span>
               </div>
             </div>
@@ -261,7 +259,7 @@ export default function CollectorUsersPage() {
               <p className="text-[10px] font-medium uppercase text-[#9CA3AF]">Avg Revenue/User</p>
               <div className="mt-1 flex items-baseline gap-2">
                 <span className="text-[32px] font-semibold leading-none text-[#F59E0B]">
-                  ${Number(avgRevenue || 0).toFixed(2)}
+                  {statsError ? "—" : `$${Number(avgRevenue || 0).toFixed(2)}`}
                 </span>
                 <span className="text-[10px] uppercase text-[#9CA3AF]">Per Customer</span>
               </div>
@@ -277,7 +275,9 @@ export default function CollectorUsersPage() {
             <div>
               <p className="text-[10px] font-medium uppercase text-[#9CA3AF]">Total Collection</p>
               <div className="mt-1 flex items-baseline gap-2">
-                <span className="text-[32px] font-semibold leading-none text-[#A855F7]">{totalCollections}</span>
+                <span className="text-[32px] font-semibold leading-none text-[#A855F7]">
+                  {statsError ? "—" : totalCollections}
+                </span>
                 <span className="text-[10px] uppercase text-[#9CA3AF]">Completed</span>
               </div>
             </div>
@@ -285,57 +285,66 @@ export default function CollectorUsersPage() {
         </div>
       </div>
 
+      {/* Error state */}
+      {customersError && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+          Failed to load customers. Please refresh the page.
+        </div>
+      )}
+
       {/* Table */}
-      <DataTable
-        data={customers}
-        columns={columns}
-        rowKey={(item) => item.customerId}
-        title="Customers"
-        emptyText={isLoading ? "Loading..." : "No customers found"}
-        page={currentPage}
-        totalPages={totalPages}
-        totalItems={totalItems}
-        pageSize={PAGE_SIZE}
-        onPageChange={setCurrentPage}
-        headerRight={
-          <div className="flex items-center gap-2">
-            <div className="relative w-[210px]">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-              <Input
-                value={search}
-                onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
-                placeholder="Search for customer name"
-                className="h-8 border-[#E5E7EB] pl-9 text-[11px] placeholder:text-[11px]"
-              />
-            </div>
+      {!customersError && (
+        <DataTable
+          data={customers}
+          columns={columns}
+          rowKey={(item) => item.customerId}
+          title="Customers"
+          emptyText={isLoading ? "Loading..." : "No customers found"}
+          page={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={PAGE_SIZE}
+          onPageChange={setCurrentPage}
+          headerRight={
+            <div className="flex items-center gap-2">
+              <div className="relative w-[210px]">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+                <Input
+                  value={search}
+                  onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+                  placeholder="Search for customer name"
+                  className="h-8 border-[#E5E7EB] pl-9 text-[11px] placeholder:text-[11px]"
+                />
+              </div>
 
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowFilterMenu((p) => !p)}
-                className={`flex h-8 w-8 items-center justify-center rounded-full border bg-white ${statusFilter !== "ALL" ? "border-primary text-primary" : "border-[#E5E7EB]"}`}
-              >
-                <ListFilter size={16} />
-              </button>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowFilterMenu((p) => !p)}
+                  className={`flex h-8 w-8 items-center justify-center rounded-full border bg-white ${statusFilter !== "ALL" ? "border-primary text-primary" : "border-[#E5E7EB]"}`}
+                >
+                  <ListFilter size={16} />
+                </button>
 
-              {showFilterMenu && (
-                <div className="absolute right-0 top-9 z-20 w-[140px] rounded-[8px] border border-[#E5E7EB] bg-white shadow-md">
-                  {(["ALL", "ACTIVE", "INACTIVE", "NEW"] as const).map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => { setStatusFilter(s); setShowFilterMenu(false); setCurrentPage(1); }}
-                      className={`w-full px-4 py-2 text-left text-[12px] hover:bg-muted ${statusFilter === s ? "font-semibold text-primary" : "text-[#111827]"}`}
-                    >
-                      {s === "ALL" ? "All Statuses" : s}
-                    </button>
-                  ))}
-                </div>
-              )}
+                {showFilterMenu && (
+                  <div className="absolute right-0 top-9 z-20 w-[140px] rounded-[8px] border border-[#E5E7EB] bg-white shadow-md">
+                    {(["ALL", "ACTIVE", "INACTIVE", "NEW"] as const).map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => { setStatusFilter(s); setShowFilterMenu(false); setCurrentPage(1); }}
+                        className={`w-full px-4 py-2 text-left text-[12px] hover:bg-muted ${statusFilter === s ? "font-semibold text-primary" : "text-[#111827]"}`}
+                      >
+                        {s === "ALL" ? "All Statuses" : s}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        }
-      />
+          }
+        />
+      )}
 
       {selectedId && (
         <CustomerModal customerId={selectedId} onClose={() => setSelectedId(null)} />

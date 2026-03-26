@@ -82,6 +82,10 @@ export interface CollectorWithdrawPayload {
 export const useGetCollectorWallet = () =>
   useGetOne<CollectorWallet>(["wallet", "collector"], "/wallet/collector");
 
+export const useCustomerWallet = () =>
+  useGetOne<CustomerWallet>(["wallet", "customer"], "/wallet/customer");
+
+
 // GET /wallet/transactions
 export const useGetWalletTransactions = (query?: TransactionQuery) => {
   const params = new URLSearchParams();

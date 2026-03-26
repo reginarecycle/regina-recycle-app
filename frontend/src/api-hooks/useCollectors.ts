@@ -1,4 +1,4 @@
-import { useGetOne, useGetList, useUpdate } from "@/lib/queryHelpers";
+import { useGetOne, useGetList, usePatch } from "@/lib/queryHelpers";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -280,20 +280,21 @@ export const useCalculatePayout = (materialId: string, quantity: number) =>
     { enabled: Boolean(materialId) && quantity > 0 },
   );
 
+// ─── Mutations — fixed to use useMutate with correct method ──────────────────
 export const useUpdateCollectorProfile = () =>
-  useUpdate<{ message: string }, UpdateCollectorPayload>(
-    () => "/collectors/profile",
+  usePatch<{ message: string }, UpdateCollectorPayload>(
+    "/collectors/profile",
     collectorKeys.stats(),
   );
 
 export const useUpdatePricingSettings = () =>
-  useUpdate<{ message: string }, UpdateMaterialSettingsPayload>(
-    () => "/collectors/pricing-settings",
+  usePatch<{ message: string }, UpdateMaterialSettingsPayload>(
+    "/collectors/pricing-settings",
     collectorKeys.pricingSettings(),
   );
 
-export const useUpdateMaterialPricing = () =>
-  useUpdate<{ message: string }, UpdateMaterialPricingPayload>(
-    (materialId) => `/collectors/pricing/${materialId}`,
+export const useUpdateMaterialPricing = (materialId: string) =>
+  usePatch<{ message: string }, UpdateMaterialPricingPayload>(
+    `/collectors/pricing/${materialId}`,
     collectorKeys.pricing(),
   );
