@@ -74,12 +74,12 @@ export class NotificationGatewayService implements ISubject {
     const date = new Date(params.scheduledDate);
 
     const formattedDate = new Intl.DateTimeFormat("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: "America/Regina", // or dynamic per user
-    }).format(date);
+  month: "short",
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: "America/Regina", // or dynamic per user
+}).format(date);
 
     await this.sendNotification({
       type: NotificationEventType.PICKUP_SCHEDULED,
