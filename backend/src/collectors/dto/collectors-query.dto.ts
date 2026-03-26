@@ -1,9 +1,10 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
-import { PaginationDto } from '../../common/pagination/pagination.dto';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { PaginationDto } from '../../common/dto/pagination.dto';
 
-export class CollectorQueryDto extends PaginationDto {
-  @ApiPropertyOptional({ example: 'john' })
+export class CollectorUsersQueryDto extends PaginationDto {
+  // Used by getCustomers, getPricing, and other existing methods
+  @ApiPropertyOptional({ example: 'Dylan White' })
   @IsOptional()
   @IsString()
   search?: string;
@@ -12,4 +13,10 @@ export class CollectorQueryDto extends PaginationDto {
   @IsOptional()
   @IsString()
   status?: string;
+
+  // Used by getUsers (new endpoint) — keyword searches name/email/phone
+  @ApiPropertyOptional({ example: 'Dylan' })
+  @IsOptional()
+  @IsString()
+  keyword?: string;
 }
