@@ -1,9 +1,11 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import { createWithdrawSchema, type WithdrawFormValues } from "@/lib/validation";
 import InputField from "@/components/forms/input-field";
 import { useCustomerWithdraw } from "@/api-hooks/useCustomerWallet";
+import { formatAmount } from "@/lib/utils";
 
 type WithdrawModalProps = {
   isOpen:           boolean;
@@ -24,25 +26,34 @@ export default function WithdrawModal({ isOpen, onClose, availableBalance }: Wit
     mode: "onBlur",
   });
 
-  const { mutate: withdraw, isPending } = useCustomerWithdraw();
-
-  if (!isOpen) return null;
+  const { mutate: withdraw, isPending, isSuccess, isError, error, reset: resetMutation } = useCustomerWithdraw();
 
   const handleClose = () => {
     reset();
+    resetMutation();
     onClose();
   };
 
+  useEffect(() => {
+    if (!isSuccess) return;
+    toast.success("Withdrawal request submitted successfully.");
+    handleClose();
+  }, [isSuccess]);
+
+  useEffect(() => {
+    if (!isError || !error) return;
+    toast.error(error.message ?? "Withdrawal failed. Please try again.");
+  }, [isError, error]);
+
+  if (!isOpen) return null;
+
   const onSubmit = (data: WithdrawFormValues) => {
-    withdraw(
-      {
-        amount:           Number(data.amount),
-        interacEmail:     data.recipientEmail,
-        securityQuestion: data.securityQuestion ?? "",
-        securityAnswer:   data.securityAnswer   ?? "",
-      },
-      { onSuccess: handleClose },
-    );
+    withdraw({
+      amount:           Number(data.amount),
+      interacEmail:     data.recipientEmail,
+      securityQuestion: data.securityQuestion ?? "",
+      securityAnswer:   data.securityAnswer   ?? "",
+    });
   };
 
   return (
@@ -94,8 +105,7 @@ export default function WithdrawModal({ isOpen, onClose, availableBalance }: Wit
               error={errors.amount?.message}
               placeholder="Enter an amount"
               required
-              helperText={`Available: $${availableBalance.toFixed(2)}`}
-            />
+              helperText={`Available: $${formatAmount(Number(availableBalance))}`}            />
 
             {/* Recipient Email */}
             <InputField

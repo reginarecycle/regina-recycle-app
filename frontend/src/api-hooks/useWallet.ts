@@ -155,8 +155,9 @@ export const useTopUp = () =>
   useCreate<unknown, TopUpPayload>("/wallet/top-up", ["wallet", "collector"]);
 
 // POST /wallet/withdraw  (customer only)
+// Invalidates all ["wallet"] queries so balance + transactions both refresh
 export const useCustomerWithdraw = () =>
-  useCreate<unknown, CustomerWithdrawPayload>("/wallet/withdraw", ["wallet", "customer"]);
+  useCreate<unknown, CustomerWithdrawPayload>("/wallet/withdraw", ["wallet"]);
 
 // POST /wallet/withdraw/collector  (collector only)
 export const useCollectorWithdraw = () =>
