@@ -31,6 +31,15 @@ export const formatTimestamp = (date: Date): string => {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 };
 
+export const formatFullDate = (date: Date): string => {
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 export type NotificationGroup = "Today" | "Yesterday" | "This Week" | "Older";
 
 export const groupByDate = (
