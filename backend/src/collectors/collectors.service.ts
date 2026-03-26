@@ -498,7 +498,11 @@ export class CollectorsService {
       select: { bulkIncentiveEnabled: true, bulkThreshold: true, serviceFee: true, feeType: true },
     });
 
-    return { collectorId, settings: profile };
+    return {
+      settings: profile
+        ? { ...profile, serviceFee: Number(profile.serviceFee) }
+        : null,
+    };
   }
 
   async updateMaterialSettings(collectorId: string, dto: UpdateMaterialSettingsDto) {

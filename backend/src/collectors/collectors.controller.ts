@@ -2,13 +2,18 @@ import {
   Controller,
   Get,
   Put,
+  Patch,
   Post,
   Param,
   Query,
   Body,
   BadRequestException,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Auth } from '../common/decorator/auth.decorator';
 import { CollectorsService } from './collectors.service';
 import { CollectorUsersQueryDto } from './dto/collectors-query.dto';
 import { PickupQueryDto } from './dto/pickup-query.dto';
@@ -21,6 +26,34 @@ import { CreateMaterialPricingDto } from './dto/create-material-pricing.dto';
 @Controller('collectors')
 export class CollectorsController {
   constructor(private readonly collectorsService: CollectorsService) {}
+
+  // ─── Pricing Settings (authenticated, uses JWT identity) ─────────────────
+
+  @Get('pricing-settings')
+  @ApiOperation({ summary: 'Get pricing settings for the authenticated collector' })
+  @ApiBearerAuth()
+  @Auth('COLLECTOR')
+  getPricingSettings(@Request() req: any) {
+    return this.collectorsService.getMaterialSettings(req.user.userId);
+  }
+
+  @Patch('pricing-settings')
+  @ApiOperation({ summary: 'Update pricing settings for the authenticated collector' })
+  @ApiBearerAuth()
+  @Auth('COLLECTOR')
+  updatePricingSettings(@Request() req: any, @Body() dto: UpdateMaterialSettingsDto) {
+    return this.collectorsService.updateMaterialSettings(req.user.userId, dto);
+  }
+
+  // ─── Me: Pricing list (authenticated) ────────────────────────────────────
+
+  @Get('me/pricing')
+  @ApiOperation({ summary: 'Get material pricing for the authenticated collector' })
+  @ApiBearerAuth()
+  @Auth('COLLECTOR')
+  getMyPricing(@Request() req: any, @Query() query: CollectorUsersQueryDto) {
+    return this.collectorsService.getPricing(req.user.userId, query);
+  }
 
   // ─── Stats ────────────────────────────────────────────────────────────────
 
