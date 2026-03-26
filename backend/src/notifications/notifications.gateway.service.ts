@@ -71,10 +71,13 @@ export class NotificationGatewayService implements ISubject {
     pickupId: string;
     scheduledDate: string;
   }) {
+    const d = new Date(params.scheduledDate);
+    const formattedDate = `${d.getDate()} ${d.toLocaleString('en-US', { month: 'short' })}, ${d.getFullYear()}`;
+
     await this.sendNotification({
       type: NotificationEventType.PICKUP_SCHEDULED,
       title: 'Pickup Scheduled',
-      message: `Your pickup has been scheduled for ${params.scheduledDate}.`,
+      message: `Your pickup has been scheduled for ${formattedDate}.`,
       userId: params.userId,
       recipientEmail: params.recipientEmail,
       metadata: { pickupId: params.pickupId },

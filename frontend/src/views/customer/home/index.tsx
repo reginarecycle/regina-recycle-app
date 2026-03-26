@@ -7,7 +7,7 @@ import WalletBalance from "@/components/customer-dashboard/wallet-balance";
 import DashboardTip from "@/components/customer-dashboard/tip-card";
 import Schedule from "@/components/customer-dashboard/schedule-table";
 import { useCustomerDashboardStats } from "@/api-hooks/useCustomer";
-import { useCustomerWallet } from "@/api-hooks/useWallet";
+import { useGetCustomerWallet } from "@/api-hooks/useWallet";
 import { useGetTip } from "@/api-hooks/useTips";
 import { useGetCustomerPickups } from "@/api-hooks/usePickups";
 
@@ -19,7 +19,7 @@ const UserHome = () => {
   }, []);
 
   const { data: statsResult   } = useCustomerDashboardStats();          
-  const { data: walletResult  } = useCustomerWallet();                  
+  const { data: walletResult, isLoading: walletLoading } = useGetCustomerWallet();
   const { data: tipResult     } = useGetTip();                          
   const { data: upcomingResult } = useGetCustomerPickups({              
     limit: 10, page: 1, startDate: todayStart,
@@ -49,6 +49,7 @@ const UserHome = () => {
       currency="CAD"
       stats={wallet?.earningsChangeAmount ?? 0}
       change={(wallet?.earningsChangeAmount ?? 0) >= 0 ? "+" : "-"}
+      isLoading={walletLoading}
     />
   );
 
