@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import InputField from "@/components/forms/input-field";
 import { ProfileHeader } from "@/components/shared/ProfileHeader";
 import { collectorProfileSchema, type CollectorProfileFormValues } from "@/lib/validation";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/apiFetch";
-import { useUpdateCollectorProfile } from "@/api-hooks/useCollector";
+import { useUpdateUserProfile, useUpdateAddress } from "@/api-hooks/useCollector";
 import { toast } from "sonner";
+import { maskPhone } from "@/lib/utils";
 
 interface CurrentUser {
   userId:      string;
@@ -44,13 +45,8 @@ export function CollectorProfileTab() {
   const me      = meData?.data;
   const address = addressData?.data;
 
-  const { mutate: updateProfile, isPending: isUpdatingProfile } = useUpdateCollectorProfile();
-
-  const { mutate: updateAddress, isPending: isUpdatingAddress } = useMutation({
-    mutationFn: (dto: { line1: string; city: string; province: string; postalCode: string }) =>
-      apiFetch(`/addresses/${addressIdRef.current}`, { method: "PATCH", data: dto }),
-    onError: () => toast.error("Failed to update address"),
-  });
+  const { mutate: updateProfile, isPending: isUpdatingProfile } = useUpdateUserProfile();
+  const { mutate: updateAddress, isPending: isUpdatingAddress } = useUpdateAddress();
 
   const isPending = isUpdatingProfile || isUpdatingAddress;
 
@@ -59,6 +55,7 @@ export function CollectorProfileTab() {
     handleSubmit,
     formState: { errors, isDirty },
     reset,
+    setValue,
   } = useForm<CollectorProfileFormValues>({
     resolver: zodResolver(collectorProfileSchema),
     mode: "onBlur",
@@ -102,6 +99,7 @@ export function CollectorProfileTab() {
           if (addressIdRef.current) {
             updateAddress(
               {
+                addressId:  addressIdRef.current,
                 line1:      data.address,
                 city:       data.city,
                 province:   data.provinceState,
@@ -122,8 +120,8 @@ export function CollectorProfileTab() {
     <>
       <ProfileHeader
         avatarSrc="/collector-avatar.png"
-        avatarFallback={me?.name?.slice(0, 2).toUpperCase() ?? "SS"}
-        name={me?.name ?? "Shahnaz and Sons Recycling"}
+        avatarFallback={me?.name?.slice(0, 2).toUpperCase() ?? ""}
+        name={me?.name ?? ""}
         badge="VERIFIED COLLECTOR"
         memberSince="Member since January 2026"
       />
@@ -140,7 +138,19 @@ export function CollectorProfileTab() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <InputField label="Legal Business Name"   register={register("businessName")}       error={errors.businessName?.message}       placeholder="John Doe"        required />
               <InputField label="Business Email"        register={register("businessEmail")}      error={errors.businessEmail?.message}      type="email" placeholder="doe@gmail.com" disabled required />
-              <InputField label="Business Phone Number" register={register("businessPhone")}      error={errors.businessPhone?.message}      placeholder="1-(306)-0000"    required />
+              <InputField
+                label="Business Phone Number"
+                register={{
+                  ...register("businessPhone"),
+                  onChange: async (e) => {
+                    setValue("businessPhone", maskPhone(e.target.value), { shouldValidate: true, shouldDirty: true });
+                  },
+                }}
+                error={errors.businessPhone?.message}
+                placeholder="(306) 555-1234"
+                inputMode="numeric"
+                required
+              />
               <InputField label="Registration Number"   register={register("registrationNumber")} error={errors.registrationNumber?.message} placeholder="123456789"       required />
             </div>
           </div>

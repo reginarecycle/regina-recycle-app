@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/apiFetch";
+import { toast } from "sonner";
 
 export interface CollectorPricing {
   collectorPricingId: string;
@@ -38,7 +39,6 @@ export interface PricingMeta {
 export const collectorKeys = {
   pricing:         () => ["collector", "pricing"]          as const,
   pricingSettings: () => ["collector", "pricing-settings"] as const,
-  profile:         () => ["collector", "profile"]          as const,
 };
 
 export const useGetCollectorPricing = (params?: { page?: number; limit?: number }) =>
@@ -82,11 +82,21 @@ export const useUpdatePricingSettings = () => {
   });
 };
 
-export const useUpdateCollectorProfile = () => {
+export const useUpdateUserProfile = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (dto: Record<string, unknown>) =>
-      apiFetch("/collectors/profile", { method: "PATCH", data: dto }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: collectorKeys.profile() }),
+    mutationFn: (dto: { name?: string; phoneNumber?: string; licenseId?: string; dateOfBirth?: string }) =>
+      apiFetch("/users/profile", { method: "PATCH", data: dto }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["auth", "me"] }),
+  });
+};
+
+export const useUpdateAddress = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ addressId, ...dto }: { addressId: string; line1: string; city: string; province: string; postalCode: string }) =>
+      apiFetch(`/addresses/${addressId}`, { method: "PATCH", data: dto }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["addresses", "default"] }),
+    onError: () => toast.error("Failed to update address"),
   });
 };

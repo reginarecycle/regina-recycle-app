@@ -3,9 +3,8 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
-  ConflictException,
 } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationGatewayService } from '../notifications/notifications.gateway.service';
 import { NotificationEventType } from '../notifications/interface/observer.interface';
@@ -28,7 +27,7 @@ export class UsersService {
 
   // ─── Update Profile ───────────────────────────────────────────────────────────
 
-  async updateProfile(userId: string, dto: UpdateUserDto) {
+ async updateProfile(userId: string, dto: UpdateUserDto) {
     const existing = await this.prisma.user.findUnique({
       where: { userId },
     });
@@ -37,21 +36,10 @@ export class UsersService {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
-    // Guard: new email must not already be taken
-    if (dto.email && dto.email !== existing.email) {
-      const emailTaken = await this.prisma.user.findUnique({
-        where: { email: dto.email },
-      });
-      if (emailTaken) {
-        throw new ConflictException('Email is already in use');
-      }
-    }
-
     const updated = await this.prisma.user.update({
       where: { userId },
       data: {
         ...(dto.name        !== undefined && { name:        dto.name        }),
-        ...(dto.email       !== undefined && { email:       dto.email       }),
         ...(dto.phoneNumber !== undefined && { phoneNumber: dto.phoneNumber }),
       },
       select: {
@@ -65,17 +53,19 @@ export class UsersService {
     });
 
     if (dto.dateOfBirth !== undefined) {
-  await this.prisma.customerDOB.upsert({
-    where: { userId },
-    update: {
-      dob: new Date(dto.dateOfBirth),
-    },
-    create: {
-      userId,
-      dob: new Date(dto.dateOfBirth),
-    },
-  });
-}
+      await this.prisma.customerDOB.upsert({
+        where:  { userId },
+        update: { dob: new Date(dto.dateOfBirth) },
+        create: { userId, dob: new Date(dto.dateOfBirth) },
+      });
+    }
+
+    if (dto.licenseId !== undefined) {
+      await this.prisma.collectorProfile.update({
+        where: { userId },
+        data:  { licenseId: dto.licenseId },
+      });
+    }
 
     await this.notificationService.sendNotification({
       type:           NotificationEventType.ALERT,
@@ -86,14 +76,15 @@ export class UsersService {
       metadata:       { updatedFields: Object.keys(dto) },
     }).catch((error) =>
       this.logger.error(
-        `Failed to send profile update notification for user ${userId}`,
-        error.message,
+         `Failed to send profile update notification for user ${userId},
+        error.message`,
       ),
     );
 
     this.logger.log(`Profile updated for user ${userId}`);
     return updated;
   }
+
 
   // ─── Deactivate Account ───────────────────────────────────────────────────────
 
@@ -207,3 +198,4 @@ export class UsersService {
     return { message: 'Account deleted successfully' };
   }
 }
+
