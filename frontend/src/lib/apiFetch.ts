@@ -35,7 +35,7 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError<{ message?: string; error?: string }>) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !window.location.pathname.startsWith("/auth")) {
       clearAuth();
       window.location.href = "/auth/login";
       return Promise.reject(error);

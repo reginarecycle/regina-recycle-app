@@ -13,7 +13,7 @@ import { getPaginationParams, paginate } from '../common/pagination/pagination-h
 
 @Injectable()
 export class CollectorsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   private async ensureCollectorExists(collectorId: string) {
     const collector = await this.prisma.user.findFirst({
@@ -49,6 +49,25 @@ export class CollectorsService {
       acceptedRequests,
       totalItems: totalItems._sum.quantity ?? 0,
       pendingAmount: Number(pendingAmount._sum.estimatedEarning ?? 0),
+    };
+  }
+
+  async checkMaterialsAvailability(materialIds: string[]) {
+    const unavailable: string[] = [];
+
+    for (const materialId of materialIds) {
+      const count = await this.prisma.collectorPricing.count({
+        where: {
+          materialId,
+          status: 'ACTIVE',
+        },
+      });
+      if (count === 0) unavailable.push(materialId);
+    }
+
+    return {
+      available: unavailable.length === 0,
+      unavailableMaterialIds: unavailable,
     };
   }
 
@@ -154,7 +173,7 @@ export class CollectorsService {
           address: true,
           items: { include: { material: true } },
           snapshots: {
-              include:{material: true},
+            include: { material: true },
           },
         },
         orderBy: { scheduledAt: 'asc' },
@@ -315,8 +334,6 @@ export class CollectorsService {
     };
   }
 
-  // ─── NEW: Get Users ────────────────────────────────────────────────────────
-
   async getUsers(collectorId: string, query: CollectorUsersQueryDto) {
     await this.ensureCollectorExists(collectorId);
 
@@ -333,8 +350,8 @@ export class CollectorsService {
       },
       ...(keyword && {
         OR: [
-          { name:        { contains: keyword, mode: 'insensitive' } },
-          { email:       { contains: keyword, mode: 'insensitive' } },
+          { name: { contains: keyword, mode: 'insensitive' } },
+          { email: { contains: keyword, mode: 'insensitive' } },
           { phoneNumber: { contains: keyword, mode: 'insensitive' } },
         ],
       }),
@@ -346,11 +363,11 @@ export class CollectorsService {
         skip,
         take,
         select: {
-          userId:      true,
-          name:        true,
-          email:       true,
+          userId: true,
+          name: true,
+          email: true,
           phoneNumber: true,
-          status:      true,
+          status: true,
           addresses: {
             take: 1,
             orderBy: { createdAt: 'desc' },
@@ -376,13 +393,13 @@ export class CollectorsService {
 
     const data = users.map((user) => {
       const completedPickups = user.pickupsRequested;
-      const collections      = completedPickups.length;
-      const revenue          = completedPickups.reduce(
+      const collections = completedPickups.length;
+      const revenue = completedPickups.reduce(
         (sum, p) => sum + Number(p.actualEarning ?? 0),
         0,
       );
-      const avgPerOrder      = collections > 0 ? revenue / collections : 0;
-      const collectedItems   = [
+      const avgPerOrder = collections > 0 ? revenue / collections : 0;
+      const collectedItems = [
         ...new Set(
           completedPickups.flatMap((p) =>
             p.items.map((i) => i.material.type),
@@ -391,12 +408,12 @@ export class CollectorsService {
       ];
 
       return {
-        customerId:   user.userId,
-        name:         user.name,
-        email:        user.email,
-        phone:        user.phoneNumber,
+        customerId: user.userId,
+        name: user.name,
+        email: user.email,
+        phone: user.phoneNumber,
         neighborhood: user.addresses[0]?.city ?? '',
-        status:       user.status,
+        status: user.status,
         collections,
         revenue,
         avgPerOrder,
@@ -539,12 +556,12 @@ export class CollectorsService {
       throw new BadRequestException('Collector pricing not found for this material');
     }
 
-    const unitPrice   = Number(collectorPricing.basePrice ?? 0);
+    const unitPrice = Number(collectorPricing.basePrice ?? 0);
     const grossPayout = quantity * unitPrice;
-    const feeType     = profile?.feeType ?? 'FLAT_FEE';
-    const feeValue    = Number(profile?.serviceFee ?? 0);
-    const serviceFee  = this.calculateServiceFee(feeType, feeValue, grossPayout);
-    const netPayout   = Math.max(0, grossPayout - serviceFee);
+    const feeType = profile?.feeType ?? 'FLAT_FEE';
+    const feeValue = Number(profile?.serviceFee ?? 0);
+    const serviceFee = this.calculateServiceFee(feeType, feeValue, grossPayout);
+    const netPayout = Math.max(0, grossPayout - serviceFee);
 
     return {
       collectorId,
@@ -563,39 +580,38 @@ export class CollectorsService {
     return ServiceFeeFactory.create(feeType, feeValue).calculate(amount);
   }
 
-async getAverageMaterialPrice(materialId: string) {
-   const result = await this.prisma.collectorPricing.aggregate({
-     where: {
-       materialId,
-       status: PricingStatus.ACTIVE,
-     },
-     _min: {
-       basePrice: true,
-     },
-     _max: {
-       basePrice: true,
-     },
-     _avg: {
-       basePrice: true,
-     },
-   });
+  async getAverageMaterialPrice(materialId: string) {
+    const result = await this.prisma.collectorPricing.aggregate({
+      where: {
+        materialId,
+        status: PricingStatus.ACTIVE,
+      },
+      _min: {
+        basePrice: true,
+      },
+      _max: {
+        basePrice: true,
+      },
+      _avg: {
+        basePrice: true,
+      },
+    });
 
 
-   return {
-     minPrice: Number(result._min.basePrice ?? 0),
-     maxPrice: Number(result._max.basePrice ?? 0),
-     avgPrice: Number(result._avg.basePrice ?? 0),
-   };
- }
+    return {
+      minPrice: Number(result._min.basePrice ?? 0),
+      maxPrice: Number(result._max.basePrice ?? 0),
+      avgPrice: Number(result._avg.basePrice ?? 0),
+    };
+  }
 
- private getStartDate(period?: string): Date | undefined {
-   if (!period) return undefined;
-   const date = new Date();
-   if (period === 'weekly') date.setDate(date.getDate() - 7);
-   else if (period === 'monthly') date.setDate(date.getDate() - 30);
-   else return undefined;
-   return date;
- }
-
+  private getStartDate(period?: string): Date | undefined {
+    if (!period) return undefined;
+    const date = new Date();
+    if (period === 'weekly') date.setDate(date.getDate() - 7);
+    else if (period === 'monthly') date.setDate(date.getDate() - 30);
+    else return undefined;
+    return date;
+  }
 }
 

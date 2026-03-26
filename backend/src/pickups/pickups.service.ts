@@ -272,8 +272,13 @@ export class PickupsService {
   const { skip, take } = getPaginationParams(page, limit);
 
   const where: any = { requesterUserId };
-
-  if (status) where.status = status;
+  if (status === PickupStatus.PENDING) {
+    where.status = { in: [PickupStatus.PENDING, PickupStatus.ACCEPTED] };
+  } else if (status) {
+    where.status = status;
+  } else {
+    // No filter — fetch all, but ACCEPTED will be remapped to PENDING below
+  }
 
   if (startDate || endDate) {
     where.scheduledAt = {
@@ -310,7 +315,13 @@ export class PickupsService {
     this.prisma.pickup.count({ where }),
   ]);
 
-  return paginate(pickups, total, page, limit);
+  // Map ACCEPTED → PENDING so the customer only sees three statuses
+  const mapped = pickups.map((p) => ({
+    ...p,
+    status: p.status === PickupStatus.ACCEPTED ? PickupStatus.PENDING : p.status,
+  }));
+
+  return paginate(mapped, total, page, limit);
 }
 
 

@@ -1,26 +1,30 @@
-
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { withdrawSchema, type WithdrawFormValues } from "@/lib/validation";
+import { createWithdrawSchema, type WithdrawFormValues } from "@/lib/validation";
 import InputField from "@/components/forms/input-field";
+import { useCustomerWithdraw } from "@/api-hooks/useCustomerWallet";
 
 type WithdrawModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen:           boolean;
+  onClose:          () => void;
+  availableBalance: number;
 };
 
-const AVAILABLE_BALANCE = 245.5;
+export default function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawModalProps) {
+  const schema = useMemo(() => createWithdrawSchema(availableBalance), [availableBalance]);
 
-export default function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors, isDirty },
   } = useForm<WithdrawFormValues>({
-    resolver: zodResolver(withdrawSchema),
-    mode: "onBlur", 
+    resolver: zodResolver(schema),
+    mode: "onBlur",
   });
+
+  const { mutate: withdraw, isPending } = useCustomerWithdraw();
 
   if (!isOpen) return null;
 
@@ -30,8 +34,15 @@ export default function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
   };
 
   const onSubmit = (data: WithdrawFormValues) => {
-    console.log(data);
-    handleClose();
+    withdraw(
+      {
+        amount:           Number(data.amount),
+        interacEmail:     data.recipientEmail,
+        securityQuestion: data.securityQuestion ?? "",
+        securityAnswer:   data.securityAnswer   ?? "",
+      },
+      { onSuccess: handleClose },
+    );
   };
 
   return (
@@ -83,7 +94,7 @@ export default function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
               error={errors.amount?.message}
               placeholder="Enter an amount"
               required
-              helperText={`Available: $${AVAILABLE_BALANCE.toFixed(2)}`}
+              helperText={`Available: $${availableBalance.toFixed(2)}`}
             />
 
             {/* Recipient Email */}
@@ -153,7 +164,7 @@ export default function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
 
             <button
               type="submit"
-              disabled={!isDirty}
+              disabled={!isDirty || isPending}
               className="
                 h-[52px] w-[240px]
                 rounded-[8px]
@@ -163,7 +174,7 @@ export default function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
                 disabled:opacity-50
               "
             >
-              Withdraw
+              {isPending ? "Processing..." : "Withdraw"}
             </button>
           </div>
         </form>
