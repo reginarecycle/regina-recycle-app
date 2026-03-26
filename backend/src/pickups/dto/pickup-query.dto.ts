@@ -32,4 +32,5 @@ export class PickupQueryDto extends PaginationDto {
   @IsOptional()
   @IsDateString()
   endDate?: string;
+
 }

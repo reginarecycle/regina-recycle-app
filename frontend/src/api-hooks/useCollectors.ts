@@ -298,3 +298,174 @@ export const useUpdateMaterialPricing = (materialId: string) =>
     `/collectors/pricing/${materialId}`,
     collectorKeys.pricing(),
   );
+
+// ─── NEW: Collector Users hooks ───────────────────────────────────────────────
+
+export const useCollectorUsers = (
+  collectorId: string,
+  query?: { keyword?: string; page?: number; limit?: number },
+) => {
+  const params = new URLSearchParams();
+  if (query?.keyword) params.append('keyword', query.keyword);
+  if (query?.page)    params.append('page',    String(query.page));
+  if (query?.limit)   params.append('limit',   String(query.limit));
+  const qs = params.toString();
+  return useGetOne<CollectorUsersResponse>(
+    collectorKeys.users(collectorId, query),
+    `/collectors/${collectorId}/users${qs ? `?${qs}` : ''}`,
+    { enabled: Boolean(collectorId) },
+  );
+};
+
+export const useCollectorUsersStats = (collectorId: string) =>
+  useGetOne<CollectorUsersStats>(
+    collectorKeys.usersStats(collectorId),
+    `/collectors/${collectorId}/users/stats`,
+    { enabled: Boolean(collectorId) },
+  );
+
+// ─── Collector Pickup Requests ────────────────────────────────────────────────
+
+export interface PickupItemMaterial {
+  materialId: string;
+  name:       string;
+  type:       string;
+}
+
+export interface PickupRequestItem {
+  materialId: string;
+  quantity:   number;
+  unitPrice?: number;
+  material?:  PickupItemMaterial;
+}
+
+export interface PickupSnapshot {
+  materialId: string;
+  quantity:   number;
+  priceUsed:  number;
+  material?:  PickupItemMaterial;
+}
+
+export interface PickupRequester {
+  userId:       string;
+  name:         string;
+  email:        string;
+  phoneNumber?: string;
+}
+
+export interface PickupAddress {
+  line1:       string;
+  line2?:      string;
+  city?:       string;
+  province?:   string;
+  postalCode?: string;
+}
+
+export interface CollectorPickup {
+  pickupId:          string;
+  requestNumber?:    string;
+  status:            'PENDING' | 'ACCEPTED' | 'COMPLETED' | 'CANCELLED';
+  scheduledAt:       string;
+  /** Customer's estimated payout — always set on creation */
+  estimatedCost?:    number | string;
+  /** Collector's net earning after service fee — set on acceptance */
+  estimatedEarning?: number | string;
+  actualEarning?:    number | string;
+  note?:             string;
+  isCompatible?:     boolean;
+  requester?:        PickupRequester;
+  address?:          PickupAddress;
+  items?:            PickupRequestItem[];
+  snapshots?:        PickupSnapshot[];
+}
+
+export interface CollectorPickupsPaginated {
+  data: CollectorPickup[];
+  meta: {
+    total:          number;
+    page:           number;
+    limit:          number;
+    totalPages:     number;
+    hasNextPage:    boolean;
+    hasPreviousPage: boolean;
+  };
+}
+
+export interface CollectorPickupsQuery {
+  status?:    'PENDING' | 'ACCEPTED' | 'COMPLETED' | 'CANCELLED';
+  search?:    string;
+  page?:      number;
+  limit?:     number;
+  startDate?: string;
+  endDate?:   string;
+}
+
+export interface CollectorPickupStats {
+  pendingRequests:  number;
+  acceptedRequests: number;
+  potentialRevenue: number;
+}
+
+export const pickupRequestKeys = {
+  all:   ()              => ['pickups', 'collector']                    as const,
+  list:  (q?: object)   => ['pickups', 'collector', 'list', q ?? {}]   as const,
+  stats: ()             => ['pickups', 'collector', 'stats']           as const,
+};
+
+export const useGetCollectorPickupStats = () =>
+  useGetOne<CollectorPickupStats>(pickupRequestKeys.stats(), '/pickups/collector/stats');
+
+export const useGetCollectorPickupRequests = (query?: CollectorPickupsQuery, enabled = true) => {
+  const params = new URLSearchParams();
+  if (query?.status)    params.append('status',    query.status);
+  if (query?.search)    params.append('search',    query.search);
+  if (query?.page)      params.append('page',      String(query.page));
+  if (query?.limit)     params.append('limit',     String(query.limit));
+  if (query?.startDate) params.append('startDate', query.startDate);
+  if (query?.endDate)   params.append('endDate',   query.endDate);
+  const qs = params.toString();
+  return useGetOne<CollectorPickupsPaginated>(
+    pickupRequestKeys.list(query),
+    `/pickups/collector${qs ? `?${qs}` : ''}`,
+    { enabled },
+  );
+};
+
+export const useAcceptPickup = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (pickupId: string) =>
+      apiFetch(`/pickups/${pickupId}/accept`, { method: 'PATCH' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: pickupRequestKeys.all() }),
+  });
+};
+
+export const useRejectPickup = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ pickupId, reason, comment }: { pickupId: string; reason?: string; comment?: string }) =>
+      apiFetch(`/pickups/${pickupId}/reject`, {
+        method: 'PATCH',
+        data: { reason, comment },
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: pickupRequestKeys.all() }),
+  });
+};
+
+export const useCompletePickup = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (pickupId: string) =>
+      apiFetch(`/pickups/${pickupId}/complete`, { method: 'PATCH' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: pickupRequestKeys.all() }),
+  });
+};
+
+export const useCancelPickupByCollector = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (pickupId: string) =>
+      apiFetch(`/pickups/${pickupId}/cancel`, { method: 'DELETE' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: pickupRequestKeys.all() }),
+  });
+};

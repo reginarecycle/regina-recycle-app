@@ -2,11 +2,14 @@ import {
   Controller,
   Get,
   Put,
+  Patch,
   Post,
   Param,
   Query,
   Body,
   BadRequestException,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { Auth } from '../common/decorator/auth.decorator';
