@@ -11,6 +11,7 @@ import { useCheckDeleteEligibility, useDeleteUserAccount } from "@/api-hooks/use
 import { useChangePassword } from "@/api-hooks/useAuth";
 
 const ProfileSecurity = () => {
+  const [passwordUpdated, setPasswordUpdated] = useState(false);
   const { data: deleteEligibility } = useCheckDeleteEligibility();
   const { mutate: deleteUserAccount } = useDeleteUserAccount();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -25,13 +26,19 @@ const ProfileSecurity = () => {
     mode: "onBlur",
   });
 
-  const onSubmitPassword = (data: ChangePasswordFormValues) => {
-  changePassword({
-    currentPassword: data.currentPassword,
-    newPassword: data.newPassword,
-  });
-
-  resetPassword();
+ const onSubmitPassword = (data: ChangePasswordFormValues) => {
+  changePassword(
+    {
+      currentPassword: data.currentPassword,
+      newPassword: data.newPassword,
+    },
+    {
+      onSuccess: () => {
+        resetPassword();
+        setPasswordUpdated(true);
+      },
+    }
+  );
 };
 
   return (
@@ -93,6 +100,12 @@ const ProfileSecurity = () => {
             Update Password
           </Button>
         </div>
+
+        {passwordUpdated && (
+      <p className="text-sm text-green-600 pt-2">
+      Password updated successfully.
+    </p> 
+    )}
       </form>
 
       <Separator className="my-8" />

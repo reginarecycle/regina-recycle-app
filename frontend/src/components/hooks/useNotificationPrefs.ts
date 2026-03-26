@@ -32,7 +32,7 @@ const mapUiToApi = (prefs: NotificationPrefs): NotificationPreferencesDto => ({
 
 export function useNotificationPrefs() {
   const { data } = useNotificationPreferences();
-  const { mutate: updatePrefs } = useUpdateNotificationPreferences();
+  const { mutate: updatePrefs , isPending: isSaving } = useUpdateNotificationPreferences();
   const [prefs, setPrefs] = useState<NotificationPrefs>(DEFAULT_PREFS);
 
   useEffect(() => {
@@ -51,5 +51,5 @@ export function useNotificationPrefs() {
     updatePrefs(mapUiToApi(prefs));
   }, [prefs, updatePrefs]);
 
-  return { prefs, changed, handleToggle, handleSave };
+  return { prefs, changed, handleToggle, handleSave, isSaving };
 }
