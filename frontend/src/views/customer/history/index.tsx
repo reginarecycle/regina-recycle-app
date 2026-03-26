@@ -113,7 +113,7 @@ function mapPickupToRecord(
     location: buildLocation(pickup),
     pickupLocation: buildLocation(pickup),
     materials,
-    date: formatDate(pickup.createdAt ?? pickup.scheduledAt),
+    date: formatDate(pickup.scheduledAt ?? pickup.createdAt),
     scheduledPickupDate: formatDate(pickup.scheduledAt),
     status: (pickup.status === "ACCEPTED" ? "PENDING" : pickup.status) as RecycleStatus,
     requestDate: formatDate(pickup.createdAt),
