@@ -9,9 +9,9 @@ import { DeleteAccountBanner } from "@/components/shared/DeleteAccountBanner";
 import { DeleteAccountDialog } from "@/components/shared/DeleteAccountDialog";
 import { useCheckDeleteEligibility, useDeleteUserAccount } from "@/api-hooks/useUsers";
 import { useChangePassword } from "@/api-hooks/useAuth";
+import { toast } from 'sonner';
 
 const ProfileSecurity = () => {
-  const [passwordUpdated, setPasswordUpdated] = useState(false);
    const [showSaving, setShowSaving] = useState(false);
   const { data: deleteEligibility } = useCheckDeleteEligibility();
   const { mutate: deleteUserAccount } = useDeleteUserAccount();
@@ -28,8 +28,7 @@ const ProfileSecurity = () => {
   });
 
 const onSubmitPassword = (data: ChangePasswordFormValues) => {
-  setPasswordUpdated(false);
-   setShowSaving(true);
+  setShowSaving(true);
 
   changePassword(
     {
@@ -40,14 +39,16 @@ const onSubmitPassword = (data: ChangePasswordFormValues) => {
       onSuccess: () => {
         setTimeout(() => {
           resetPassword();
-          setPasswordUpdated(true);
           setShowSaving(false);
-        }, 800); 
+            toast.success(
+             " Password updated successfully"
+            )
+        }, 800);
       },
       onError: () => {
-      setShowSaving(false);
-    },
-  }
+        setShowSaving(false);
+      },
+    }
   );
 };
 
@@ -114,12 +115,6 @@ const onSubmitPassword = (data: ChangePasswordFormValues) => {
             )}
           </Button>
         </div>
-
-        {passwordUpdated && (
-      <p className="text-sm text-green-600 pt-2">
-      Password updated successfully.
-    </p> 
-    )}
       </form>
 
       <Separator className="my-8" />
