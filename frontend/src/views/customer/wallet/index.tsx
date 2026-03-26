@@ -15,7 +15,7 @@ import type { TransactionDetails } from "@/components/modals/transactiondetailmo
 import { useGetCustomerWallet } from "@/api-hooks/useCustomerWallet";
 import { useGetWalletTransactions } from "@/api-hooks/useWallet";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+
 
 type TxStatusUI = "CREDIT" | "WITHDRAWAL" | "FAILED";
 
