@@ -16,13 +16,42 @@ import { UpdateCollectorDto } from './dto/update-collector.dto';
 import { UpdateMaterialPricingDto } from './dto/update-material-pricing.dto';
 import { UpdateMaterialSettingsDto } from './dto/update-material-settings.dto';
 import { CreateMaterialPricingDto } from './dto/create-material-pricing.dto';
+import { Auth } from '../common/decorator/auth.decorator';
 
 @ApiTags('Collectors')
 @Controller('collectors')
 export class CollectorsController {
-  constructor(private readonly collectorsService: CollectorsService) {}
+  constructor(private readonly collectorsService: CollectorsService) { }
 
-  // ─── Stats ────────────────────────────────────────────────────────────────
+  @Get('available-for-materials')
+  @Auth()
+  @ApiOperation({ summary: 'Check if collectors are available for given materials' })
+  checkMaterialsAvailability(
+    @Query('materialIds') materialIds: string | string[],
+  ) {
+    const ids = Array.isArray(materialIds) ? materialIds : [materialIds];
+    return this.collectorsService.checkMaterialsAvailability(ids);
+  }
+
+  @Get('material-pricing/:materialId/calculate')
+  @ApiOperation({ summary: 'Calculate material payout' })
+  async calculateMaterialPayout(
+    @Param('materialId') materialId: string,
+    @Query('collectorId') collectorId: string,
+    @Query('quantity') quantity: string,
+  ) {
+    const qty = Number(quantity);
+    if (isNaN(qty) || qty <= 0) {
+      throw new BadRequestException('Quantity must be a number greater than 0');
+    }
+    return this.collectorsService.calculateMaterialPayout(collectorId, materialId, qty);
+  }
+
+  @Get('materials/:id/averagePrice')
+  @ApiOperation({ summary: 'Get average material price across all collectors' })
+  async getAverageMaterialPrice(@Param('id') id: string) {
+    return this.collectorsService.getAverageMaterialPrice(id);
+  }
 
   @Get(':collectorId/stats')
   @ApiOperation({ summary: 'Get collector stats' })
@@ -30,8 +59,6 @@ export class CollectorsController {
   async getStats(@Param('collectorId') collectorId: string) {
     return this.collectorsService.getStats(collectorId);
   }
-
-  // ─── Pickups ──────────────────────────────────────────────────────────────
 
   @Get(':collectorId/pickups')
   @ApiOperation({ summary: 'Get pickups for a collector' })
@@ -42,8 +69,6 @@ export class CollectorsController {
   ) {
     return this.collectorsService.getPickups(collectorId, query);
   }
-
-  // ─── Customers ────────────────────────────────────────────────────────────
 
   @Get(':collectorId/customers')
   @ApiOperation({ summary: 'Get customers for a collector' })
@@ -66,8 +91,6 @@ export class CollectorsController {
     return this.collectorsService.getCustomerDetails(collectorId, customerId);
   }
 
-  // ─── NEW: Users ────────────────────────────────────────────────────────────
-
   @Get(':collectorId/users/stats')
   @ApiOperation({ summary: 'Get user stats for a collector' })
   @ApiParam({ name: 'collectorId', type: String })
@@ -87,8 +110,6 @@ export class CollectorsController {
     return this.collectorsService.getUsers(collectorId, query);
   }
 
-  // ─── Material Distribution ────────────────────────────────────────────────
-
   @Get(':collectorId/material-distribution')
   @ApiOperation({ summary: 'Get material distribution for a collector' })
   @ApiParam({ name: 'collectorId', type: String })
@@ -99,16 +120,12 @@ export class CollectorsController {
     return this.collectorsService.getMaterialDistribution(collectorId, period);
   }
 
-  // ─── Pickup Overview ──────────────────────────────────────────────────────
-
   @Get(':collectorId/pickup-overview')
   @ApiOperation({ summary: 'Get weekly pickup overview for a collector' })
   @ApiParam({ name: 'collectorId', type: String })
   async getPickupOverview(@Param('collectorId') collectorId: string) {
     return this.collectorsService.getPickupOverview(collectorId);
   }
-
-  // ─── Top Locations ────────────────────────────────────────────────────────
 
   @Get(':collectorId/top-locations')
   @ApiOperation({ summary: 'Get top pickup locations for a collector' })
@@ -121,8 +138,6 @@ export class CollectorsController {
     return this.collectorsService.getTopLocations(collectorId, limit, period);
   }
 
-  // ─── Profile ──────────────────────────────────────────────────────────────
-
   @Put(':collectorId/profile')
   @ApiOperation({ summary: 'Update collector profile' })
   @ApiParam({ name: 'collectorId', type: String })
@@ -132,8 +147,6 @@ export class CollectorsController {
   ) {
     return this.collectorsService.updateProfile(collectorId, dto);
   }
-
-  // ─── Pricing ──────────────────────────────────────────────────────────────
 
   @Get(':collectorId/pricing')
   @ApiOperation({ summary: 'Get pricing for a collector' })
@@ -167,8 +180,6 @@ export class CollectorsController {
     return this.collectorsService.updateMaterialPricing(collectorId, materialId, dto);
   }
 
-  // ─── Material Settings ────────────────────────────────────────────────────
-
   @Get(':collectorId/material-settings')
   @ApiOperation({ summary: 'Get material settings for a collector' })
   @ApiParam({ name: 'collectorId', type: String })
@@ -184,31 +195,5 @@ export class CollectorsController {
     @Body() dto: UpdateMaterialSettingsDto,
   ) {
     return this.collectorsService.updateMaterialSettings(collectorId, dto);
-  }
-
-  // ─── Material Payout Calculation ──────────────────────────────────────────
-
-  @Get('material-pricing/:materialId/calculate')
-  async calculateMaterialPayout(
-    @Param('materialId') materialId: string,
-    @Query('collectorId') collectorId: string,
-    @Query('quantity') quantity: string,
-  ) {
-    const qty = Number(quantity);
-    if (isNaN(qty) || qty <= 0) {
-      throw new BadRequestException('Quantity must be a number greater than 0');
-    }
-    return this.collectorsService.calculateMaterialPayout(
-      collectorId,
-      materialId,
-      qty,
-    );
-  }
-
-  // ─── Average Material Price ───────────────────────────────────────────────
-
-  @Get('materials/:id/averagePrice')
-  async getAverageMaterialPrice(@Param('id') id: string) {
-    return this.collectorsService.getAverageMaterialPrice(id);
   }
 }
