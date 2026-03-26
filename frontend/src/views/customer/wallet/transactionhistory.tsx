@@ -1,256 +1,203 @@
-import * as React from "react";
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 import { ChevronLeft } from "lucide-react";
-import { buildDateRange } from "@/lib/utils";
-import { DataTable, type ColumnDef, type DataTableTabItem } from "@/components/ui/data-table";
-import {
-  DataTableHeaderControls,
-  type TableFilterState,
-  type StatusOption,
-  DEFAULT_TABLE_FILTERS,
-} from "@/components/ui/data-table-header-controls";
+import { DataTable, type ColumnDef } from "@/components/ui/data-table";
+import { StatusBadge, getAmountColor } from "@/components/ui/status-badge";
+import { DataTableHeaderControls, type TableFilterState } from "@/components/ui/data-table-header-controls";
+import TransactionDetailsModal from "@/components/modals/transactiondetailmodal";
+import type { TransactionDetails } from "@/components/modals/transactiondetailmodal";
 import { useGetWalletTransactions } from "@/api-hooks/useWallet";
-import type { TxStatus } from "@/api-hooks/useWallet";
-import useDebounce from "@/hooks/useDebounce";
-import { Routes } from "@/routes/routes";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 type TxStatusUI = "CREDIT" | "WITHDRAWAL" | "FAILED";
 
-type CustomerTransaction = {
-  id: string;
-  date: string;
-  status: TxStatusUI;
-  desc: string;
-  amount: number;
-  rawStatus: string; // COMPLETED | PENDING | FAILED from backend
+type Transaction = {
+  id:          string;
+  date:        string;
+  status:      TxStatusUI;
+  description: string;
+  amount:      string;
 };
 
-// ─── Mapper ───────────────────────────────────────────────────────────────────
+// ── Mapper ────────────────────────────────────────────────────────────────────
 
 function mapTransaction(tx: {
-  walletId: string;
-  type: string;
-  amount: number;
-  status: string;
-  description?: string;
-  referenceType?: string;
-  referenceId?: string;
-  createdAt: string;
-}): CustomerTransaction {
-  const statusUI: TxStatusUI =
-    tx.type === "CREDIT"
-      ? "CREDIT"
-      : tx.status === "FAILED"
-      ? "FAILED"
-      : "WITHDRAWAL";
+  transactionId: string;
+  type:          string;
+  amount:        number;
+  status:        string;
+  description?:  string;
+  createdAt:     string;
+}): Transaction {
+  const status: TxStatusUI =
+    tx.type === "CREDIT"     ? "CREDIT"
+    : tx.status === "FAILED" ? "FAILED"
+    : "WITHDRAWAL";
 
   return {
-    id: tx.referenceId ?? `${tx.createdAt}-${tx.amount}`,
-    date: new Date(tx.createdAt).toLocaleDateString("en-CA", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
+    id:          tx.transactionId,
+    date:        new Date(tx.createdAt).toLocaleDateString("en-CA", {
+      day: "numeric", month: "short", year: "numeric",
     }),
-    status: statusUI,
-    desc: tx.description ?? "Wallet transaction",
-    amount: tx.amount,
-    rawStatus: tx.status, // keep original for tab filtering badge
+    status,
+    description: tx.description ?? "Wallet transaction",
+    amount:      `CAD ${tx.amount.toFixed(2)}`,
   };
 }
 
-// ─── Status badge map ─────────────────────────────────────────────────────────
-
-const statusBadgeMap: Record<string, { label: string; className: string }> = {
-  COMPLETED: { label: "COMPLETED", className: "bg-green-50 text-green-700 border border-green-200"    },
-  PENDING:   { label: "PENDING",   className: "bg-yellow-50 text-yellow-700 border border-yellow-200" },
-  FAILED:    { label: "FAILED",    className: "bg-red-50 text-red-500 border border-red-200"           },
-};
-
-// ─── Amount color ─────────────────────────────────────────────────────────────
-
-function getAmountColor(status: TxStatusUI): string {
-  if (status === "CREDIT")     return "#16a34a";
-  if (status === "WITHDRAWAL") return "#2563EB";
-  return "#ef4444";
-}
-
-// ─── Tabs & filters ───────────────────────────────────────────────────────────
-
-type BackendStatus = "COMPLETED" | "PENDING" | "FAILED";
-
-const TABS: DataTableTabItem[] = [
-  { href: "ALL",       label: "All"       },
-  { href: "PENDING",   label: "Pending"   },
-  { href: "COMPLETED", label: "Completed" },
-  { href: "FAILED",    label: "Failed"    },
-];
-
-const STATUS_OPTIONS: StatusOption<BackendStatus>[] = [
-  { key: "COMPLETED", label: "Completed" },
-  { key: "PENDING",   label: "Pending"   },
-  { key: "FAILED",    label: "Failed"    },
-];
+// ── Constants ─────────────────────────────────────────────────────────────────
 
 const PAGE_SIZE = 8;
 
-// ─── Columns ──────────────────────────────────────────────────────────────────
+const STATUS_OPTIONS = [
+  { key: "CREDIT"     as TxStatusUI, label: "Credit"     },
+  { key: "WITHDRAWAL" as TxStatusUI, label: "Withdrawal" },
+  { key: "FAILED"     as TxStatusUI, label: "Failed"     },
+];
 
-function buildColumns(): ColumnDef<CustomerTransaction>[] {
-  return [
-    {
-      key: "desc",
-      header: "Description",
-      cell: (row) => (
-        <div className="min-w-0">
-          <div className="font-semibold text-sm text-foreground truncate">{row.desc}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">{row.id}</div>
-        </div>
-      ),
-    },
+const DEFAULT_FILTERS: TableFilterState<TxStatusUI> = { statuses: [], dateRange: "alltime" };
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
+export default function TransactionHistory() {
+  const navigate = useNavigate();
+
+  const [search, setSearch]                     = useState("");
+  const [filters, setFilters]                   = useState<TableFilterState<TxStatusUI>>(DEFAULT_FILTERS);
+  const [page, setPage]                         = useState(1);
+  const [openDetails, setOpenDetails]           = useState(false);
+  const [selectedDetails, setSelectedDetails]   = useState<TransactionDetails | null>(null);
+
+  // ── Data fetching ──────────────────────────────────────────────────────────
+
+  const { data: txResult, isLoading } = useGetWalletTransactions({
+    page,
+    limit:     PAGE_SIZE,
+    search:    search.trim() || undefined,
+    startDate: filters.dateRange !== "alltime" ? filters.dateRange : undefined,
+  });
+
+  const allTransactions = useMemo(
+    () => (txResult?.data?.data ?? []).map(mapTransaction),
+    [txResult],
+  );
+
+  const meta       = txResult?.data?.meta;
+  const totalPages = meta ? Math.max(1, Math.ceil(meta.total / PAGE_SIZE)) : 1;
+
+  // ── Client-side status filter (backend handles search + date) ─────────────
+
+  const filtered = useMemo(
+    () =>
+      filters.statuses.length === 0
+        ? allTransactions
+        : allTransactions.filter((tx) => filters.statuses.includes(tx.status)),
+    [allTransactions, filters.statuses],
+  );
+
+  // ── Handlers ───────────────────────────────────────────────────────────────
+
+  const handleViewMore = (tx: Transaction) => {
+    setSelectedDetails({
+      amount:    tx.amount,
+      currency:  "CAD",
+      status:    tx.status,
+      date:      tx.date,
+      time:      "10:00am",
+      sender:    "Shahnaz Recycle",
+      receiver:  "Jane Doe",
+      fees:      "0.00 CAD",
+      reference: tx.id,
+    });
+    setOpenDetails(true);
+  };
+
+  // ── Columns ────────────────────────────────────────────────────────────────
+
+  const columns: ColumnDef<Transaction>[] = [
     {
       key: "date",
       header: "Date",
-      className: "w-48",
-      cell: (row) => (
-        <span className="text-sm text-muted-foreground">{row.date}</span>
-      ),
-    },
-    {
-      key: "amount",
-      header: "Amount (CAD)",
-      className: "w-44",
-      cell: (row) => (
-        <span
-          className="text-sm font-semibold"
-          style={{ color: getAmountColor(row.status) }}
-        >
-          ${row.amount.toFixed(2)}
-        </span>
-      ),
-    },
-    {
-      key: "type",
-      header: "Type",
-      className: "w-36",
-      cell: (row) => {
-        const colors: Record<TxStatusUI, string> = {
-          CREDIT:     "bg-green-50 text-green-700 border border-green-200",
-          WITHDRAWAL: "bg-blue-50 text-blue-700 border border-blue-200",
-          FAILED:     "bg-red-50 text-red-500 border border-red-200",
-        };
-        return (
-          <span className={`text-[10px] font-bold px-3 py-1.5 rounded-full tracking-wide whitespace-nowrap ${colors[row.status]}`}>
-            {row.status}
-          </span>
-        );
-      },
+      cell: (row) => <span className="text-sm font-semibold text-foreground">{row.date}</span>,
     },
     {
       key: "status",
       header: "Status",
-      className: "w-44",
-      cell: (row) => {
-        const s = statusBadgeMap[row.rawStatus] ?? statusBadgeMap.PENDING;
-        return (
-          <span className={`text-[10px] font-bold px-4 py-1.5 rounded-full tracking-wide whitespace-nowrap ${s.className}`}>
-            {s.label}
-          </span>
-        );
-      },
+      cell: (row) => <StatusBadge status={row.status} />,
+    },
+    {
+      key: "description",
+      header: "Description",
+      cell: (row) => <span className="text-sm text-foreground">{row.description}</span>,
+    },
+    {
+      key: "amount",
+      header: "Amount",
+      cell: (row) => (
+        <span className="text-sm font-semibold" style={{ color: getAmountColor(row.status) }}>
+          {row.amount}
+        </span>
+      ),
+    },
+    {
+      key: "action",
+      header: "Action",
+      cell: (row) => (
+        <button
+          type="button"
+          onClick={() => handleViewMore(row)}
+          className="text-sm font-semibold text-foreground hover:text-primary transition-colors w-fit"
+        >
+          View More
+        </button>
+      ),
     },
   ];
-}
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
-export default function CustomerTransactionHistory() {
-  const navigate = useNavigate();
-
-  const [tab, setTab]       = useState<BackendStatus | "ALL">("ALL");
-  const [search, setSearch] = useState("");
-  const [filters, setFilters] = useState<TableFilterState<BackendStatus>>(
-    DEFAULT_TABLE_FILTERS as TableFilterState<BackendStatus>
-  );
-  const [page, setPage] = useState(1);
-
-  const debouncedSearch = useDebounce(search, 400);
-
-  // Reset to page 1 when filters change
-  React.useEffect(() => { setPage(1); }, [debouncedSearch, tab, filters]);
-
-  const handleTabChange = (t: string) => {
-    setTab(t as BackendStatus | "ALL");
-    setFilters((prev) => ({ ...prev, statuses: [] }));
-  };
-
-  const handleFiltersChange = (f: TableFilterState<BackendStatus>) => {
-    setFilters(f);
-    if (f.statuses.length > 0) setTab("ALL");
-  };
-
-  const { startDate, endDate } = buildDateRange(filters.dateRange);
-
-  const { data: txResult, isLoading, isError } = useGetWalletTransactions({
-    page,
-    limit: PAGE_SIZE,
-    search: debouncedSearch || undefined,
-    status: (tab !== "ALL" ? tab : filters.statuses[0]) as TxStatus | undefined,
-    startDate,
-    endDate,
-  });
-
-  React.useEffect(() => {
-    if (isError) toast.error("Failed to load transactions. Please refresh.");
-  }, [isError]);
-
-  const transactions = useMemo(() => {
-    const raw = txResult?.data?.data ?? [];
-    return raw.map(mapTransaction);
-  }, [txResult]);
-
-  const totalItems = txResult?.data?.meta?.total ?? 0;
-  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
-  const columns    = useMemo(() => buildColumns(), []);
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex-1 p-6 lg:p-8 overflow-auto bg-background">
-      {/* Back button — navigates to wallet page */}
+    <div className="flex flex-col gap-6 p-4 sm:p-6 lg:p-8 bg-muted/30 min-h-screen">
       <button
         type="button"
-        onClick={() => navigate(Routes.wallet)}
-        className="flex items-center gap-1 text-sm font-semibold text-foreground hover:text-primary mb-5 transition-colors"
+        onClick={() => navigate(-1)}
+        className="inline-flex items-center gap-1 text-sm font-semibold text-foreground hover:text-primary transition-colors w-fit"
       >
-        <ChevronLeft className="w-4 h-4" /> Back to Wallet
+        <ChevronLeft className="w-4 h-4" />
+        Back
       </button>
 
       <DataTable
-        data={isLoading ? [] : transactions}
+        data={isLoading ? [] : filtered}
         columns={columns}
         rowKey={(r) => r.id}
         title="Transaction History"
         headerRight={
-          <DataTableHeaderControls<BackendStatus>
+          <DataTableHeaderControls
             search={search}
-            onSearchChange={(v) => setSearch(v)}
-            searchPlaceholder="Search transactions..."
+            onSearchChange={(v) => { setSearch(v); setPage(1); }}
+            searchPlaceholder="Search for transaction id..."
             filters={filters}
-            onFiltersChange={handleFiltersChange}
+            onFiltersChange={(f) => { setFilters(f); setPage(1); }}
             statusOptions={STATUS_OPTIONS}
+            showDateRange={true}
           />
         }
-        tabs={TABS}
-        tabBarProps={{ mode: "none", value: tab, onChange: handleTabChange }}
+        showTabs={false}
         page={page}
         totalPages={totalPages}
-        totalItems={totalItems}
+        totalItems={meta?.total ?? 0}
         pageSize={PAGE_SIZE}
         onPageChange={setPage}
         emptyText={isLoading ? "Loading..." : "No transactions found"}
-        minHeight="400px"
+        minHeight="300px"
+      />
+
+      <TransactionDetailsModal
+        open={openDetails}
+        onClose={() => { setOpenDetails(false); setSelectedDetails(null); }}
+        details={selectedDetails}
       />
     </div>
   );
