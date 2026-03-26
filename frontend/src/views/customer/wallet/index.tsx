@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, ArrowUpRight, ChevronRight } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
-import { cn } from "@/lib/utils";
+import { cn, formatAmount } from "@/lib/utils";
 import { Routes } from "@/routes/routes";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
 import { StatusBadge, getAmountColor } from "@/components/ui/status-badge";
@@ -49,7 +49,7 @@ function mapTransaction(tx: {
     }),
     status: statusUI,
     desc:   tx.description ?? "Wallet transaction",
-    amount: `CAD ${tx.amount.toFixed(2)}`,
+    amount: `CAD ${formatAmount(tx.amount)}`,
   };
 }
 
@@ -211,7 +211,7 @@ function CustomerWallet() {
         <div className="mt-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div className="flex items-baseline gap-2">
             <span className="text-4xl font-bold">
-              {visible ? `$${wallet.balance.toFixed(2)}` : (
+              {visible ? `$${formatAmount(wallet.balance)}` : (
                 <>$<span className="text-2xl self-center tracking-widest leading-none">*******</span></>
               )}
             </span>
