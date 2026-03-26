@@ -78,9 +78,12 @@ export interface CustomerPickupsQuery {
 
 export interface CustomerPaginatedPickups {
   data:  Pickup[];
-  total: number;
-  page:  number;
-  limit: number;
+  meta: {
+    total:       number;
+    page:        number;
+    limit:       number;
+    hasNextPage: boolean;
+  };
 }
 
 export const useGetAvailableSlots = (month: number, year: number) =>
