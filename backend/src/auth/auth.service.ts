@@ -335,10 +335,16 @@ export class AuthService {
       data: { password: hashedPassword },
     });
 
-    await this.notificationGatewayService.notifyPasswordChanged({
-      userId: user.userId,
-      recipientEmail: user.email,
+    const preference = await this.prisma.notificationPreference.findUnique({
+      where: { userId: user.userId },
     });
+
+    if (preference?.emailAccountActivity ?? true) {
+      await this.notificationGatewayService.notifyPasswordChanged({
+        userId: user.userId,
+        recipientEmail: user.email,
+      });
+    }
 
     return { message: 'Password changed successfully' };
   }
