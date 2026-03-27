@@ -1,10 +1,25 @@
 import { PrismaClient } from '@prisma/client';
 
+// Old material names that were replaced — remove them to avoid duplicates
+const LEGACY_NAMES = [
+  'Aluminum Can',
+  'Plastic Bottle',
+  'Glass Jar',
+  'Cardboard Box',
+  'Steel Can',
+  'Battery',
+  'Newspaper',
+  'Food Scraps',
+  'Paint Can',
+  'Yard Waste',
+  'Plastic Bag',
+];
+
 const materials = [
   {
     name:        'Glass Bottles',
     type:        'recyclable',
-    description: 'Clear & Coloured',
+    description: 'Clear & Coloured glass containers',
     photoUrl:    'https://res.cloudinary.com/dxhy4qyzp/image/upload/v1773720018/glass_jar_rzu3cl.webp',
     co2Saved:    1.5,
     waterSaved:  4.0,
@@ -20,7 +35,7 @@ const materials = [
   {
     name:        'Aluminium Cans',
     type:        'recyclable',
-    description: 'Beverages only',
+    description: 'Beverage cans, rinsed & crushed',
     photoUrl:    'https://res.cloudinary.com/dxhy4qyzp/image/upload/v1773718590/aluminum_can_muzqie.webp',
     co2Saved:    1.2,
     waterSaved:  3.5,
@@ -60,7 +75,7 @@ const materials = [
   {
     name:        'Newspaper & Paper',
     type:        'recyclable',
-    description: 'Dry, unsoiled paper only',
+    description: 'Dry, unsoiled newsprint & office paper',
     photoUrl:    'https://res.cloudinary.com/dxhy4qyzp/image/upload/v1774382800/annie-spratt-hWJsOnaWTqs-unsplash_fnc4zy.jpg',
     co2Saved:    0.5,
     waterSaved:  1.4,
@@ -101,6 +116,18 @@ const materials = [
 
 export default async function seedMaterials(prisma: PrismaClient) {
   console.log('Seeding materials...');
+
+  // Remove legacy material names that were renamed — only if they have no
+  // related pickup records (onDelete: Restrict on PickupSnapshot prevents
+  // deletion if pickups exist; collectorPricings cascade automatically).
+  for (const name of LEGACY_NAMES) {
+    try {
+      await prisma.material.delete({ where: { name } });
+      console.log(`  Removed legacy material: ${name}`);
+    } catch {
+      // Record doesn't exist or is referenced by a pickup — skip silently
+    }
+  }
 
   for (const material of materials) {
     await prisma.material.upsert({
