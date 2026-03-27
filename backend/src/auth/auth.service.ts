@@ -13,7 +13,7 @@ import { JwtService } from '@nestjs/jwt';
 import { EmailService } from '../notifications/email/email.service';
 import { ErrorMessage } from '../common/error-message';
 import { VerifyEmailDto } from './dto/verify-email.dto';
-import { NotificationGatewayService } from 'src/notifications/notifications.gateway.service';
+import { NotificationGatewayService } from '../notifications/notifications.gateway.service';
 
 @Injectable()
 export class AuthService {
