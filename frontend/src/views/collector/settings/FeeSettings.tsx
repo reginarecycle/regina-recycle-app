@@ -33,7 +33,7 @@ export function FeeSettings({
     saveSettings(
       {
         serviceFee:           parseFloat(serviceFee),
-        feeType,
+        feeType:              feeType === "PERCENTAGE_FEE" ? "PERCENTAGE" : "FLAT",
         bulkThreshold:        parseFloat(bulkThreshold),
         bulkIncentiveEnabled,
       },

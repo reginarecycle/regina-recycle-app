@@ -9,7 +9,7 @@ const lazyCast = <P extends object>(fn: () => Promise<{ default: FunctionCompone
   lazy(fn) as LazyExoticComponent<FunctionComponent<P>>;
 
 const UserDashboard              = lazyCast(() => import("@/views/customer/home"));
-const CollectorDashboard         = lazyCast(() => import("@/views/collector/dashboard"));
+const CollectorDashboard         = lazyCast(() => import("@/views/collector/home"));
 const CustomerProfile            = lazyCast(() => import("@/views/customer/profile"));
 const CollectorUsersPage         = lazyCast(() => import("@/views/collector/users"));
 const SchedulePickupView         = lazyCast(() => import("@/views/customer/schedule_pickup_view/index"));

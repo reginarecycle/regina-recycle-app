@@ -31,6 +31,7 @@ const mapUiToApi = (prefs: NotificationPrefs): NotificationPreferencesDto => ({
 });
 
 export function useNotificationPrefs() {
+  const [showSaving, setShowSaving] = useState(false);
   const { data } = useNotificationPreferences();
   const { mutate: updatePrefs } = useUpdateNotificationPreferences();
   const [prefs, setPrefs] = useState<NotificationPrefs>(DEFAULT_PREFS);
@@ -48,8 +49,16 @@ export function useNotificationPrefs() {
   }, []);
 
   const handleSave = useCallback(() => {
-    updatePrefs(mapUiToApi(prefs));
-  }, [prefs, updatePrefs]);
+    setShowSaving(true);
 
-  return { prefs, changed, handleToggle, handleSave };
+  updatePrefs(mapUiToApi(prefs), {
+    onSettled: () => {
+      setTimeout(() => {
+        setShowSaving(false);
+      }, 800);
+    },
+  });
+}, [prefs, updatePrefs]);
+
+  return { prefs, changed, handleToggle, handleSave, isSaving: showSaving };
 }

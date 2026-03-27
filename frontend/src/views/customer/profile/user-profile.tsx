@@ -88,7 +88,6 @@ const UserProfile = () => {
   const onSubmitDetails = (data: ProfileDetailsFormValues) => {
     const profileUpdate: Record<string, string> = {};
     if (data.fullName)    profileUpdate.name         = data.fullName;
-    if (data.email)       profileUpdate.email        = data.email;
     if (data.phone)       profileUpdate.phoneNumber  = data.phone.replace(/\D/g, "");
     if (data.dateOfBirth) profileUpdate.dateOfBirth  = dmyToIso(data.dateOfBirth);
 
@@ -141,6 +140,7 @@ const UserProfile = () => {
             error={detailsErrors.email?.message}
             type="email"
             placeholder="doe@gmail.com"
+            disabled
           />
         </div>
 

@@ -199,7 +199,7 @@ export class PickupsService {
     };
   }
 
-  // COLLECTOR: Get pickups scoped to the logged-in collector
+  // COLLECTOR: Get pickups scoped to the logged-in collector (with isCompatible)
   async getCollectorPickups(collectorId: string, query: PickupQueryDto) {
     const { page = 1, limit = 10, search, status, startDate, endDate } = query;
     const { skip, take } = getPaginationParams(page, limit);
@@ -208,6 +208,8 @@ export class PickupsService {
       ? (status as PickupStatus)
       : undefined;
 
+    // PENDING = unassigned pickups this collector hasn't rejected
+    // ACCEPTED/COMPLETED/CANCELLED = pickups assigned to this collector
     const where: any = validStatus === PickupStatus.PENDING
       ? { status: PickupStatus.PENDING, collectorUserId: null, rejections: { none: { collectorId } } }
       : { collectorUserId: collectorId, ...(validStatus ? { status: validStatus } : {}) };
@@ -253,7 +255,6 @@ export class PickupsService {
 
     const result = pickups.map((pickup) => ({
       ...pickup,
-      requestNumber: `#${String(pickup.requestNumber).padStart(5, '0')}`,
       isCompatible:
         pickup.items.length > 0 &&
         pickup.items.every((item) => activeMaterialIds.has(item.materialId)),
@@ -267,7 +268,7 @@ export class PickupsService {
   }
 
   // USER: Get all their own pickups
- async findAll(requesterUserId: string, query: PickupQueryDto) {
+  async findAll(requesterUserId: string, query: PickupQueryDto) {
   const { page = 1, limit = 10, search, status, startDate, endDate } = query;
   const { skip, take } = getPaginationParams(page, limit);
 

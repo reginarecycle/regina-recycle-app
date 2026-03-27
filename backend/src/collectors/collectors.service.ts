@@ -11,6 +11,7 @@ import { PickupQueryDto } from './dto/pickup-query.dto';
 import { CollectorUsersQueryDto } from './dto/collectors-query.dto';
 import { getPaginationParams, paginate } from '../common/pagination/pagination-helper';
 
+
 @Injectable()
 export class CollectorsService {
   constructor(private readonly prisma: PrismaService) { }
@@ -52,6 +53,7 @@ export class CollectorsService {
     };
   }
 
+
   async checkMaterialsAvailability(materialIds: string[]) {
     const unavailable: string[] = [];
 
@@ -70,6 +72,10 @@ export class CollectorsService {
       unavailableMaterialIds: unavailable,
     };
   }
+
+
+
+
 
   async getMaterialDistribution(collectorId: string, period?: string) {
     await this.ensureCollectorExists(collectorId);
@@ -112,38 +118,64 @@ export class CollectorsService {
   async getPickupOverview(collectorId: string) {
     await this.ensureCollectorExists(collectorId);
 
-    const start = new Date();
-    start.setDate(start.getDate() - 6);
-    start.setHours(0, 0, 0, 0);
+    const now = new Date();
 
-    const pickups = await this.prisma.pickup.findMany({
-      where: {
-        collectorUserId: collectorId,
-        status: { in: [PickupStatus.ACCEPTED, PickupStatus.COMPLETED] },
-        scheduledAt: { gte: start },
-      },
-      include: { items: true },
-      orderBy: { scheduledAt: 'asc' },
-    });
+    // Monday of the current calendar week
+    const currentMonday = new Date(now);
+    const dow = currentMonday.getDay(); // 0=Sun … 6=Sat
+    currentMonday.setDate(currentMonday.getDate() - (dow === 0 ? 6 : dow - 1));
+    currentMonday.setHours(0, 0, 0, 0);
 
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    // Monday of the previous calendar week
+    const previousMonday = new Date(currentMonday);
+    previousMonday.setDate(currentMonday.getDate() - 7);
+
+    // Sunday end of current week (exclusive upper bound)
+    const nextMonday = new Date(currentMonday);
+    nextMonday.setDate(currentMonday.getDate() + 7);
+
+    const [currentPickups, previousPickups] = await Promise.all([
+      this.prisma.pickup.findMany({
+        where: {
+          collectorUserId: collectorId,
+          status: { in: [PickupStatus.ACCEPTED, PickupStatus.COMPLETED] },
+          scheduledAt: { gte: currentMonday, lt: nextMonday },
+        },
+        include: { items: true },
+      }),
+      this.prisma.pickup.findMany({
+        where: {
+          collectorUserId: collectorId,
+          status: { in: [PickupStatus.ACCEPTED, PickupStatus.COMPLETED] },
+          scheduledAt: { gte: previousMonday, lt: currentMonday },
+        },
+        include: { items: true },
+      }),
+    ]);
+
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    const isSameDay = (d: Date, ref: Date) =>
+      d.getFullYear() === ref.getFullYear() &&
+      d.getMonth() === ref.getMonth() &&
+      d.getDate() === ref.getDate();
 
     const overview = Array.from({ length: 7 }, (_, i) => {
-      const date = new Date(start);
-      date.setDate(start.getDate() + i);
+      const currentDate = new Date(currentMonday);
+      currentDate.setDate(currentMonday.getDate() + i);
 
-      const units = pickups
-        .filter((p) => {
-          const d = new Date(p.scheduledAt);
-          return (
-            d.getFullYear() === date.getFullYear() &&
-            d.getMonth() === date.getMonth() &&
-            d.getDate() === date.getDate()
-          );
-        })
+      const previousDate = new Date(previousMonday);
+      previousDate.setDate(previousMonday.getDate() + i);
+
+      const current = currentPickups
+        .filter((p) => isSameDay(new Date(p.scheduledAt), currentDate))
         .reduce((sum, p) => sum + p.items.reduce((s, item) => s + item.quantity, 0), 0);
 
-      return { day: dayNames[date.getDay()], units };
+      const previous = previousPickups
+        .filter((p) => isSameDay(new Date(p.scheduledAt), previousDate))
+        .reduce((sum, p) => sum + p.items.reduce((s, item) => s + item.quantity, 0), 0);
+
+      return { day: dayNames[i], current, previous };
     });
 
     return { collectorId, period: 'weekly', overview };
@@ -227,6 +259,29 @@ export class CollectorsService {
     };
   }
 
+  async getCustomerStats(collectorId: string) {
+  await this.ensureCollectorExists(collectorId);
+
+  const [uniqueCustomerRows, completedPickups] = await Promise.all([
+    this.prisma.pickup.findMany({
+      where: { collectorUserId: collectorId, requesterUserId: { not: null } },
+      select: { requesterUserId: true },
+      distinct: ['requesterUserId'],
+    }),
+    this.prisma.pickup.findMany({
+      where: { collectorUserId: collectorId, status: PickupStatus.COMPLETED, requesterUserId: { not: null } },
+      select: { requesterUserId: true, actualEarning: true },
+    }),
+  ]);
+
+  const totalUsers = uniqueCustomerRows.length;
+  const totalCollections = completedPickups.length;
+  const totalRevenue = completedPickups.reduce((sum, p) => sum + Number(p.actualEarning), 0);
+  const avgRevenuePerUser = totalUsers > 0 ? totalRevenue / totalUsers : 0;
+
+  return { totalUsers, avgRevenuePerUser, totalCollections };
+}
+
   async getCustomers(collectorId: string, query: CollectorQueryDto) {
     await this.ensureCollectorExists(collectorId);
 
@@ -296,8 +351,6 @@ export class CollectorsService {
     return { collectorId, customer, pickups };
   }
 
-  // ─── NEW: Get Users Stats ──────────────────────────────────────────────────
-
   async getUsersStats(collectorId: string) {
     await this.ensureCollectorExists(collectorId);
 
@@ -338,8 +391,7 @@ export class CollectorsService {
     await this.ensureCollectorExists(collectorId);
 
     const { page = 1, limit = 10, keyword } = query;
-    const { skip, take } = getPaginationParams(page, limit);
-
+    const { skip, take } = getPaginationParams(Number(page), Number(limit));
     const userWhere: any = {
       role: 'CUSTOMER',
       pickupsRequested: {
@@ -357,7 +409,7 @@ export class CollectorsService {
       }),
     };
 
-    const [users, total, stats] = await Promise.all([
+    const [users, total] = await Promise.all([
       this.prisma.user.findMany({
         where: userWhere,
         skip,
@@ -388,7 +440,6 @@ export class CollectorsService {
         },
       }),
       this.prisma.user.count({ where: userWhere }),
-      this.getUsersStats(collectorId),
     ]);
 
     const data = users.map((user) => {
@@ -421,9 +472,13 @@ export class CollectorsService {
       };
     });
 
+    const totalPages = Math.ceil(total / limit);
     return {
-      stats,
-      ...paginate(data, total, page, limit),
+      data,
+      total,
+      page,
+      limit,
+      totalPages,
     };
   }
 
@@ -458,24 +513,52 @@ export class CollectorsService {
     const { page = 1, limit = 10, search, status } = query;
     const { skip, take } = getPaginationParams(page, limit);
 
-    const where = {
-      collectorUserId: collectorId,
-      ...(search ? { material: { name: { contains: search, mode: 'insensitive' as const } } } : {}),
-      ...(status ? { status: status as PricingStatus } : {}),
+    const materialWhere = {
+      ...(search ? { name: { contains: search, mode: 'insensitive' as const } } : {}),
     };
 
-    const [pricing, total] = await Promise.all([
-      this.prisma.collectorPricing.findMany({
-        where,
-        include: { material: true },
-        orderBy: { createdAt: 'desc' },
+    // Fetch all platform materials (paginated) + this collector's pricing in parallel
+    const [materials, total, pricings] = await Promise.all([
+      this.prisma.material.findMany({
+        where: materialWhere,
         skip,
         take,
+        orderBy: { createdAt: 'desc' },
+        select: { materialId: true, name: true, type: true, photoUrl: true },
       }),
-      this.prisma.collectorPricing.count({ where }),
+      this.prisma.material.count({ where: materialWhere }),
+      this.prisma.collectorPricing.findMany({
+        where: { collectorUserId: collectorId },
+      }),
     ]);
 
-    return paginate(pricing, total, page, limit);
+    const pricingMap = new Map(pricings.map((p) => [p.materialId, p]));
+
+    // Merge: every material gets the collector's real price (or 0/INACTIVE if not set)
+    const merged = materials.map((material) => {
+      const p = pricingMap.get(material.materialId);
+      return {
+        collectorPricingId: p?.collectorPricingId ?? null,
+        collectorUserId:    collectorId,
+        materialId:         material.materialId,
+        basePrice:          p ? Number(p.basePrice) : 0,
+        bulkPrice:          p?.bulkPrice ? Number(p.bulkPrice) : 0,
+        status:             p?.status ?? 'INACTIVE',
+        createdAt:          p?.createdAt ?? new Date(),
+        updatedAt:          p?.updatedAt ?? new Date(),
+        material: {
+          materialId: material.materialId,
+          name:       material.name,
+          type:       material.type,
+          photoUrl:   material.photoUrl ?? null,
+        },
+      };
+    });
+
+    // Apply optional status filter after merging
+    const filtered = status ? merged.filter((r) => r.status === status) : merged;
+
+    return paginate(filtered, status ? filtered.length : total, page, limit);
   }
 
   async createMaterialPricing(collectorId: string, dto: CreateMaterialPricingDto) {
@@ -602,6 +685,42 @@ export class CollectorsService {
       minPrice: Number(result._min.basePrice ?? 0),
       maxPrice: Number(result._max.basePrice ?? 0),
       avgPrice: Number(result._avg.basePrice ?? 0),
+    };
+  }
+
+  async getDashboardStats(collectorId: string) {
+    await this.ensureCollectorExists(collectorId);
+
+    const [pendingRequests, acceptedRequests, totalItems, pendingAmount] = await Promise.all([
+      this.prisma.pickup.count({
+        where: {
+          status: PickupStatus.PENDING,
+          collectorUserId: null,
+          rejections: { none: { collectorId } },
+        },
+      }),
+      this.prisma.pickup.count({
+        where: { collectorUserId: collectorId, status: PickupStatus.ACCEPTED }
+      }),
+      this.prisma.pickupItem.aggregate({
+        where: { pickup: { is: { collectorUserId: collectorId } } },
+        _sum: { quantity: true },
+      }),
+      this.prisma.pickup.aggregate({
+        where: {
+          collectorUserId: collectorId,
+          status: { in: [PickupStatus.PENDING, PickupStatus.ACCEPTED] },
+        },
+        _sum: { estimatedEarning: true },
+      }),
+    ]);
+
+    return {
+      collectorId,
+      pendingRequests,
+      acceptedRequests,
+      totalItems: totalItems._sum.quantity ?? 0,
+      pendingAmount: Number(pendingAmount._sum.estimatedEarning ?? 0),
     };
   }
 
