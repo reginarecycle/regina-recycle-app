@@ -5,7 +5,7 @@ export interface RecyclingItem {
     image: string;
     title: string;
     item: string;
-    description:string;
+    description?: string;
     tip: string;
     category: Category;
     label: string;
