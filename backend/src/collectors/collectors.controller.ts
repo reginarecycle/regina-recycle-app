@@ -19,6 +19,16 @@ import { UpdateCollectorDto } from './dto/update-collector.dto';
 import { UpdateMaterialPricingDto } from './dto/update-material-pricing.dto';
 import { UpdateMaterialSettingsDto } from './dto/update-material-settings.dto';
 import { CreateMaterialPricingDto } from './dto/create-material-pricing.dto';
+import { CurrentUser } from '../auth/decorator/current-user.decorator';
+
+type CurrentUserPayload = {
+  userId: string;
+  email: string;
+  name: string;
+  role: 'CUSTOMER' | 'COLLECTOR';
+  status: 'ACTIVE' | 'INACTIVE';
+  emailVerified: boolean;
+};
 
 @ApiTags('Collectors')
 @Controller('collectors')

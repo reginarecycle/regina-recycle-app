@@ -11,6 +11,7 @@ import { PickupQueryDto } from './dto/pickup-query.dto';
 import { CollectorUsersQueryDto } from './dto/collectors-query.dto';
 import { getPaginationParams, paginate } from '../common/pagination/pagination-helper';
 
+
 @Injectable()
 export class CollectorsService {
   constructor(private readonly prisma: PrismaService) { }
@@ -71,6 +72,10 @@ export class CollectorsService {
       unavailableMaterialIds: unavailable,
     };
   }
+
+
+
+
 
   async getMaterialDistribution(collectorId: string, period?: string) {
     await this.ensureCollectorExists(collectorId);
@@ -254,6 +259,29 @@ export class CollectorsService {
     };
   }
 
+  async getCustomerStats(collectorId: string) {
+  await this.ensureCollectorExists(collectorId);
+
+  const [uniqueCustomerRows, completedPickups] = await Promise.all([
+    this.prisma.pickup.findMany({
+      where: { collectorUserId: collectorId, requesterUserId: { not: null } },
+      select: { requesterUserId: true },
+      distinct: ['requesterUserId'],
+    }),
+    this.prisma.pickup.findMany({
+      where: { collectorUserId: collectorId, status: PickupStatus.COMPLETED, requesterUserId: { not: null } },
+      select: { requesterUserId: true, actualEarning: true },
+    }),
+  ]);
+
+  const totalUsers = uniqueCustomerRows.length;
+  const totalCollections = completedPickups.length;
+  const totalRevenue = completedPickups.reduce((sum, p) => sum + Number(p.actualEarning), 0);
+  const avgRevenuePerUser = totalUsers > 0 ? totalRevenue / totalUsers : 0;
+
+  return { totalUsers, avgRevenuePerUser, totalCollections };
+}
+
   async getCustomers(collectorId: string, query: CollectorQueryDto) {
     await this.ensureCollectorExists(collectorId);
 
@@ -363,8 +391,7 @@ export class CollectorsService {
     await this.ensureCollectorExists(collectorId);
 
     const { page = 1, limit = 10, keyword } = query;
-    const { skip, take } = getPaginationParams(page, limit);
-
+    const { skip, take } = getPaginationParams(Number(page), Number(limit));
     const userWhere: any = {
       role: 'CUSTOMER',
       pickupsRequested: {
@@ -382,7 +409,7 @@ export class CollectorsService {
       }),
     };
 
-    const [users, total, stats] = await Promise.all([
+    const [users, total] = await Promise.all([
       this.prisma.user.findMany({
         where: userWhere,
         skip,
@@ -413,7 +440,6 @@ export class CollectorsService {
         },
       }),
       this.prisma.user.count({ where: userWhere }),
-      this.getUsersStats(collectorId),
     ]);
 
     const data = users.map((user) => {
@@ -446,9 +472,13 @@ export class CollectorsService {
       };
     });
 
+    const totalPages = Math.ceil(total / limit);
     return {
-      stats,
-      ...paginate(data, total, page, limit),
+      data,
+      total,
+      page,
+      limit,
+      totalPages,
     };
   }
 
@@ -483,24 +513,52 @@ export class CollectorsService {
     const { page = 1, limit = 10, search, status } = query;
     const { skip, take } = getPaginationParams(page, limit);
 
-    const where = {
-      collectorUserId: collectorId,
-      ...(search ? { material: { name: { contains: search, mode: 'insensitive' as const } } } : {}),
-      ...(status ? { status: status as PricingStatus } : {}),
+    const materialWhere = {
+      ...(search ? { name: { contains: search, mode: 'insensitive' as const } } : {}),
     };
 
-    const [pricing, total] = await Promise.all([
-      this.prisma.collectorPricing.findMany({
-        where,
-        include: { material: true },
-        orderBy: { createdAt: 'desc' },
+    // Fetch all platform materials (paginated) + this collector's pricing in parallel
+    const [materials, total, pricings] = await Promise.all([
+      this.prisma.material.findMany({
+        where: materialWhere,
         skip,
         take,
+        orderBy: { createdAt: 'desc' },
+        select: { materialId: true, name: true, type: true, photoUrl: true },
       }),
-      this.prisma.collectorPricing.count({ where }),
+      this.prisma.material.count({ where: materialWhere }),
+      this.prisma.collectorPricing.findMany({
+        where: { collectorUserId: collectorId },
+      }),
     ]);
 
-    return paginate(pricing, total, page, limit);
+    const pricingMap = new Map(pricings.map((p) => [p.materialId, p]));
+
+    // Merge: every material gets the collector's real price (or 0/INACTIVE if not set)
+    const merged = materials.map((material) => {
+      const p = pricingMap.get(material.materialId);
+      return {
+        collectorPricingId: p?.collectorPricingId ?? null,
+        collectorUserId:    collectorId,
+        materialId:         material.materialId,
+        basePrice:          p ? Number(p.basePrice) : 0,
+        bulkPrice:          p?.bulkPrice ? Number(p.bulkPrice) : 0,
+        status:             p?.status ?? 'INACTIVE',
+        createdAt:          p?.createdAt ?? new Date(),
+        updatedAt:          p?.updatedAt ?? new Date(),
+        material: {
+          materialId: material.materialId,
+          name:       material.name,
+          type:       material.type,
+          photoUrl:   material.photoUrl ?? null,
+        },
+      };
+    });
+
+    // Apply optional status filter after merging
+    const filtered = status ? merged.filter((r) => r.status === status) : merged;
+
+    return paginate(filtered, status ? filtered.length : total, page, limit);
   }
 
   async createMaterialPricing(collectorId: string, dto: CreateMaterialPricingDto) {

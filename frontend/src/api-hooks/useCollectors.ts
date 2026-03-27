@@ -25,7 +25,7 @@ export interface MaterialDistribution {
 
 export interface PickupOverviewDay {
   day: string;
-  cuurent: number;
+  current: number;
   previous: number;
 }
 
@@ -62,6 +62,7 @@ export interface PaginatedCustomers {
   data: CollectorCustomer[];
   meta: { total: number; page: number; limit: number; hasNextPage: boolean };
 }
+
 
 export interface CustomerPickup {
   pickupId: string;
@@ -258,7 +259,6 @@ export interface CollectorUsersStats {
 }
 
 export interface CollectorUsersResponse {
-  stats: CollectorUsersStats;
   data: CollectorUser[];
   total: number;
   page: number;
@@ -300,7 +300,7 @@ export const useGetMaterialDistribution = (period?: string) =>
   );
 
 export const useGetCollectorDashboardStats = () =>
-  useGetOne<CollectorStats>(["collectors", "dashboard", "stats"], "/collectors/dashboard/stats");
+  useGetOne<CollectorStats>(["collectors", "stats"], "/collectors/stats");
   
 export const useGetTopLocations = (limit = 3, period?: string) => {
   const params = new URLSearchParams();
@@ -365,6 +365,10 @@ export const useCollectorCustomerDetail = (collectorId: string, customerId: stri
     `/collectors/${collectorId}/customers/${customerId}`,
     { enabled: Boolean(collectorId) && Boolean(customerId) },
   );
+
+  
+
+
 
 export const useCollectorPricing = (query?: { search?: string; status?: string; page?: number; limit?: number }) => {
   const params = new URLSearchParams();
