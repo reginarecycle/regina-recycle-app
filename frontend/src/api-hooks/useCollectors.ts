@@ -2,61 +2,60 @@ import { useGetOne, useGetList, useUpdate } from "@/lib/queryHelpers";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/apiFetch";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 export interface CollectorStats {
-  collectorId:      string;
-  pendingRequests:  number;
+  collectorId: string;
+  pendingRequests: number;
   acceptedRequests: number;
-  totalItems:       number;
-  pendingAmount:    number;
+  totalItems: number;
+  pendingAmount: number;
 }
 
 export interface MaterialDistributionItem {
-  materialId:    string;
-  name:          string;
-  type:          string;
+  materialId: string;
+  name: string;
+  type: string;
   totalQuantity: number;
 }
 
 export interface MaterialDistribution {
   collectorId: string;
-  period:      string;
-  materials:   MaterialDistributionItem[];
+  period: string;
+  materials: MaterialDistributionItem[];
 }
 
 export interface PickupOverviewDay {
-  day:   string;
-  units: number;
+  day: string;
+  current: number;
+  previous: number;
 }
 
 export interface PickupOverview {
   collectorId: string;
-  period:      string;
-  overview:    PickupOverviewDay[];
+  period: string;
+  overview: PickupOverviewDay[];
 }
 
 export interface TopLocation {
   addressId: string;
-  line1:     string;
-  city:      string;
-  province:  string;
-  units:     number;
+  line1: string;
+  city: string;
+  province: string;
+  units: number;
 }
 
 export interface TopLocations {
   collectorId: string;
-  period:      string;
-  data:        TopLocation[];
+  period: string;
+  data: TopLocation[];
 }
 
 export interface CollectorCustomer {
-  customerId:   string;
-  name:         string;
-  email:        string;
-  phoneNumber:  string | null;
+  customerId: string;
+  name: string;
+  email: string;
+  phoneNumber: string | null;
   totalPickups: number;
-  totalUnits:   number;
+  totalUnits: number;
 }
 
 export interface PaginatedCustomers {
@@ -66,39 +65,39 @@ export interface PaginatedCustomers {
 
 
 export interface CustomerPickup {
-  pickupId:    string;
-  status:      string;
+  pickupId: string;
+  status: string;
   scheduledAt: string;
-  address:     { line1: string; city: string; province: string } | null;
-  items:       { materialId: string; quantity: number; material: { name: string } }[];
+  address: { line1: string; city: string; province: string } | null;
+  items: { materialId: string; quantity: number; material: { name: string } }[];
 }
 
 export interface CustomerDetails {
   collectorId: string;
   customer: {
-    userId:      string;
-    name:        string;
-    email:       string;
+    userId: string;
+    name: string;
+    email: string;
     phoneNumber: string | null;
-    addresses:   { addressId: string; line1: string; city: string; province: string }[];
+    addresses: { addressId: string; line1: string; city: string; province: string }[];
   };
   pickups: CustomerPickup[];
 }
 
 export interface MaterialPricing {
   collectorPricingId: string;
-  collectorUserId:    string;
-  materialId:         string;
-  basePrice:          number;
-  bulkPrice:          number | null;
-  status:             string;
-  createdAt:          string;
-  updatedAt:          string;
+  collectorUserId: string;
+  materialId: string;
+  basePrice: number;
+  bulkPrice: number | null;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
   material: {
     materialId: string;
-    name:       string;
-    type:       string;
-    photoUrl:   string | null;
+    name: string;
+    type: string;
+    photoUrl: string | null;
   };
 }
 
@@ -111,102 +110,207 @@ export interface MaterialSettings {
   collectorId: string;
   settings: {
     bulkIncentiveEnabled: boolean;
-    bulkThreshold:        number;
-    serviceFee:           number;
-    feeType:              string;
+    bulkThreshold: number;
+    serviceFee: number;
+    feeType: string;
   } | null;
 }
 
 export interface MaterialPayoutCalculation {
-  collectorId:  string;
-  materialId:   string;
+  collectorId: string;
+  materialId: string;
   materialName: string;
-  quantity:     number;
-  unitPrice:    number;
-  grossPayout:  number;
-  feeType:      string;
-  serviceFee:   number;
-  netPayout:    number;
+  quantity: number;
+  unitPrice: number;
+  grossPayout: number;
+  feeType: string;
+  serviceFee: number;
+  netPayout: number;
 }
 
 export interface UpdateCollectorPayload {
-  name?:                 string;
-  phoneNumber?:          string;
-  licenseId?:            string;
-  serviceFee?:           number;
-  feeType?:              string;
+  name?: string;
+  phoneNumber?: string;
+  licenseId?: string;
+  serviceFee?: number;
+  feeType?: string;
   bulkIncentiveEnabled?: boolean;
-  bulkThreshold?:        number;
+  bulkThreshold?: number;
 }
 
 export interface UpdateMaterialSettingsPayload {
   bulkIncentiveEnabled?: boolean;
-  bulkThreshold?:        number;
-  serviceFee?:           number;
-  feeType?:              string;
+  bulkThreshold?: number;
+  serviceFee?: number;
+  feeType?: string;
 }
 
 export interface UpdateMaterialPricingPayload {
   basePrice?: number;
   bulkPrice?: number;
-  status?:    string;
+  status?: string;
 }
 
 export interface CreateMaterialPricingPayload {
   materialId: string;
-  basePrice:  number;
+  basePrice: number;
   bulkPrice?: number;
-  status?:    string;
+  status?: string;
 }
 
-// ─── NEW: Collector Users types ───────────────────────────────────────────────
+export interface PickupItemMaterial {
+  materialId: string;
+  name: string;
+  type: string;
+}
+
+export interface PickupRequestItem {
+  materialId: string;
+  quantity: number;
+  unitPrice?: number;
+  material?: PickupItemMaterial;
+}
+
+export interface PickupSnapshot {
+  materialId: string;
+  quantity: number;
+  priceUsed: number;
+  material?: PickupItemMaterial;
+}
+
+export interface PickupRequester {
+  userId: string;
+  name: string;
+  email: string;
+  phoneNumber?: string;
+}
+
+export interface PickupAddress {
+  line1: string;
+  line2?: string;
+  city?: string;
+  province?: string;
+  postalCode?: string;
+}
+
+export interface CollectorPickup {
+  pickupId: string;
+  requestNumber?: string;
+  status: 'PENDING' | 'ACCEPTED' | 'COMPLETED' | 'CANCELLED';
+  scheduledAt: string;
+  estimatedCost?: number | string;
+  estimatedEarning?: number | string;
+  actualEarning?: number | string;
+  note?: string;
+  isCompatible?: boolean;
+  requester?: PickupRequester;
+  address?: PickupAddress;
+  items?: PickupRequestItem[];
+  snapshots?: PickupSnapshot[];
+}
+
+export interface CollectorPickupsPaginated {
+  data: CollectorPickup[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+}
+
+export type PaginatedPickups = CollectorPickupsPaginated;
+
+export interface CollectorPickupsQuery {
+  status?: 'PENDING' | 'ACCEPTED' | 'COMPLETED' | 'CANCELLED';
+  search?: string;
+  page?: number;
+  limit?: number;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface CollectorPickupStats {
+  pendingRequests: number;
+  acceptedRequests: number;
+  potentialRevenue: number;
+}
+
 
 export interface CollectorUser {
-  customerId:     string;
-  name:           string;
-  email:          string;
-  phone:          string | null;
-  neighborhood:   string;
-  status:         string;
-  collections:    number;
-  revenue:        number;
-  avgPerOrder:    number;
+  customerId: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  neighborhood: string;
+  status: string;
+  collections: number;
+  revenue: number;
+  avgPerOrder: number;
   collectedItems: string[];
 }
 
 export interface CollectorUsersStats {
-  totalUsers:        number;
+  totalUsers: number;
   avgRevenuePerUser: number;
-  totalCollection:   number;
+  totalCollection: number;
 }
 
 export interface CollectorUsersResponse {
-  stats:      CollectorUsersStats;
-  data:       CollectorUser[];
-  total:      number;
-  page:       number;
-  limit:      number;
+  data: CollectorUser[];
+  total: number;
+  page: number;
+  limit: number;
   totalPages: number;
 }
 
-// ─── Query keys ───────────────────────────────────────────────────────────────
-
 export const collectorKeys = {
-  stats:                ()                                => ['collectors', 'stats']                          as const,
-  materialDistribution: (period?: string)                 => ['collectors', 'material-distribution', period]  as const,
-  pickupOverview:       ()                                => ['collectors', 'pickup-overview']                 as const,
-  pickups:              (query?: object)                  => ['collectors', 'pickups', query ?? {}]            as const,
-  topLocations:         (limit?: number, period?: string) => ['collectors', 'top-locations', limit, period]   as const,
-  customers:            (query?: object)                  => ['collectors', 'customers', query ?? {}]          as const,
-  customerDetail:       (id: string)                      => ['collectors', 'customers', id]                  as const,
-  pricing:              (query?: object)                  => ['collectors', 'pricing', query ?? {}]            as const,
-  pricingSettings:      ()                                => ['collectors', 'pricing-settings']                as const,
-  payoutCalculation:    (materialId: string, qty: number) => ['collectors', 'payout', materialId, qty]        as const,
-  users:                (id: string, query?: object)      => ['collectors', id, 'users', query ?? {}]         as const,
-  usersStats:           (id: string)                      => ['collectors', id, 'users', 'stats']             as const,
+  stats: () => ['collectors', 'stats'] as const,
+  materialDistribution: (period?: string) => ['collectors', 'material-distribution', period] as const,
+  pickupOverview: () => ['collectors', 'pickup-overview'] as const,
+  pickups: (query?: object) => ['collectors', 'pickups', query ?? {}] as const,
+  topLocations: (limit?: number, period?: string) => ['collectors', 'top-locations', limit, period] as const,
+  customers: (query?: object) => ['collectors', 'customers', query ?? {}] as const,
+  customerDetail: (id: string) => ['collectors', 'customers', id] as const,
+  pricing: (query?: object) => ['collectors', 'pricing', query ?? {}] as const,
+  pricingSettings: () => ['collectors', 'pricing-settings'] as const,
+  payoutCalculation: (materialId: string, qty: number) => ['collectors', 'payout', materialId, qty] as const,
+  users: (id: string, query?: object) => ['collectors', id, 'users', query ?? {}] as const,
+  usersStats: (id: string) => ['collectors', id, 'users', 'stats'] as const,
 };
 
-// ─── Hooks ────────────────────────────────────────────────────────────────────
+export const pickupRequestKeys = {
+  all: () => ['pickups', 'collector'] as const,
+  list: (q?: object) => ['pickups', 'collector', 'list', q ?? {}] as const,
+  stats: () => ['pickups', 'collector', 'stats'] as const,
+};
+
+export const useGetCollectorStats = () =>
+  useGetOne<CollectorStats>(["collectors", "stats"], "/collectors/stats");
+
+export const useGetPickupOverview = () =>
+  useGetOne<PickupOverview>(["collectors", "pickup-overview"], "/collectors/pickup-overview");
+
+export const useGetMaterialDistribution = (period?: string) =>
+  useGetOne<MaterialDistribution>(
+    ["collectors", "material-distribution", period ?? "all"],
+    period ? `/collectors/material-distribution?period=${period}` : "/collectors/material-distribution"
+  );
+
+export const useGetCollectorDashboardStats = () =>
+  useGetOne<CollectorStats>(["collectors", "stats"], "/collectors/stats");
+  
+export const useGetTopLocations = (limit = 3, period?: string) => {
+  const params = new URLSearchParams();
+  params.append("limit", String(limit));
+  if (period) params.append("period", period);
+  return useGetOne<TopLocations>(
+    ["collectors", "top-locations", limit, period ?? "all"],
+    `/collectors/top-locations?${params.toString()}`
+  );
+};
 
 export const useCollectorStats = () =>
   useGetOne<CollectorStats>(collectorKeys.stats(), '/collectors/stats');
@@ -223,8 +327,8 @@ export const useCollectorPickupOverview = () =>
 export const useCollectorPickups = (query?: { status?: string; page?: number; limit?: number }) => {
   const params = new URLSearchParams();
   if (query?.status) params.append('status', query.status);
-  if (query?.page)   params.append('page',   String(query.page));
-  if (query?.limit)  params.append('limit',  String(query.limit));
+  if (query?.page) params.append('page', String(query.page));
+  if (query?.limit) params.append('limit', String(query.limit));
   const qs = params.toString();
   return useGetList<CollectorCustomer>(
     collectorKeys.pickups(query),
@@ -234,7 +338,7 @@ export const useCollectorPickups = (query?: { status?: string; page?: number; li
 
 export const useCollectorTopLocations = (limit?: number, period?: string) => {
   const params = new URLSearchParams();
-  if (limit)  params.append('limit',  String(limit));
+  if (limit) params.append('limit', String(limit));
   if (period) params.append('period', period);
   const qs = params.toString();
   return useGetOne<TopLocations>(
@@ -246,8 +350,8 @@ export const useCollectorTopLocations = (limit?: number, period?: string) => {
 export const useCollectorCustomers = (query?: { search?: string; page?: number; limit?: number }) => {
   const params = new URLSearchParams();
   if (query?.search) params.append('search', query.search);
-  if (query?.page)   params.append('page',   String(query.page));
-  if (query?.limit)  params.append('limit',  String(query.limit));
+  if (query?.page) params.append('page', String(query.page));
+  if (query?.limit) params.append('limit', String(query.limit));
   const qs = params.toString();
   return useGetOne<PaginatedCustomers>(
     collectorKeys.customers(query),
@@ -270,8 +374,8 @@ export const useCollectorPricing = (query?: { search?: string; status?: string; 
   const params = new URLSearchParams();
   if (query?.search) params.append('search', query.search);
   if (query?.status) params.append('status', query.status);
-  if (query?.page)   params.append('page',   String(query.page));
-  if (query?.limit)  params.append('limit',  String(query.limit));
+  if (query?.page) params.append('page', String(query.page));
+  if (query?.limit) params.append('limit', String(query.limit));
   const qs = params.toString();
   return useGetOne<PaginatedPricing>(
     collectorKeys.pricing(query),
@@ -307,16 +411,14 @@ export const useUpdateMaterialPricing = () =>
     collectorKeys.pricing(),
   );
 
-// ─── NEW: Collector Users hooks ───────────────────────────────────────────────
-
 export const useCollectorUsers = (
   collectorId: string,
   query?: { keyword?: string; page?: number; limit?: number },
 ) => {
   const params = new URLSearchParams();
   if (query?.keyword) params.append('keyword', query.keyword);
-  if (query?.page)    params.append('page',    String(query.page));
-  if (query?.limit)   params.append('limit',   String(query.limit));
+  if (query?.page) params.append('page', String(query.page));
+  if (query?.limit) params.append('limit', String(query.limit));
   const qs = params.toString();
   return useGetOne<CollectorUsersResponse>(
     collectorKeys.users(collectorId, query),
@@ -332,105 +434,17 @@ export const useCollectorUsersStats = (collectorId: string) =>
     { enabled: Boolean(collectorId) },
   );
 
-// ─── Collector Pickup Requests ────────────────────────────────────────────────
-
-export interface PickupItemMaterial {
-  materialId: string;
-  name:       string;
-  type:       string;
-}
-
-export interface PickupRequestItem {
-  materialId: string;
-  quantity:   number;
-  unitPrice?: number;
-  material?:  PickupItemMaterial;
-}
-
-export interface PickupSnapshot {
-  materialId: string;
-  quantity:   number;
-  priceUsed:  number;
-  material?:  PickupItemMaterial;
-}
-
-export interface PickupRequester {
-  userId:       string;
-  name:         string;
-  email:        string;
-  phoneNumber?: string;
-}
-
-export interface PickupAddress {
-  line1:       string;
-  line2?:      string;
-  city?:       string;
-  province?:   string;
-  postalCode?: string;
-}
-
-export interface CollectorPickup {
-  pickupId:          string;
-  requestNumber?:    string;
-  status:            'PENDING' | 'ACCEPTED' | 'COMPLETED' | 'CANCELLED';
-  scheduledAt:       string;
-  /** Customer's estimated payout — always set on creation */
-  estimatedCost?:    number | string;
-  /** Collector's net earning after service fee — set on acceptance */
-  estimatedEarning?: number | string;
-  actualEarning?:    number | string;
-  note?:             string;
-  isCompatible?:     boolean;
-  requester?:        PickupRequester;
-  address?:          PickupAddress;
-  items?:            PickupRequestItem[];
-  snapshots?:        PickupSnapshot[];
-}
-
-export interface CollectorPickupsPaginated {
-  data: CollectorPickup[];
-  meta: {
-    total:          number;
-    page:           number;
-    limit:          number;
-    totalPages:     number;
-    hasNextPage:    boolean;
-    hasPreviousPage: boolean;
-  };
-}
-
-export interface CollectorPickupsQuery {
-  status?:    'PENDING' | 'ACCEPTED' | 'COMPLETED' | 'CANCELLED';
-  search?:    string;
-  page?:      number;
-  limit?:     number;
-  startDate?: string;
-  endDate?:   string;
-}
-
-export interface CollectorPickupStats {
-  pendingRequests:  number;
-  acceptedRequests: number;
-  potentialRevenue: number;
-}
-
-export const pickupRequestKeys = {
-  all:   ()              => ['pickups', 'collector']                    as const,
-  list:  (q?: object)   => ['pickups', 'collector', 'list', q ?? {}]   as const,
-  stats: ()             => ['pickups', 'collector', 'stats']           as const,
-};
-
 export const useGetCollectorPickupStats = () =>
   useGetOne<CollectorPickupStats>(pickupRequestKeys.stats(), '/pickups/collector/stats');
 
 export const useGetCollectorPickupRequests = (query?: CollectorPickupsQuery, enabled = true) => {
   const params = new URLSearchParams();
-  if (query?.status)    params.append('status',    query.status);
-  if (query?.search)    params.append('search',    query.search);
-  if (query?.page)      params.append('page',      String(query.page));
-  if (query?.limit)     params.append('limit',     String(query.limit));
+  if (query?.status) params.append('status', query.status);
+  if (query?.search) params.append('search', query.search);
+  if (query?.page) params.append('page', String(query.page));
+  if (query?.limit) params.append('limit', String(query.limit));
   if (query?.startDate) params.append('startDate', query.startDate);
-  if (query?.endDate)   params.append('endDate',   query.endDate);
+  if (query?.endDate) params.append('endDate', query.endDate);
   const qs = params.toString();
   return useGetOne<CollectorPickupsPaginated>(
     pickupRequestKeys.list(query),
@@ -477,4 +491,3 @@ export const useCancelPickupByCollector = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: pickupRequestKeys.all() }),
   });
 };
-

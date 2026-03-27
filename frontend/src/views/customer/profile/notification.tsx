@@ -5,7 +5,7 @@ import { NOTIFICATION_SECTIONS } from '@/constants/data'
 import { Separator } from '@/components/ui/separator'
 
 const Notification = () => {
-  const { prefs, changed, handleToggle, handleSave } = useNotificationPrefs();
+  const { prefs, changed, handleToggle, handleSave, isSaving } = useNotificationPrefs();
 
   return (
     <section className="mt-0 p-8">
@@ -19,6 +19,7 @@ const Notification = () => {
               onToggle={handleToggle}
               changed={i === 0 ? changed : undefined}
               onSave={i === 0 ? handleSave : undefined}
+              isSaving={i === 0 ? isSaving : undefined}
             />
           </Fragment>
         ))}

@@ -10,6 +10,7 @@ interface NotificationSectionProps {
   onToggle: (key: NotificationKey) => void;
   changed?: boolean;
   onSave?: () => void;
+  isSaving?: boolean;
 }
 
 export function NotificationSection({
@@ -18,6 +19,7 @@ export function NotificationSection({
   onToggle,
   changed,
   onSave,
+  isSaving,
 }: NotificationSectionProps) {
   return (
     <div>
@@ -30,9 +32,13 @@ export function NotificationSection({
           <Button
             className="w-full sm:w-[174px] h-11 min-w-0 bg-primary hover:bg-primary/90 disabled:opacity-60"
             onClick={onSave}
-            disabled={!changed}
+            disabled={!changed || isSaving}
           >
-            {section.saveLabel ?? "Update Preferences"}
+            {isSaving ? (
+            <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              ) : (
+            section.saveLabel ?? "Update Preferences"
+              )}
           </Button>
         )}
       </div>

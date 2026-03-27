@@ -35,6 +35,16 @@ type CurrentUserPayload = {
 export class CollectorsController {
   constructor(private readonly collectorsService: CollectorsService) { }
 
+  // ─── Non-parameterized routes FIRST ──────────────────────────────────────
+
+  @Get('dashboard/stats')
+  @ApiOperation({ summary: 'Get dashboard stats for the authenticated collector' })
+  @ApiBearerAuth()
+  @Auth('COLLECTOR')
+  getDashboardStats(@Request() req: any) {
+    return this.collectorsService.getDashboardStats(req.user.userId);
+  }
+
   @Get('available-for-materials')
   @Auth()
   @ApiOperation({ summary: 'Check if collectors are available for given materials' })
@@ -89,17 +99,56 @@ export class CollectorsController {
     return this.collectorsService.getPricing(req.user.userId, query);
   }
 
+  @Get('stats')
+  @ApiOperation({ summary: 'Get stats for the authenticated collector' })
+  @ApiBearerAuth()
+  @Auth('COLLECTOR')
+  getStats(@Request() req: any) {
+    return this.collectorsService.getStats(req.user.userId);
+  }
+
+  @Get('pickup-overview')
+  @ApiOperation({ summary: 'Get weekly pickup overview for the authenticated collector' })
+  @ApiBearerAuth()
+  @Auth('COLLECTOR')
+  getPickupOverview(@Request() req: any) {
+    return this.collectorsService.getPickupOverview(req.user.userId);
+  }
+
+  @Get('material-distribution')
+  @ApiOperation({ summary: 'Get material distribution for the authenticated collector' })
+  @ApiBearerAuth()
+  @Auth('COLLECTOR')
+  getMaterialDistributionMe(
+    @Request() req: any,
+    @Query('period') period?: string,
+  ) {
+    return this.collectorsService.getMaterialDistribution(req.user.userId, period);
+  }
+
+  @Get('top-locations')
+  @ApiOperation({ summary: 'Get top locations for the authenticated collector' })
+  @ApiBearerAuth()
+  @Auth('COLLECTOR')
+  getTopLocationsMe(
+    @Request() req: any,
+    @Query('limit') limit?: number,
+    @Query('period') period?: string,
+  ) {
+    return this.collectorsService.getTopLocations(req.user.userId, limit, period);
+  }
+
   @Get(':collectorId/stats')
-  @ApiOperation({ summary: 'Get collector stats' })
+  @ApiOperation({ summary: 'Get collector stats by ID' })
   @ApiParam({ name: 'collectorId', type: String })
-  async getStats(@Param('collectorId') collectorId: string) {
+  async getStatsByCollectorId(@Param('collectorId') collectorId: string) {
     return this.collectorsService.getStats(collectorId);
   }
 
   @Get(':collectorId/pickups')
   @ApiOperation({ summary: 'Get pickups for a collector' })
   @ApiParam({ name: 'collectorId', type: String })
-  async getPickups(
+  async getPickupsByCollectorId(
     @Param('collectorId') collectorId: string,
     @Query() query: PickupQueryDto,
   ) {
@@ -159,7 +208,7 @@ export class CollectorsController {
   @Get(':collectorId/pickup-overview')
   @ApiOperation({ summary: 'Get weekly pickup overview for a collector' })
   @ApiParam({ name: 'collectorId', type: String })
-  async getPickupOverview(@Param('collectorId') collectorId: string) {
+  async getPickupOverviewByCollectorId(@Param('collectorId') collectorId: string) {
     return this.collectorsService.getPickupOverview(collectorId);
   }
 

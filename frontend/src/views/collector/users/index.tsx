@@ -1,10 +1,13 @@
 import { useState } from "react";
-import {
-  Search, ListFilter, Box, TrendingUp, Calendar,
-  MapPin, Phone, Mail,
-} from "lucide-react";
+import { Calendar, MapPin, Phone, Mail } from "lucide-react";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
-import { Input } from "@/components/ui/input";
+import { StatsCards, type StatItem } from "@/components/requests/stats-cards";
+import {
+  DataTableHeaderControls,
+  DEFAULT_TABLE_FILTERS,
+  type TableFilterState,
+  type StatusOption,
+} from "@/components/ui/data-table-header-controls";
 import {
   useCollectorUsers,
   useCollectorUsersStats,
@@ -14,9 +17,15 @@ import type { CollectorUser } from "@/api-hooks/useCollectors.ts";
 import { useCurrentUser } from "@/api-hooks/useAuth.ts";
 import { formatCurrency } from "@/lib/utils";
 
-// ─── Status badge ─────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type UserStatus = "ACTIVE" | "INACTIVE" | "NEW";
+
+const STATUS_OPTIONS: StatusOption<string>[] = [
+  { key: "ACTIVE",   label: "Active"   },
+  { key: "INACTIVE", label: "Inactive" },
+  { key: "NEW",      label: "New"      },
+];
 
 const statusClasses: Record<UserStatus, string> = {
   ACTIVE:   "bg-[#DCFCE7] text-[#16A34A]",
@@ -29,7 +38,7 @@ const statusClasses: Record<UserStatus, string> = {
 const Avatar = ({ name }: { name: string }) => {
   const initials = name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
   return (
-    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#5E7D68] text-[10px] font-semibold text-white shrink-0">
+    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#5E7D68] text-[11px] font-semibold text-white shrink-0">
       {initials}
     </div>
   );
@@ -52,13 +61,15 @@ const CustomerModal = ({
   const detail = result?.data;
 
   const completedPickups = detail?.pickups.filter((p) => p.status === "COMPLETED") ?? [];
-  const totalRevenue     = completedPickups.reduce((sum: number, p) =>
-    sum + (p.items?.reduce((s: number, i) => s + i.quantity, 0) ?? 0), 0);
-  const avgOrder         = completedPickups.length > 0 ? totalRevenue / completedPickups.length : 0;
+  const totalRevenue = completedPickups.reduce(
+    (sum: number, p) => sum + (p.items?.reduce((s: number, i) => s + i.quantity, 0) ?? 0),
+    0,
+  );
+  const avgOrder = completedPickups.length > 0 ? totalRevenue / completedPickups.length : 0;
 
   const materials = [
     ...new Set(
-      detail?.pickups.flatMap((p) => p.items?.map((i) => i.material?.name ?? "") ?? []) ?? []
+      detail?.pickups.flatMap((p) => p.items?.map((i) => i.material?.name ?? "") ?? []) ?? [],
     ),
   ].filter(Boolean);
 
@@ -186,19 +197,16 @@ const CustomerModal = ({
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function CollectorUsersPage() {
-  const [search,         setSearch]         = useState("");
-  const [statusFilter,   setStatusFilter]   = useState<"ALL" | "ACTIVE" | "INACTIVE" | "NEW">("ALL");
-  const [showFilterMenu, setShowFilterMenu] = useState(false);
-  const [selectedId,     setSelectedId]     = useState<string | null>(null);
-  const [currentPage,    setCurrentPage]    = useState(1);
+  const [filters,     setFilters]     = useState<TableFilterState<string>>(DEFAULT_TABLE_FILTERS);
+  const [search,      setSearch]      = useState("");
+  const [selectedId,  setSelectedId]  = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const PAGE_SIZE = 8;
+  const PAGE_SIZE = 10;
 
-  // ── Get collector ID from auth ─────────────────────────────────────────────
   const { data: currentUser } = useCurrentUser();
   const collectorId = currentUser?.data?.userId ?? "";
 
-  // ── API calls ──────────────────────────────────────────────────────────────
   const { data: usersResult, isLoading } = useCollectorUsers(collectorId, {
     keyword: search || undefined,
     page:    currentPage,
@@ -211,17 +219,16 @@ export default function CollectorUsersPage() {
   const totalPages = usersResult?.data?.totalPages ?? 1;
   const totalItems = usersResult?.data?.total      ?? 0;
 
-  // ── Stats ──────────────────────────────────────────────────────────────────
   const totalUsers       = statsResult?.data?.totalUsers        ?? 0;
   const avgRevenue       = statsResult?.data?.avgRevenuePerUser ?? 0;
   const totalCollections = statsResult?.data?.totalCollection   ?? 0;
 
-  // ── Filter by status client-side ───────────────────────────────────────────
-  const filtered = statusFilter === "ALL"
-    ? customers
-    : customers.filter((c) => c.status === statusFilter);
+  // Client-side status filter
+  const activeStatus = filters.statuses[0] as UserStatus | undefined;
+  const filtered = activeStatus
+    ? customers.filter((c) => c.status === activeStatus)
+    : customers;
 
-  // ── Table columns ──────────────────────────────────────────────────────────
   const columns: ColumnDef<CollectorUser>[] = [
     {
       key: "name",
@@ -230,8 +237,8 @@ export default function CollectorUsersPage() {
         <div className="flex items-center gap-3">
           <Avatar name={c.name} />
           <div>
-            <p className="text-[12px] font-medium leading-[18px] text-[#111827]">{c.name}</p>
-            <p className="mt-[1px] text-[11px] text-[#999CA0] truncate max-w-[160px]">
+            <p className="text-[13px] font-semibold text-[#111827]">{c.name}</p>
+            <p className="mt-[2px] text-[12px] text-[#999CA0] truncate max-w-[180px]">
               {c.neighborhood || c.email}
             </p>
           </div>
@@ -242,9 +249,9 @@ export default function CollectorUsersPage() {
       key: "phone",
       header: "Contact",
       cell: (c) => (
-        <div className="space-y-[1px]">
-          <p className="text-[12px] leading-[18px] text-[#111827]">{c.phone ?? "—"}</p>
-          <p className="text-[10px] leading-[18px] text-[#999CA0] truncate max-w-[160px]">{c.email}</p>
+        <div className="space-y-[2px]">
+          <p className="text-[13px] text-[#111827]">{c.phone ?? "—"}</p>
+          <p className="text-[12px] text-[#999CA0] truncate max-w-[180px]">{c.email}</p>
         </div>
       ),
     },
@@ -254,7 +261,7 @@ export default function CollectorUsersPage() {
       cell: (c) => {
         const s = (c.status as UserStatus) in statusClasses ? (c.status as UserStatus) : "ACTIVE";
         return (
-          <span className={`inline-flex h-[18px] w-[76px] items-center justify-center rounded-[34px] px-2 text-[10px] font-bold uppercase leading-[18px] ${statusClasses[s]}`}>
+          <span className={`inline-flex h-[22px] w-[80px] items-center justify-center rounded-full px-2 text-[11px] font-bold uppercase ${statusClasses[s]}`}>
             {s}
           </span>
         );
@@ -264,7 +271,14 @@ export default function CollectorUsersPage() {
       key: "collections",
       header: "Collections",
       cell: (c) => (
-        <span className="text-[11px] font-medium text-[#16A34A]">
+        <span className="text-[13px] font-semibold text-[#111827]">{c.collections}</span>
+      ),
+    },
+    {
+      key: "revenue",
+      header: "Revenue",
+      cell: (c) => (
+        <span className="text-[13px] font-semibold text-[#16A34A]">
           {formatCurrency(c.revenue, "CAD")}
         </span>
       ),
@@ -276,7 +290,7 @@ export default function CollectorUsersPage() {
         <button
           type="button"
           onClick={() => setSelectedId(c.customerId)}
-          className="text-[11px] font-semibold text-[#111827] hover:text-primary transition-colors"
+          className="text-[13px] font-semibold text-[#344E41] hover:text-primary transition-colors"
         >
           View More
         </button>
@@ -285,109 +299,46 @@ export default function CollectorUsersPage() {
   ];
 
   return (
-    <div className="space-y-4 p-4 lg:p-6">
+    <div className="h-full flex flex-col overflow-auto">
 
       {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-[8px] border border-[#E5E7EB] bg-white px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-[#DCFCE7]">
-              <Box size={16} className="text-[#22C55E]" />
-            </div>
-            <div>
-              <p className="text-[10px] font-medium uppercase text-[#9CA3AF]">Total Users</p>
-              <div className="mt-1 flex items-baseline gap-2">
-                <span className="text-[32px] font-semibold leading-none text-[#22C55E]">{totalUsers}</span>
-                <span className="text-[10px] uppercase text-[#9CA3AF]">Users</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-[8px] border border-[#E5E7EB] bg-white px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-[#FEF3C7]">
-              <TrendingUp size={16} className="text-[#F59E0B]" />
-            </div>
-            <div>
-              <p className="text-[10px] font-medium uppercase text-[#9CA3AF]">Avg Revenue/User</p>
-              <div className="mt-1 flex items-baseline gap-2">
-                <span className="text-[32px] font-semibold leading-none text-[#F59E0B]">
-                  {formatCurrency(avgRevenue, "CAD", false)}
-                </span>
-                <span className="text-[10px] uppercase text-[#9CA3AF]">Per Customer</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-[8px] border border-[#E5E7EB] bg-white px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-[#F3E8FF]">
-              <Calendar size={16} className="text-[#A855F7]" />
-            </div>
-            <div>
-              <p className="text-[10px] font-medium uppercase text-[#9CA3AF]">Total Collection</p>
-              <div className="mt-1 flex items-baseline gap-2">
-                <span className="text-[32px] font-semibold leading-none text-[#A855F7]">{totalCollections}</span>
-                <span className="text-[10px] uppercase text-[#9CA3AF]">Completed</span>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="pt-6 px-6 pb-4 shrink-0">
+        <StatsCards items={[
+          { title: "TOTAL USERS",        data: totalUsers,       color: "green",  unit: "Users"     },
+          { title: "AVG REVENUE / USER", data: avgRevenue,       color: "blue",   currency: "$"     },
+          { title: "TOTAL COLLECTIONS",  data: totalCollections, color: "yellow", unit: "Completed" },
+        ] satisfies StatItem[]} />
       </div>
 
       {/* Table */}
-      <DataTable
-        data={filtered}
-        columns={columns}
-        rowKey={(item) => item.customerId}
-        title="Customers"
-        emptyText={isLoading ? "Loading..." : "No customers found"}
-        page={currentPage}
-        totalPages={totalPages}
-        totalItems={totalItems}
-        pageSize={PAGE_SIZE}
-        onPageChange={setCurrentPage}
-        headerRight={
-          <div className="flex items-center gap-2">
-            <div className="relative w-[210px]">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-              <Input
-                value={search}
-                onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
-                placeholder="Search for customer name"
-                className="h-8 border-[#E5E7EB] pl-9 text-[11px] placeholder:text-[11px]"
-              />
-            </div>
-
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowFilterMenu((p) => !p)}
-                className={`flex h-8 w-8 items-center justify-center rounded-full border bg-white ${statusFilter !== "ALL" ? "border-primary text-primary" : "border-[#E5E7EB]"}`}
-              >
-                <ListFilter size={16} />
-              </button>
-
-              {showFilterMenu && (
-                <div className="absolute right-0 top-9 z-20 w-[140px] rounded-[8px] border border-[#E5E7EB] bg-white shadow-md">
-                  {(["ALL", "ACTIVE", "INACTIVE", "NEW"] as const).map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => { setStatusFilter(s); setShowFilterMenu(false); setCurrentPage(1); }}
-                      className={`w-full px-4 py-2 text-left text-[12px] hover:bg-muted ${statusFilter === s ? "font-semibold text-primary" : "text-[#111827]"}`}
-                    >
-                      {s === "ALL" ? "All Statuses" : s}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        }
-      />
+      <div className="flex-1 px-6 pb-6 min-h-0">
+        <DataTable
+          data={filtered}
+          columns={columns}
+          rowKey={(item) => item.customerId}
+          title="Customers"
+          isLoading={isLoading}
+          emptyText="No customers found"
+          page={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={PAGE_SIZE}
+          onPageChange={(p) => { setCurrentPage(p); }}
+          className="h-full"
+          headerRight={
+            <DataTableHeaderControls
+              search={search}
+              onSearchChange={(v) => { setSearch(v); setCurrentPage(1); }}
+              searchPlaceholder="Search customer name..."
+              filters={filters}
+              onFiltersChange={(f) => { setFilters(f); setCurrentPage(1); }}
+              statusOptions={STATUS_OPTIONS}
+              showDateRange={false}
+              stretch
+            />
+          }
+        />
+      </div>
 
       {/* Detail Modal */}
       {selectedId && (
