@@ -59,23 +59,30 @@ export class PickupsController {
   }
 
   @ApiOperation({ summary: 'Get all pickups for logged in user' })
-@Get()
-@Auth('CUSTOMER')
-getUserPickups(@Request() req, @Query() query: PickupQueryDto) {
-  return this.pickupsService.findAll(req.user.userId, query);
-}
+  @Get()
+  @Auth('CUSTOMER')
+  getUserPickups(@Request() req, @Query() query: PickupQueryDto) {
+    return this.pickupsService.findAll(req.user.userId, query);
+  }
+
+  @ApiOperation({ summary: 'Get all pickup requests (collector)' })
+  @Get('requests')
+  @Auth('COLLECTOR')
+  getRequests(@Query() query: PickupQueryDto) {
+    return this.pickupsService.getRequests(query);
+  }
 
   @ApiOperation({ summary: 'Request-level stats for logged-in collector' })
   @Get('collector/stats')
   @Auth('COLLECTOR')
-  getCollectorPickupStats(@Request() req) {
+  getCollectorPickupStats(@Request() req: any) {
     return this.pickupsService.getCollectorPickupStats(req.user.userId);
   }
 
   @ApiOperation({ summary: 'Get pickup requests for logged-in collector' })
   @Get('collector')
   @Auth('COLLECTOR')
-  getCollectorPickups(@Request() req, @Query() query: PickupQueryDto) {
+  getCollectorPickups(@Request() req: any, @Query() query: PickupQueryDto) {
     return this.pickupsService.getCollectorPickups(req.user.userId, query);
   }
 
