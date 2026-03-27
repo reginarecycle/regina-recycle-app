@@ -8,7 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreatePickupDto } from './dto/create-pickup.dto';
 import { UpdatePickupDto } from './dto/update-pickup.dto';
 import { NotificationGatewayService } from '../notifications/notifications.gateway.service';
-import { PickupQueryDto } from './dto/pickup-query.dto';
+import { PickupQueryDto, PickupStatus } from './dto/pickup-query.dto';
 import { paginate, getPaginationParams } from '../common/pagination/pagination-helper';
 
 @Injectable()
@@ -162,8 +162,105 @@ export class PickupsService {
 }
 
 
+  // COLLECTOR: Get pickups scoped to the logged-in collector (with isCompatible)
+  async getCollectorPickups(collectorId: string, query: PickupQueryDto) {
+    const { page = 1, limit = 10, search, status, startDate, endDate } = query;
+    const { skip, take } = getPaginationParams(page, limit);
+
+    const validStatus = status && Object.values(PickupStatus).includes(status as PickupStatus)
+      ? (status as PickupStatus)
+      : undefined;
+
+    // PENDING = unassigned pickups this collector hasn't rejected
+    // ACCEPTED/COMPLETED/CANCELLED = pickups assigned to this collector
+    const where: any = validStatus === PickupStatus.PENDING
+      ? { status: PickupStatus.PENDING, collectorUserId: null, rejections: { none: { collectorId } } }
+      : { collectorUserId: collectorId, ...(validStatus ? { status: validStatus } : {}) };
+
+    if (startDate || endDate) {
+      where.scheduledAt = {
+        ...(startDate && { gte: new Date(startDate) }),
+        ...(endDate && { lte: new Date(endDate) }),
+      };
+    }
+
+    if (search) {
+      where.OR = [
+        { requester: { name: { contains: search, mode: 'insensitive' } } },
+        { address: { line1: { contains: search, mode: 'insensitive' } } },
+      ];
+    }
+
+    const [pickups, total] = await Promise.all([
+      this.prisma.pickup.findMany({
+        where,
+        include: {
+          requester: { select: { userId: true, name: true, email: true, phoneNumber: true } },
+          address: true,
+          items: { include: { material: true } },
+          snapshots: { include: { material: true } },
+        },
+        orderBy: { scheduledAt: 'asc' },
+        skip,
+        take,
+      }),
+      this.prisma.pickup.count({ where }),
+    ]);
+
+    // Compute isCompatible: all materials in the pickup have ACTIVE pricing for this collector
+    const allMaterialIds = [...new Set(pickups.flatMap((p) => p.items.map((i) => i.materialId)))];
+    const activePricingIds = allMaterialIds.length > 0
+      ? new Set(
+          (await this.prisma.collectorPricing.findMany({
+            where: { collectorUserId: collectorId, materialId: { in: allMaterialIds }, status: 'ACTIVE' },
+            select: { materialId: true },
+          })).map((p) => p.materialId),
+        )
+      : new Set<string>();
+
+    const result = pickups.map((p) => ({
+      ...p,
+      isCompatible: p.items.every((i) => activePricingIds.has(i.materialId)),
+    }));
+
+    return paginate(result, total, page, limit);
+  }
+
+  // COLLECTOR: Stats for the logged-in collector
+  async getCollectorPickupStats(collectorId: string) {
+    const [pending, accepted, acceptedRevenueAgg, collectorProfile] = await Promise.all([
+      this.prisma.pickup.count({
+        where: {
+          status: PickupStatus.PENDING,
+          collectorUserId: null,
+          rejections: { none: { collectorId } },
+        },
+      }),
+      this.prisma.pickup.count({
+        where: { collectorUserId: collectorId, status: PickupStatus.ACCEPTED },
+      }),
+      this.prisma.pickup.aggregate({
+        where: { collectorUserId: collectorId, status: PickupStatus.ACCEPTED },
+        _sum: { estimatedEarning: true },
+      }),
+      this.prisma.collectorProfile.findUnique({
+        where: { userId: collectorId },
+        select: { serviceFee: true, feeType: true },
+      }),
+    ]);
+
+    const grossAccepted = Number(acceptedRevenueAgg._sum.estimatedEarning ?? 0);
+    const rawFee  = Number(collectorProfile?.serviceFee ?? 0);
+    const feeType = collectorProfile?.feeType ?? 'PERCENTAGE';
+    const potentialRevenue = feeType === 'PERCENTAGE'
+      ? grossAccepted * (rawFee / 100)
+      : accepted * rawFee;
+
+    return { pendingRequests: pending, acceptedRequests: accepted, potentialRevenue };
+  }
+
   // USER: Get all their own pickups
- async findAll(requesterUserId: string, query: PickupQueryDto) {
+  async findAll(requesterUserId: string, query: PickupQueryDto) {
   const { page = 1, limit = 10, search, status, startDate, endDate } = query;
   const { skip, take } = getPaginationParams(page, limit);
 

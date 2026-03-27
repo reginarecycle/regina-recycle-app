@@ -301,58 +301,59 @@ export class CollectorsService {
     return { message: 'Collector profile updated successfully', data: updatedProfile };
   }
 
-async getPricing(collectorId: string, query: CollectorQueryDto) {
-  await this.ensureCollectorExists(collectorId);
+  async getPricing(collectorId: string, query: CollectorQueryDto) {
+    await this.ensureCollectorExists(collectorId);
 
-  const { page = 1, limit = 10, search, status } = query;
-  const { skip, take } = getPaginationParams(page, limit);
+    const { page = 1, limit = 10, search, status } = query;
+    const { skip, take } = getPaginationParams(page, limit);
 
-  if (status && status !== 'ACTIVE') {
-    return paginate([], 0, page, limit);
+    const materialWhere = {
+      ...(search ? { name: { contains: search, mode: 'insensitive' as const } } : {}),
+    };
+
+    // Fetch all platform materials (paginated) + this collector's pricing in parallel
+    const [materials, total, pricings] = await Promise.all([
+      this.prisma.material.findMany({
+        where: materialWhere,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+        select: { materialId: true, name: true, type: true, photoUrl: true },
+      }),
+      this.prisma.material.count({ where: materialWhere }),
+      this.prisma.collectorPricing.findMany({
+        where: { collectorUserId: collectorId },
+      }),
+    ]);
+
+    const pricingMap = new Map(pricings.map((p) => [p.materialId, p]));
+
+    // Merge: every material gets the collector's real price (or 0/INACTIVE if not set)
+    const merged = materials.map((material) => {
+      const p = pricingMap.get(material.materialId);
+      return {
+        collectorPricingId: p?.collectorPricingId ?? null,
+        collectorUserId:    collectorId,
+        materialId:         material.materialId,
+        basePrice:          p ? Number(p.basePrice) : 0,
+        bulkPrice:          p?.bulkPrice ? Number(p.bulkPrice) : 0,
+        status:             p?.status ?? 'INACTIVE',
+        createdAt:          p?.createdAt ?? new Date(),
+        updatedAt:          p?.updatedAt ?? new Date(),
+        material: {
+          materialId: material.materialId,
+          name:       material.name,
+          type:       material.type,
+          photoUrl:   material.photoUrl ?? null,
+        },
+      };
+    });
+
+    // Apply optional status filter after merging
+    const filtered = status ? merged.filter((r) => r.status === status) : merged;
+
+    return paginate(filtered, status ? filtered.length : total, page, limit);
   }
-
-  const materialWhere = {
-    ...(search
-      ? {
-          name: {
-            contains: search,
-            mode: 'insensitive' as const,
-          },
-        }
-      : {}),
-  };
-
-  const [materials, total] = await Promise.all([
-    this.prisma.material.findMany({
-      where: materialWhere,
-      skip,
-      take,
-      orderBy: { createdAt: 'desc' },
-      select: {
-        materialId: true,
-        name: true,
-        type: true,
-      },
-    }),
-    this.prisma.material.count({
-      where: materialWhere,
-    }),
-  ]);
-
-  const pricingData = materials.map((material) => ({
-    collectorPricingId: null,
-    basePrice: 0,
-    bulkPrice: 0,
-    status: 'ACTIVE',
-    material: {
-      materialId: material.materialId,
-      name: material.name,
-      type: material.type,
-    },
-  }));
-
-  return paginate(pricingData, total, page, limit);
-}
 
   async createMaterialPricing(collectorId: string, dto: CreateMaterialPricingDto) {
     await this.ensureCollectorExists(collectorId);

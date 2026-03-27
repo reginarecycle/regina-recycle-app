@@ -65,12 +65,26 @@ getUserPickups(@Request() req, @Query() query: PickupQueryDto) {
   return this.pickupsService.findAll(req.user.userId, query);
 }
 
-@ApiOperation({ summary: 'Get all pickup requests (collector)' })
-@Get('requests')
-@Auth('COLLECTOR')
-getRequests(@Query() query: PickupQueryDto) {
-  return this.pickupsService.getRequests(query);
-}
+  @ApiOperation({ summary: 'Get all pickup requests (collector)' })
+  @Get('requests')
+  @Auth('COLLECTOR')
+  getRequests(@Query() query: PickupQueryDto) {
+    return this.pickupsService.getRequests(query);
+  }
+
+  @ApiOperation({ summary: 'Request-level stats for logged-in collector' })
+  @Get('collector/stats')
+  @Auth('COLLECTOR')
+  getCollectorPickupStats(@Request() req: any) {
+    return this.pickupsService.getCollectorPickupStats(req.user.userId);
+  }
+
+  @ApiOperation({ summary: 'Get pickup requests for logged-in collector' })
+  @Get('collector')
+  @Auth('COLLECTOR')
+  getCollectorPickups(@Request() req: any, @Query() query: PickupQueryDto) {
+    return this.pickupsService.getCollectorPickups(req.user.userId, query);
+  }
 
   @ApiOperation({ summary: 'Get available pickup slots for a month' })
   @Get('available-slots')
