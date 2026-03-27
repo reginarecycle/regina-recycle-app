@@ -37,10 +37,10 @@ const mapUiToApi = (
 });
 
 export function useNotificationPrefs() {
-  const { data, isLoading, error, refetch } = useNotificationsPreferences();
-  const updatePrefsMutation = useUpdateNotificationPreferences();
-
+  const { data } = useNotificationsPreferences();
   const [saved, setSaved] = useState<NotificationPrefs>(DEFAULT_PREFS);
+  const [showSaving, setShowSaving] = useState(false);
+  const { mutate: updatePrefs } = useUpdateNotificationPreferences();
   const [prefs, setPrefs] = useState<NotificationPrefs>(DEFAULT_PREFS);
 
   useEffect(() => {
@@ -61,21 +61,35 @@ export function useNotificationPrefs() {
   }, []);
 
   const handleSave = useCallback(() => {
-    updatePrefsMutation.mutate(mapUiToApi(prefs), {
-      onSuccess: () => {
-        setSaved(prefs);
-        refetch();
+    // old update prefs function
+    //     updatePrefsMutation.mutate(mapUiToApi(prefs), {
+    //       onSuccess: () => {
+    //         setSaved(prefs);
+    //         refetch();
+    //       },
+    //     });
+    //   }, [prefs, refetch, updatePrefsMutation]);
+
+    //   return {
+    //     prefs,
+    //     changed,
+    //     handleToggle,
+    //     handleSave,
+    //     isLoading,
+    //     isSaving: updatePrefsMutation.isPending,
+    //     error,
+    //   };
+    // }
+    setShowSaving(true);
+
+    updatePrefs(mapUiToApi(prefs), {
+      onSettled: () => {
+        setTimeout(() => {
+          setShowSaving(false);
+        }, 800);
       },
     });
-  }, [prefs, refetch, updatePrefsMutation]);
+  }, [prefs, updatePrefs]);
 
-  return {
-    prefs,
-    changed,
-    handleToggle,
-    handleSave,
-    isLoading,
-    isSaving: updatePrefsMutation.isPending,
-    error,
-  };
+  return { prefs, changed, handleToggle, handleSave, isSaving: showSaving };
 }

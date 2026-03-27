@@ -8,11 +8,13 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { EmailService } from '../notifications/email/email.service';
 import { EmailTemplatesService } from '../notifications/email/email.template.service';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
     PrismaModule,
     PassportModule,
+    NotificationsModule,
     JwtModule.registerAsync({
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),

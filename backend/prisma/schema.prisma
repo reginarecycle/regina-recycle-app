@@ -100,8 +100,9 @@ model User {
   collectorPricings CollectorPricing[]
   topUpRequests     TopUpRequest[]
   withdrawRequests  WithdrawRequest[]
-  pickupsRequested  Pickup[] @relation("requester")
-  pickupsCollected  Pickup[] @relation("collector")
+  pickupsRequested  Pickup[]           @relation("requester")
+  pickupsCollected  Pickup[]           @relation("collector")
+  rejectedPickups   PickupRejection[]  @relation("rejectedPickups")
 
   @@map("users")
   @@index([role])
@@ -122,8 +123,8 @@ model CollectorProfile {
   collectorProfileId String   @id @default(uuid())
   userId             String   @unique
   licenseId          String   @unique
-  serviceFee         Decimal  @db.Decimal(10,2)
-  feeType            String   @default("FLAT_FEE")
+  serviceFee         Decimal  @default(0) @db.Decimal(10,2)
+  feeType            String   @default("PERCENTAGE") /// "PERCENTAGE" | "FLAT_FEE"
   bulkIncentiveEnabled Boolean  @default(false)
   bulkThreshold        Int      @default(100)
   createdAt          DateTime @default(now())
@@ -179,6 +180,7 @@ model Material {
   co2Saved   Float?
   waterSaved Float?
   createdAt  DateTime @default(now())
+  
   collectorPricings CollectorPricing[]
   pickupItems       PickupItem[]
   pickupSnapshots   PickupSnapshot[]
@@ -209,6 +211,7 @@ model CollectorPricing {
 
 model Pickup {
   pickupId        String     @id @default(uuid())
+  requestNumber   Int        @default(autoincrement())
   requesterUserId String?
   collectorUserId String?
   scheduledAt     DateTime
@@ -222,10 +225,11 @@ model Pickup {
   actualEarning   Decimal?   @db.Decimal(14,2)
   estimatedCost   Decimal?   @db.Decimal(14, 2)
   note            String?
-  items     PickupItem[]
-  snapshots PickupSnapshot[]
-  requester       User?      @relation("requester", fields: [requesterUserId], references: [userId], onDelete: SetNull)
-  collector       User?      @relation("collector", fields: [collectorUserId], references: [userId], onDelete: SetNull)
+  items       PickupItem[]
+  snapshots   PickupSnapshot[]
+  rejections  PickupRejection[]
+  requester   User?      @relation("requester", fields: [requesterUserId], references: [userId], onDelete: SetNull)
+  collector   User?      @relation("collector", fields: [collectorUserId], references: [userId], onDelete: SetNull)
 
 
   @@map("pickups")
@@ -246,6 +250,20 @@ model PickupItem {
   @@map("pickup_items")
   @@index([pickupId])
   @@index([materialId])
+}
+
+model PickupRejection {
+  pickupId    String
+  collectorId String
+  reason      String?
+  comment     String?
+  rejectedAt  DateTime @default(now())
+  pickup      Pickup   @relation(fields: [pickupId],    references: [pickupId],  onDelete: Cascade)
+  collector   User     @relation("rejectedPickups", fields: [collectorId], references: [userId], onDelete: Cascade)
+
+  @@id([pickupId, collectorId])
+  @@map("pickup_rejections")
+  @@index([collectorId])
 }
 
 model PickupSnapshot {
@@ -280,16 +298,17 @@ model Wallet {
 }
 
 model WalletTransaction {
-  transactionId String   @id @default(uuid())
-  walletId      String
-  userId        String?
-  type          TxType
-  amount        Decimal  @db.Decimal(14,2)
-  status        TxStatus @default(PENDING)
-  description   String?
-  referenceType String?
-  referenceId   String?
-  createdAt     DateTime @default(now())
+  transactionId   String   @id @default(uuid())
+  referenceNumber String?  @unique
+  walletId        String
+  userId          String?
+  type            TxType
+  amount          Decimal  @db.Decimal(14,2)
+  status          TxStatus @default(PENDING)
+  description     String?
+  referenceType   String?
+  referenceId     String?
+  createdAt       DateTime @default(now())
   wallet        Wallet   @relation(fields: [walletId], references: [walletId], onDelete: Cascade) // cascade if wallet removed
   user          User?    @relation(fields: [userId], references: [userId], onDelete: SetNull) // keep transaction but null user
 

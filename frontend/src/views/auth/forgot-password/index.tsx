@@ -21,7 +21,7 @@ const ForgotPassword = () => {
     formState: { errors, isDirty },
   } = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
-    mode: "onChange",
+    mode: "onBlur",
   });
 
   const onSubmit = (data: ForgotPasswordFormValues) => {

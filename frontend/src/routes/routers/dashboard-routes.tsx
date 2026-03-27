@@ -9,7 +9,7 @@ const lazyCast = <P extends object>(fn: () => Promise<{ default: FunctionCompone
   lazy(fn) as LazyExoticComponent<FunctionComponent<P>>;
 
 const UserDashboard              = lazyCast(() => import("@/views/customer/home"));
-const CollectorDashboard         = lazyCast(() => import("@/views/collector/dashboard"));
+const CollectorDashboard         = lazyCast(() => import("@/views/collector/home"));
 const CustomerProfile            = lazyCast(() => import("@/views/customer/profile"));
 const CollectorUsersPage         = lazyCast(() => import("@/views/collector/users"));
 const SchedulePickupView         = lazyCast(() => import("@/views/customer/schedule_pickup_view/index"));
@@ -19,6 +19,7 @@ const CollectorRequests          = lazyCast(() => import("@/views/collector/requ
 const CollectorSettingsPage      = lazyCast(() => import("@/views/collector/settings"));
 const NotificationsPage          = lazyCast(() => import("@/views/notifications"));
 const CollectorWalletPage        = lazyCast(() => import("@/views/collector/wallet/index"));
+const CollectorTransactionHistory = lazyCast(() => import("@/views/collector/wallet/TransactionHistoryPage"));
 const CustomerHistoryPage        = lazyCast(() => import("@/views/customer/history/index"));
 
 const UserDashboardGuard          = addPermissions(UserDashboard,           ["customer"]);
@@ -32,7 +33,8 @@ const CollectorRequestsGuard      = addPermissions(CollectorRequests,       ["co
 const CollectorSettingsGuard      = addPermissions(CollectorSettingsPage,   ["collector"]);
 const CustomerNotificationsGuard  = addPermissions(NotificationsPage,       ["customer"]);
 const CollectorNotificationsGuard = addPermissions(NotificationsPage,       ["collector"]);
-const CollectorWalletGuard        = addPermissions(CollectorWalletPage,     ["collector"]);
+const CollectorWalletGuard              = addPermissions(CollectorWalletPage,          ["collector"]);
+const CollectorTransactionHistoryGuard  = addPermissions(CollectorTransactionHistory,  ["collector"]);
 const CustomerHistoryGuard        = addPermissions(CustomerHistoryPage,     ["customer"]);
 
 export const dashboardRoutes = (): RouteObject[] => [
@@ -52,7 +54,8 @@ export const dashboardRoutes = (): RouteObject[] => [
       { path: Routes.collectorsettings,      element: <CollectorSettingsGuard /> },
       { path: Routes.collectornotifications, element: <CollectorNotificationsGuard /> },
       { path: Routes.requests,               element: <CollectorRequestsGuard /> },
-      { path: Routes.collectorwallet,        element: <CollectorWalletGuard /> },
+      { path: Routes.collectorwallet,               element: <CollectorWalletGuard /> },
+      { path: Routes.collectortransactionhistory,   element: <CollectorTransactionHistoryGuard /> },
     ],
   },
 ];

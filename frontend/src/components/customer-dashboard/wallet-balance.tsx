@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatAmount } from "@/lib/utils";
 import { Eye, EyeOff } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,27 +9,39 @@ import GreenArrow from "@/assets/green-arrow.svg";
 import CashMultiple from "@/assets/cash-multiple.svg";
 
 type Props = {
-  balance?: number;
-  currency?: string;
-  stats?: number;
-  change?: "+" | "-";
+  balance?:   number;
+  currency?:  string;
+  stats?:     number;
+  change?:    "+" | "-";
+  isLoading?: boolean;
 };
 
 export function WalletBalance({
-  balance = 45.5,
-  currency = "CAD",
-  stats = 12.05,
-  change = "+",
+  balance   = 0,
+  currency  = "CAD",
+  stats     = 0,
+  change    = "+",
+  isLoading = false,
 }: Props) {
-  const router = useRouter();
+  const router     = useRouter();
   const [visible, setVisible] = useState(true);
   const isPositive = change === "+";
 
+  if (isLoading) {
+    return (
+      <Card className="w-full rounded-2xl border border-border bg-white shadow-none overflow-hidden py-4!">
+        <CardContent className="px-4 py-6 flex items-center justify-center">
+          <div className="h-8 w-32 rounded bg-gray-100 animate-pulse" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="w-full rounded-2xl border border-border bg-white shadow-none overflow-hidden py-4!">
-       <CardHeader className="border-b border-border px-6 py-1!">
+      <CardHeader className="border-b border-border px-6 py-1!">
         <p className="text-base font-bold text-foreground">Wallet Balance</p>
-       </CardHeader>
+      </CardHeader>
 
       <CardContent className="px-4 flex flex-col gap-4">
         <div className="flex items-center gap-2">
@@ -48,7 +61,7 @@ export function WalletBalance({
         {/* Balance */}
         <div className="flex items-end gap-1">
           <span className="text-4xl font-bold tracking-tight text-foreground inline-flex items-center gap-0.5">
-            {visible ? `$${balance.toFixed(2)}` : (
+            {visible ? `$${formatAmount(balance)}` : (
               <>$<span className="text-2xl self-center tracking-widest leading-none">*******</span></>
             )}
           </span>
@@ -59,7 +72,7 @@ export function WalletBalance({
         <div className="flex items-center gap-1">
           <img src={GreenArrow} alt="" className="w-8 h-8 shrink-0" />
           <span className={`text-sm font-semibold ${isPositive ? "text-green-600" : "text-red-600"}`}>
-            { `${change}$${stats.toFixed(2)} ${currency} this month`}
+            {`${change}$${formatAmount(stats)} ${currency} this month`}
           </span>
         </div>
 

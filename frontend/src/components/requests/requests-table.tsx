@@ -1,477 +1,472 @@
-import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import DataTable, { type Column } from "@/components/ui/data-table";
-import { ChevronRight, ListFilter, Search } from "lucide-react";
-import { RequestsData } from "@/components/requests/requests-data";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
+import { DataTable, type ColumnDef, type DataTableTabItem } from "@/components/ui/data-table";
+import {
+  DataTableHeaderControls,
+  type TableFilterState,
+  type DateRange,
+  DEFAULT_TABLE_FILTERS,
+} from "@/components/ui/data-table-header-controls";
+import { MaterialTag } from "@/components/ui/material-tag";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { type RequestRow } from "@/components/requests/requests-data";
 import { RequestDetailsModal } from "./request-details-modal";
-import { RequestAcceptedModal } from "./request-accepted-modal";
+import { RequestFeedbackModal } from "./request-feedback-modal";
 import { CompleteRequestModal } from "./complete-request-modal";
 import { RejectRequestModal } from "./reject-request-modal";
+import { Button } from "../ui/button";
+import {
+  useGetCollectorPickupRequests,
+  useAcceptPickup,
+  useCompletePickup,
+  useRejectPickup,
+  type CollectorPickup,
+} from "@/api-hooks/useCollectors";
+import { useGetCollectorWallet } from "@/api-hooks/useWallet";
+import { useCollectorPricingSettings } from "@/api-hooks/useCollectors";
+import { toast } from "sonner";
 
-type RequestRow = (typeof RequestsData)[number];
+const PAGE_SIZE = 10;
+const TAB_PARAM  = "tab";
+const PICKUP_PARAM = "pickup";
+
+type ActiveTab = "incoming" | "accepted" | "completed";
+type CompatibilityFilter = "COMPATIBLE" | "INCOMPATIBLE";
+
+const STATUS_MAP: Record<ActiveTab, "PENDING" | "ACCEPTED" | "COMPLETED"> = {
+  incoming:  "PENDING",
+  accepted:  "ACCEPTED",
+  completed: "COMPLETED",
+} as const;
+
+const VALID_TABS: ActiveTab[] = ["incoming", "accepted", "completed"];
+
+const COMPATIBILITY_OPTIONS = [
+  { key: "COMPATIBLE"   as CompatibilityFilter, label: "Compatible"   },
+  { key: "INCOMPATIBLE" as CompatibilityFilter, label: "Incompatible" },
+];
+
+function getDateBounds(range: DateRange, mode: "past" | "future"): { startDate?: string; endDate?: string } {
+  const toIso = (d: Date) => d.toISOString().split("T")[0];
+  const now = new Date();
+  if (range === "today") return { startDate: toIso(now), endDate: toIso(now) };
+  if (range === "7days") {
+    const d = new Date(now);
+    d.setDate(d.getDate() + (mode === "future" ? 7 : -7));
+    return mode === "future"
+      ? { startDate: toIso(now), endDate: toIso(d) }
+      : { startDate: toIso(d),   endDate: toIso(now) };
+  }
+  if (range === "30days") {
+    const d = new Date(now);
+    d.setDate(d.getDate() + (mode === "future" ? 30 : -30));
+    return mode === "future"
+      ? { startDate: toIso(now), endDate: toIso(d) }
+      : { startDate: toIso(d),   endDate: toIso(now) };
+  }
+  return {};
+}
 
 export default function RequestsTable() {
-    const [requests, setRequests] = useState<RequestRow[]>(RequestsData);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const rawTab    = searchParams.get(TAB_PARAM);
+  const activeTab: ActiveTab = VALID_TABS.includes(rawTab as ActiveTab)
+    ? (rawTab as ActiveTab)
+    : "incoming";
 
-    const [activeTab, setActiveTab] = useState<"incoming" | "accepted" | "completed">("incoming");
-    const [selectedRequest, setSelectedRequest] = useState<RequestRow | null>(null);
+  const rawPickupId = searchParams.get(PICKUP_PARAM);
 
-    const [detailsOpen, setDetailsOpen] = useState(false);
-    const [completeOpen, setCompleteOpen] = useState(false);
-    const [acceptedOpen, setAcceptedOpen] = useState(false);
-    const [rejectOpen, setRejectOpen] = useState(false);
-    const [completeNote, setCompleteNote] = useState("");
+  const switchTab = (tab: ActiveTab) => {
+    setSearchParams((prev) => { prev.set(TAB_PARAM, tab); prev.delete(PICKUP_PARAM); return prev; });
+    setPage(1);
+  };
 
-    const [currentPage, setCurrentPage] = useState(1);
+  const [page, setPage]     = useState(1);
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState<TableFilterState<CompatibilityFilter>>(
+    DEFAULT_TABLE_FILTERS as TableFilterState<CompatibilityFilter>,
+  );
 
-    const incomingData = requests.filter((r) => r.status === "incoming");
-    const acceptedData = requests.filter((r) => r.status === "accepted");
-    const completedData = requests.filter((r) => r.status === "completed");
+  const prevTabRef = useRef(activeTab);
+  useEffect(() => {
+    if (prevTabRef.current !== activeTab) {
+      prevTabRef.current = activeTab;
+      setPage(1);
+    }
+  }, [activeTab]);
 
-    const handleAcceptRequest = () => {
-        if (!selectedRequest) return;
+  const [selectedRequest, setSelectedRequest] = useState<RequestRow | null>(null);
+  const [detailsOpen,   setDetailsOpen]   = useState(false);
+  const [feedbackOpen,  setFeedbackOpen]  = useState(false);
+  const [feedbackKey,   setFeedbackKey]   = useState<"accepted" | "completed">("accepted");
+  const [completeOpen,  setCompleteOpen]  = useState(false);
+  const [rejectOpen,    setRejectOpen]    = useState(false);
+  const [completeNote,  setCompleteNote]  = useState("");
 
-        setRequests((prev) =>
-            prev.map((request) =>
-                request === selectedRequest
-                    ? { ...request, status: "accepted" }
-                    : request
-            )
-        );
+  const dateMode     = activeTab === "completed" ? "past" : "future" as const;
+  const dateBounds   = getDateBounds(filters.dateRange, dateMode);
+  const compatFilter = filters.statuses[0] as CompatibilityFilter | undefined;
 
-        setSelectedRequest((prev) =>
-            prev ? { ...prev, status: "accepted" } : prev
-        );
+  const { data: pickupsResult, isLoading } = useGetCollectorPickupRequests(
+    { status: STATUS_MAP[activeTab], search: search || undefined, page, limit: PAGE_SIZE, ...dateBounds },
+  );
 
+  const { data: walletResult }   = useGetCollectorWallet();
+  const { data: settingsResult } = useCollectorPricingSettings();
+  const serviceFee = Number(settingsResult?.data.settings?.serviceFee ?? 0);
+  const feeType    = settingsResult?.data.settings?.feeType ?? "PERCENTAGE";
+
+  const calcEarnings = (grossPayout: number) =>
+    feeType === "PERCENTAGE" ? grossPayout * (serviceFee / 100) : serviceFee;
+
+  const acceptMutation   = useAcceptPickup();
+  const completeMutation = useCompletePickup();
+  const rejectMutation   = useRejectPickup();
+
+  const tableData = useMemo((): RequestRow[] => {
+    const toRow = (p: CollectorPickup): RequestRow => {
+      const scheduled    = new Date(p.scheduledAt);
+      const useSnapshots = (activeTab === "accepted" || activeTab === "completed")
+        && (p.snapshots ?? []).length > 0;
+
+      const liveItems = (p.items ?? []).map((i) => ({
+        materialId:   i.materialId,
+        materialName: i.material?.name ?? "Unknown",
+        quantity:     i.quantity,
+        unitPrice:    Number(i.unitPrice ?? 0),
+      }));
+
+      const lineItems = useSnapshots
+        ? (p.snapshots ?? []).map((s) => ({
+            materialId:   s.materialId,
+            materialName: s.material?.name ?? "Unknown",
+            quantity:     s.quantity,
+            unitPrice:    Number(s.priceUsed ?? 0),
+          }))
+        : liveItems;
+
+      const snapshotTotal = lineItems.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
+      const liveTotal     = liveItems.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
+      const hasPriceShift = useSnapshots && Math.abs(snapshotTotal - liveTotal) > 0.001;
+
+      const materials  = lineItems.map((i) => i.materialName).filter(Boolean);
+      const totalUnits = lineItems.reduce((s, i) => s + i.quantity, 0);
+
+      return {
+        id:            p.pickupId,
+        pickupId:      p.pickupId,
+        requestNumber: p.requestNumber,
+        Username:  p.requester?.name ?? "Unknown",
+        Location:  p.address
+          ? [p.address.line1, p.address.city].filter(Boolean).join(", ")
+          : "N/A",
+        material1: materials[0],
+        material2: materials[1],
+        material3: materials[2],
+        Date:      scheduled.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" }),
+        startTime: scheduled.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+        endTime:   scheduled.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+        Compatibility:    p.isCompatible ? 100 : 0,
+        status:           activeTab,
+        estimatedCost:    Number(p.estimatedCost    ?? 0),
+        estimatedEarning: Number(p.estimatedEarning ?? 0),
+        actualEarning:    Number(p.actualEarning    ?? 0),
+        estUnits:         totalUnits,
+        items:            lineItems,
+        currentItems:     hasPriceShift ? liveItems : undefined,
+        note:             p.note,
+      };
+    };
+
+    const rows = (pickupsResult?.data.data ?? []).map(toRow);
+    if (!compatFilter) return rows;
+    return rows.filter((r) =>
+      compatFilter === "COMPATIBLE" ? r.Compatibility === 100 : r.Compatibility !== 100,
+    );
+  }, [pickupsResult, activeTab, compatFilter]);
+
+  const totalPages    = pickupsResult?.data.meta.totalPages ?? 1;
+  const totalItems    = pickupsResult?.data.meta.total      ?? 0;
+  const walletBalance = walletResult?.data.balance ?? 0;
+
+  const autoOpenedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!rawPickupId || isLoading) return;
+    if (autoOpenedRef.current === rawPickupId) return;
+    const row = tableData.find((r) => r.pickupId === rawPickupId);
+    if (!row) return;
+    autoOpenedRef.current = rawPickupId;
+    setSelectedRequest(row);
+    setDetailsOpen(true);
+    setSearchParams((prev) => { prev.delete(PICKUP_PARAM); return prev; }, { replace: true });
+  }, [rawPickupId, isLoading, tableData]);
+
+  const tabs: DataTableTabItem[] = [
+    {
+      href:  "incoming",
+      label: "Incoming Requests",
+      badge: activeTab === "incoming"  ? totalItems : undefined,
+    },
+    {
+      href:  "accepted",
+      label: "Accepted",
+      badge: activeTab === "accepted"  ? totalItems : undefined,
+    },
+    {
+      href:  "completed",
+      label: "Completed",
+      badge: activeTab === "completed" ? totalItems : undefined,
+    },
+  ];
+
+  // ── Columns ───────────────────────────────────────────────────────────────
+  const columns = useMemo((): ColumnDef<RequestRow>[] => {
+    const showMaterials = activeTab === "incoming";
+    const payoutLabel   = "Est. Payout ($)";
+
+    return [
+      {
+        key:    "location",
+        header: "Location",
+        cell:   (row) => (
+          <span className="block max-w-48 truncate text-sm text-foreground">{row.Location}</span>
+        ),
+      },
+      ...(showMaterials ? [{
+        key:    "material",
+        header: "Material",
+        cell:   (row: RequestRow) => {
+          const all   = row.items.map((i) => i.materialName).filter(Boolean);
+          const shown = all.slice(0, 3);
+          const extra = all.length - shown.length;
+          return (
+            <div className="flex flex-wrap gap-1.5">
+              {shown.map((m) => <MaterialTag key={m} material={m} size="sm" />)}
+              {extra > 0 && (
+                <span className="inline-flex items-center rounded-full border border-border bg-card px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                  +{extra} more
+                </span>
+              )}
+            </div>
+          );
+        },
+      }] : []),
+      {
+        key:    "dateTime",
+        header: "Date & Time",
+        cell:   (row) => (
+          <div className="flex flex-col text-sm text-foreground">
+            <span>{row.Date}</span>
+            <span className="text-muted-foreground">{row.startTime}</span>
+          </div>
+        ),
+      },
+      {
+        key:    "compatibility",
+        header: "Compatibility",
+        cell:   (row) =>
+          row.Compatibility === 100
+            ? <StatusBadge status="COMPATIBLE" />
+            : <StatusBadge status="INCOMPATIBLE" />,
+      },
+      {
+        key:    "payment",
+        header: payoutLabel,
+        cell:   (row: RequestRow) => {
+          const amount =
+            activeTab === "completed" ? row.actualEarning :
+            activeTab === "accepted"  ? row.estimatedEarning :
+            row.items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
+          return (
+            <span className="text-sm font-semibold text-foreground">
+              ${amount.toFixed(2)}
+            </span>
+          );
+        },
+      },
+      {
+        key:    "action",
+        header: "Action",
+        cell:   (row: RequestRow) =>
+          activeTab === "accepted" ? (
+            <Button
+              variant="outlineprimary"
+              size="sm"
+              onClick={() => { setSelectedRequest(row); setCompleteNote(""); setCompleteOpen(true); }}
+            >
+              Complete
+            </Button>
+          ) : (
+            <button
+              onClick={() => { setSelectedRequest(row); setDetailsOpen(true); }}
+              className="whitespace-nowrap text-sm font-semibold text-foreground transition-colors hover:text-primary"
+            >
+              View Details
+            </button>
+          ),
+      },
+    ];
+  }, [activeTab]);
+
+  // ── Handlers ─────────────────────────────────────────────────────────────
+  const handleAcceptRequest = () => {
+    if (!selectedRequest) return;
+    if (selectedRequest.Compatibility !== 100) {
+      const missing = selectedRequest.items
+        .filter((i) => i.unitPrice === 0)
+        .map((i) => i.materialName)
+        .join(", ");
+      toast.warning(`Set your base price for ${missing} before accepting this request.`, {
+        duration: 6000,
+      });
+      return;
+    }
+    acceptMutation.mutate(selectedRequest.pickupId, {
+      onSuccess: () => {
+        toast.success("Request accepted successfully");
         setDetailsOpen(false);
-        setAcceptedOpen(true);
-        setActiveTab("accepted");
-    };
+        setFeedbackKey("accepted");
+        setFeedbackOpen(true);
+        switchTab("accepted");
+      },
+      onError: () => toast.error("Failed to accept request. Please try again."),
+    });
+  };
 
-    const handleCompleteRequest = () => {
-        if (!selectedRequest) return;
-
-        setRequests((prev) =>
-            prev.map((request) =>
-                request === selectedRequest
-                    ? { ...request, status: "completed" }
-                    : request
-            )
-        );
-
-        setSelectedRequest((prev) =>
-            prev ? { ...prev, status: "completed" } : prev
-        );
-
+  const handleCompleteRequest = () => {
+    if (!selectedRequest) return;
+    completeMutation.mutate(selectedRequest.pickupId, {
+      onSuccess: () => {
+        toast.success("Request completed successfully");
         setCompleteOpen(false);
-        setActiveTab("completed");
-    };
+        setFeedbackKey("completed");
+        setFeedbackOpen(true);
+        switchTab("completed");
+      },
+      onError: () => toast.error("Failed to complete request. Please try again."),
+    });
+  };
 
-    const handleRejectRequest = (reason: string, comments: string) => {
-        if (!selectedRequest) return;
-
-        console.log("Rejected request:", {
-            request: selectedRequest,
-            reason,
-            comments,
-        });
-
-        setRequests((prev) => prev.filter((request) => request !== selectedRequest));
+  const handleRejectRequest = (reason: string, comment?: string) => {
+    if (!selectedRequest) return;
+    rejectMutation.mutate({ pickupId: selectedRequest.pickupId, reason, comment }, {
+      onSuccess: () => {
+        toast.success("Request rejected");
         setRejectOpen(false);
         setSelectedRequest(null);
-    };
+      },
+      onError: () => toast.error("Failed to reject request. Please try again."),
+    });
+  };
 
-    const createColumns = (
-        showMaterials: boolean,
-        showPayment: boolean,
-        payoutLabel: string
-    ): Column<RequestRow>[] => [
-            {
-                key: "Username",
-                header: "Username",
-                render: (row) => (
-                    <span className="px-3 text-[14px] font-bold text-black">
-                        {row.Username}
-                    </span>
-                ),
-            },
-            {
-                key: "Location",
-                header: "Location",
-                render: (row) => (
-                    <span className="text-[14px] font-bold text-gray-900">
-                        {row.Location}
-                    </span>
-                ),
-            },
+  // ── Render ────────────────────────────────────────────────────────────────
+  return (
+    <>
+      <DataTable
+        data={tableData}
+        columns={columns}
+        rowKey={(r) => r.id}
+        isLoading={isLoading}
+        tabs={tabs}
+        tabBarProps={{
+          mode:     "none",
+          value:    activeTab,
+          onChange: (v) => switchTab(v as ActiveTab),
+        }}
+        subHeader={
+          <DataTableHeaderControls<CompatibilityFilter>
+            search={search}
+            onSearchChange={(v) => { setSearch(v); setPage(1); }}
+            searchPlaceholder="Search"
+            filters={filters}
+            onFiltersChange={(f) => { setFilters(f); setPage(1); }}
+            statusOptions={COMPATIBILITY_OPTIONS}
+            dateMode={dateMode}
+          />
+        }
+        page={page}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+        emptyText="There are no incoming requests"
+        minHeight="500px"
+      />
 
-            ...(showMaterials
-                ? [
-                    {
-                        key: "materials",
-                        header: "Material",
-                        render: (row: RequestRow) => {
-                            const materials = [row.material1];
-                            if (row.material2) materials.push(row.material2);
-                            if (row.material3) materials.push(row.material3);
+      {selectedRequest && (
+        <RequestDetailsModal
+          isOpen={detailsOpen}
+          request={selectedRequest}
+          onClose={() => setDetailsOpen(false)}
+          onAccept={handleAcceptRequest}
+          isAccepting={acceptMutation.isPending}
+          onReject={() => { setDetailsOpen(false); setRejectOpen(true); }}
+          requestNum={selectedRequest.requestNumber ?? `#${selectedRequest.pickupId.slice(0, 8).toUpperCase()}`}
+          earnings={calcEarnings(
+            activeTab === "completed" ? selectedRequest.actualEarning :
+            activeTab === "accepted"  ? selectedRequest.estimatedEarning :
+            selectedRequest.items.reduce((s, i) => s + i.quantity * i.unitPrice, 0)
+          )}
+          estUnits={selectedRequest.estUnits}
+          compatibilityStr={selectedRequest.Compatibility === 100 ? "100% MATCH" : "INCOMPATIBLE"}
+          username={selectedRequest.Username}
+          sourceTab={activeTab}
+        />
+      )}
 
-                            return (
-                                <div className="flex gap-2 flex-wrap">
-                                    {materials.map((m, i) => (
-                                        <Badge
-                                            key={i}
-                                            className="bg-[#5f7f6e] text-white text-xs px-3 py-1 rounded-full font-bold"
-                                        >
-                                            {m}
-                                        </Badge>
-                                    ))}
-                                </div>
-                            );
-                        },
-                    },
-                ]
-                : []),
+      {selectedRequest && (
+        <>
+          <CompleteRequestModal
+            isOpen={completeOpen}
+            onClose={() => setCompleteOpen(false)}
+            onComplete={() => handleCompleteRequest()}
+            isPending={completeMutation.isPending}
+            requestId={selectedRequest.requestNumber ?? `#${selectedRequest.pickupId.slice(0, 8).toUpperCase()}`}
+            customer={selectedRequest.Username}
+            location={selectedRequest.Location}
+            dateTime={`${selectedRequest.Date}, ${selectedRequest.startTime}`}
+            compatibility={selectedRequest.Compatibility === 100 ? "100%" : "0%"}
+            balance={walletBalance}
+            serviceFee={serviceFee}
+            feeType={feeType}
+            note={completeNote}
+            setNote={setCompleteNote}
+            items={selectedRequest.items.map((i) => ({
+              material:      i.materialName,
+              expectedUnits: i.quantity,
+              unitPrice:     i.unitPrice,
+              actualUnits:   i.quantity,
+            }))}
+            currentItems={selectedRequest.currentItems?.map((i) => ({
+              material:      i.materialName,
+              expectedUnits: i.quantity,
+              unitPrice:     i.unitPrice,
+              actualUnits:   i.quantity,
+            }))}
+          />
+        </>
+      )}
 
-            {
-                key: "dateTime",
-                header: "Date & Time",
-                render: (row) => (
-                    <div className="flex flex-col text-[14px] font-bold text-black">
-                        <span>{row.Date}</span>
-                        <span>
-                            {row.startTime} - {row.endTime}
-                        </span>
-                    </div>
-                ),
-            },
-            {
-                key: "Compatibility",
-                header: "Compatibility",
-                render: (row) =>
-                    row.Compatibility === 100 ? (
-                        <Badge
-                            variant={"inactive"}
-                            className="bg-green-100 text-green-800 border-0 text-xs"
-                        >
-                            COMPATIBLE
-                        </Badge>
-                    ) : (
-                        <Badge
-                            variant={"inactive"}
-                            className="bg-red-100 text-red-700 border-0 text-xs"
-                        >
-                            INCOMPATIBLE
-                        </Badge>
-                    ),
-            },
+      <RequestFeedbackModal
+        isOpen={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+        type="success"
+        title={feedbackKey === "accepted" ? "Request Accepted!" : "Pickup Completed!"}
+        description={
+          feedbackKey === "accepted"
+            ? "The pickup has been added to your active queue. Head to the Accepted tab to track it and mark it complete when done."
+            : "The payout has been sent to the customer and deducted from your wallet. Check the Completed tab for a full record."
+        }
+      />
 
-            ...(showPayment
-                ? [
-                    {
-                        key: "payment",
-                        header: payoutLabel,
-                        render: () => (
-                            <span className="font-bold text-sm">$12.50</span>
-                        ),
-                    },
-                ]
-                : []),
-
-            {
-                key: "action",
-                header: "Action",
-                render: (row) =>
-                    activeTab === "accepted" ? (
-                        <button
-                            onClick={() => {
-                                setSelectedRequest(row);
-                                setCompleteNote("");
-                                setCompleteOpen(true);
-                            }}
-                            className="border border-[#4D7C63] text-[#4D7C63] px-4 py-1 rounded-md font-medium hover:bg-[#4D7C63] hover:text-white transition"
-                        >
-                            Complete
-                        </button>
-                    ) : (
-                        <div
-                            onClick={() => {
-                                setSelectedRequest(row);
-                                setDetailsOpen(true);
-                            }}
-                            className="flex items-center gap-1 text-[14px] font-bold text-black cursor-pointer hover:underline"
-                        >
-                            View Details <ChevronRight size={16} />
-                        </div>
-                    ),
-            },
-        ];
-
-    const renderMobileRequest = (
-        row: RequestRow,
-        showMaterials: boolean,
-        showPayment: boolean,
-        payoutLabel: string
-    ) => {
-        const materials = [row.material1, row.material2, row.material3].filter(Boolean);
-
-        return (
-            <>
-                <div className="mb-3 flex items-start justify-between gap-3">
-                    <div>
-                        <div className="text-[15px] font-bold text-black">
-                            {row.Username}
-                        </div>
-                        <div className="mt-1 text-[13px] text-gray-600">
-                            {row.Location}
-                        </div>
-                    </div>
-
-                    {row.Compatibility === 100 ? (
-                        <Badge
-                            variant={"inactive"}
-                            className="bg-green-100 text-green-800 border-0 text-xs"
-                        >
-                            COMPATIBLE
-                        </Badge>
-                    ) : (
-                        <Badge
-                            variant={"inactive"}
-                            className="bg-red-100 text-red-700 border-0 text-xs"
-                        >
-                            INCOMPATIBLE
-                        </Badge>
-                    )}
-                </div>
-
-                <div className="mb-3 text-[13px] text-gray-700">
-                    <div className="font-semibold text-black">Date & Time</div>
-                    <div>{row.Date}</div>
-                    <div>
-                        {row.startTime} - {row.endTime}
-                    </div>
-                </div>
-
-                {showMaterials && (
-                    <div className="mb-3">
-                        <div className="mb-2 text-[13px] font-semibold text-black">
-                            Material
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            {materials.map((m, i) => (
-                                <Badge
-                                    key={i}
-                                    className="bg-[#5f7f6e] text-white text-xs px-3 py-1 rounded-full font-bold"
-                                >
-                                    {m}
-                                </Badge>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {showPayment && (
-                    <div className="mb-3 text-[13px] text-gray-700">
-                        <div className="font-semibold text-black">{payoutLabel}</div>
-                        <div className="font-bold text-sm">$12.50</div>
-                    </div>
-                )}
-
-                <div className="pt-2">
-                    {activeTab === "accepted" ? (
-                        <button
-                            onClick={() => {
-                                setSelectedRequest(row);
-                                setCompleteNote("");
-                                setCompleteOpen(true);
-                            }}
-                            className="w-full rounded-md border border-[#4D7C63] px-4 py-2 font-medium text-[#4D7C63] transition hover:bg-[#4D7C63] hover:text-white"
-                        >
-                            Complete
-                        </button>
-                    ) : (
-                        <button
-                            onClick={() => {
-                                setSelectedRequest(row);
-                                setDetailsOpen(true);
-                            }}
-                            className="flex w-full items-center justify-center gap-1 rounded-md bg-[#344E41] px-4 py-2 text-sm font-semibold text-white"
-                        >
-                            View Details <ChevronRight size={16} />
-                        </button>
-                    )}
-                </div>
-            </>
-        );
-    };
-
-    return (
-        <Card className="bg-white w-full gap-0 py-3">
-            <Tabs
-                value={activeTab}
-                onValueChange={(value) => {
-                    setActiveTab(value as typeof activeTab);
-                    setCurrentPage(1);
-                }}
-                className="w-full"
-            >
-                <CardHeader className="border-b border-[#CFCFCF] !py-0 min-h-[64px] flex items-center px-4 md:px-6">
-                    <TabsList className="bg-transparent p-0 gap-4 md:gap-8 border-0 h-full flex items-center overflow-x-auto w-full">
-                        <TabsTrigger value="incoming" className="font-medium text-[15px] text-[#111827BF] whitespace-nowrap">
-                            Incoming Requests
-                            {activeTab === "incoming" && (
-                                <span className="ml-2 bg-gray-200 text-black text-[12px] px-2 py-[2px] rounded-full font-bold">
-                                    {incomingData.length}
-                                </span>
-                            )}
-                        </TabsTrigger>
-
-                        <TabsTrigger value="accepted" className="font-medium text-[15px] text-[#111827BF] whitespace-nowrap">
-                            Accepted
-                            {activeTab === "accepted" && (
-                                <span className="ml-2 bg-gray-200 text-black text-[12px] px-2 py-[2px] rounded-full font-bold">
-                                    {acceptedData.length}
-                                </span>
-                            )}
-                        </TabsTrigger>
-
-                        <TabsTrigger value="completed" className="font-medium text-[15px] text-[#111827BF] whitespace-nowrap">
-                            Completed
-                            {activeTab === "completed" && (
-                                <span className="ml-2 bg-gray-200 text-black text-[12px] px-2 py-[2px] rounded-full font-bold">
-                                    {completedData.length}
-                                </span>
-                            )}
-                        </TabsTrigger>
-                    </TabsList>
-                </CardHeader>
-
-                <CardTitle className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between border-b border-[#CFCFCF] px-4 py-4 md:h-[64px] md:px-6">
-                    <div className="flex items-center bg-gray-100 rounded-md px-2 h-[36px] w-full md:w-[321px]">
-                        <Search className="w-4 h-4 text-black mr-2" strokeWidth={2.5} />
-                        <input
-                            type="text"
-                            placeholder="Search"
-                            className="flex-1 bg-transparent outline-none text-sm"
-                        />
-                    </div>
-
-                    <div className="self-end md:self-auto p-2 rounded-full bg-[#f7f7f7] cursor-pointer hover:bg-gray-200">
-                        <ListFilter size={18} strokeWidth={3} />
-                    </div>
-                </CardTitle>
-
-                <TabsContent value="incoming" className="m-0">
-                    <DataTable
-                        className="[&>div]:border-0 [&>div]:rounded-none"
-                        data={incomingData}
-                        columns={createColumns(true, false, "")}
-                        keyExtractor={(row) => `incoming-${row.Username}-${row.Date}`}
-                        pagination={{
-                            currentPage: currentPage,
-                            totalPages: 5,
-                            onPageChange: setCurrentPage,
-                            showText: "Showing 4 to 12 materials available for ReginaRecycle Collectors.",
-                        }}
-                        mobileRender={(row) => renderMobileRequest(row, true, false, "")}
-                    />
-                </TabsContent>
-
-                <TabsContent value="accepted" className="m-0">
-                    <DataTable
-                        className="[&>div]:border-0 [&>div]:rounded-none"
-                        data={acceptedData}
-                        columns={createColumns(false, true, "Estimated Payment ($)")}
-                        keyExtractor={(row) => `accepted-${row.Username}-${row.Date}`}
-                        pagination={{
-                            currentPage: currentPage,
-                            totalPages: 5,
-                            onPageChange: setCurrentPage,
-                            showText: "Showing 4 to 12 materials available for ReginaRecycle Collectors.",
-                        }}
-                        mobileRender={(row) =>
-                            renderMobileRequest(row, false, true, "Estimated Payment ($)")
-                        }
-                    />
-                </TabsContent>
-
-                <TabsContent value="completed" className="m-0">
-                    <DataTable
-                        className="[&>div]:border-0 [&>div]:rounded-none"
-                        data={completedData}
-                        columns={createColumns(false, true, "Payout ($)")}
-                        keyExtractor={(row) => `completed-${row.Username}-${row.Date}`}
-                        pagination={{
-                            currentPage: currentPage,
-                            totalPages: 5,
-                            onPageChange: setCurrentPage,
-                            showText: "Showing 4 to 12 materials available for ReginaRecycle Collectors.",
-                        }}
-                        mobileRender={(row) =>
-                            renderMobileRequest(row, false, true, "Payout ($)")
-                        }
-                    />
-                </TabsContent>
-            </Tabs>
-
-            {selectedRequest && (
-                <RequestDetailsModal
-                    isOpen={detailsOpen}
-                    request={selectedRequest}
-                    onClose={() => setDetailsOpen(false)}
-                    onAccept={handleAcceptRequest}
-                    onReject={() => {
-                        setDetailsOpen(false);
-                        setRejectOpen(true);
-                    }}
-                    requestNum={"#REQ 000000"}
-                    earnings={0}
-                    estUnits={0}
-                    compatibilityStr={
-                        selectedRequest.Compatibility === 100
-                            ? "100% MATCH"
-                            : "INCOMPATIBLE"
-                    }
-                    username={selectedRequest.Username}
-                    sourceTab={activeTab}
-                />
-            )}
-
-            {selectedRequest && (
-                <CompleteRequestModal
-                    isOpen={completeOpen}
-                    onClose={() => setCompleteOpen(false)}
-                    onComplete={handleCompleteRequest}
-                    requestId="REQ001"
-                    customer={selectedRequest.Username}
-                    location={selectedRequest.Location}
-                    dateTime={`${selectedRequest.Date}, ${selectedRequest.startTime} - ${selectedRequest.endTime}`}
-                    compatibility={
-                        selectedRequest.Compatibility === 100 ? "100%" : "0%"
-                    }
-                    balance={850}
-                    note={completeNote}
-                    setNote={setCompleteNote}
-                />
-            )}
-
-            <RequestAcceptedModal
-                isOpen={acceptedOpen}
-                onClose={() => setAcceptedOpen(false)}
-                onViewActivePickups={() => {
-                    setAcceptedOpen(false);
-                    setActiveTab("incoming");
-                }}
-            />
-
-            <RejectRequestModal
-                isOpen={rejectOpen}
-                onClose={() => setRejectOpen(false)}
-                onConfirm={({ reason, comments }) => {
-                    handleRejectRequest(reason, comments);
-                }}
-            />
-        </Card>
-    );
+      <RejectRequestModal
+        isOpen={rejectOpen}
+        onClose={() => { setRejectOpen(false); }}
+        onConfirm={(reason, comment) => handleRejectRequest(reason, comment)}
+        isPending={rejectMutation.isPending}
+      />
+    </>
+  );
 }
+
+

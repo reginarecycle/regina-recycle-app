@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
@@ -6,80 +6,118 @@ import { StatusBadge, getAmountColor } from "@/components/ui/status-badge";
 import { DataTableHeaderControls, type TableFilterState } from "@/components/ui/data-table-header-controls";
 import TransactionDetailsModal from "@/components/modals/transactiondetailmodal";
 import type { TransactionDetails } from "@/components/modals/transactiondetailmodal";
+import { useGetWalletTransactions } from "@/api-hooks/useWallet";
+import { buildDateRange } from "@/lib/utils";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type TxStatus = "CREDIT" | "WITHDRAWAL" | "FAILED";
+type TxStatusUI = "CREDIT" | "WITHDRAWAL" | "FAILED";
 
 type Transaction = {
-  id: string;
-  date: string;
-  status: TxStatus;
+  id:          string;
+  date:        string;
+  status:      TxStatusUI;
   description: string;
-  amount: string;
+  amount:      string;
 };
 
-// ── Static data ───────────────────────────────────────────────────────────────
+// ── Mapper ────────────────────────────────────────────────────────────────────
+
+function mapTransaction(tx: {
+  transactionId: string;
+  type:          string;
+  amount:        number;
+  status:        string;
+  description?:  string;
+  createdAt:     string;
+}): Transaction {
+  const status: TxStatusUI =
+    tx.type === "CREDIT"     ? "CREDIT"
+    : tx.status === "FAILED" ? "FAILED"
+    : "WITHDRAWAL";
+
+  return {
+    id:          tx.transactionId,
+    date:        new Date(tx.createdAt).toLocaleDateString("en-CA", {
+      day: "numeric", month: "short", year: "numeric",
+    }),
+    status,
+    description: tx.description ?? "Wallet transaction",
+    amount:      `CAD ${tx.amount.toFixed(2)}`,
+  };
+}
+
+// ── Constants ─────────────────────────────────────────────────────────────────
 
 const PAGE_SIZE = 8;
 
-const MOCK_DATA: Transaction[] = [
-  { id: "TX-1001", date: "14, Jan 2023", status: "CREDIT",     description: "Payment for plastic recyclables", amount: "CAD 1,558" },
-  { id: "TX-1002", date: "14, Jan 2023", status: "WITHDRAWAL", description: "Withdrew via Interac",             amount: "CAD 1,558" },
-  { id: "TX-1003", date: "14, Jan 2023", status: "CREDIT",     description: "Payment for tins",                amount: "CAD 1,558" },
-  { id: "TX-1004", date: "14, Jan 2023", status: "FAILED",     description: "Withdrew via Interac",             amount: "CAD 1,558" },
-  { id: "TX-1005", date: "14, Jan 2023", status: "CREDIT",     description: "Payment for tins",                amount: "CAD 1,558" },
-  { id: "TX-1006", date: "14, Jan 2023", status: "CREDIT",     description: "Payment for tins",                amount: "CAD 1,558" },
-  { id: "TX-1007", date: "14, Jan 2023", status: "CREDIT",     description: "Payment for glass",               amount: "CAD 1,558" },
-  { id: "TX-1008", date: "14, Jan 2023", status: "CREDIT",     description: "Payment for plastics",            amount: "CAD 1,558" },
-];
-
 const STATUS_OPTIONS = [
-  { key: "CREDIT" as TxStatus,     label: "Credit"     },
-  { key: "WITHDRAWAL" as TxStatus, label: "Withdrawal" },
-  { key: "FAILED" as TxStatus,     label: "Failed"     },
+  { key: "CREDIT"     as TxStatusUI, label: "Credit"     },
+  { key: "WITHDRAWAL" as TxStatusUI, label: "Withdrawal" },
+  { key: "FAILED"     as TxStatusUI, label: "Failed"     },
 ];
 
-
-const DEFAULT_FILTERS: TableFilterState<TxStatus> = { statuses: [], dateRange: "alltime" };
+const DEFAULT_FILTERS: TableFilterState<TxStatusUI> = { statuses: [], dateRange: "alltime" };
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function TransactionHistory() {
   const navigate = useNavigate();
-  const [search, setSearch]           = useState("");
-  const [filters, setFilters]         = useState<TableFilterState<TxStatus>>(DEFAULT_FILTERS);
-  const [page, setPage]               = useState(1);
-  const [openDetails, setOpenDetails] = useState(false);
-  const [selectedDetails, setSelectedDetails] = useState<TransactionDetails | null>(null);
+
+  const [search, setSearch]                     = useState("");
+  const [filters, setFilters]                   = useState<TableFilterState<TxStatusUI>>(DEFAULT_FILTERS);
+  const [page, setPage]                         = useState(1);
+  const [openDetails, setOpenDetails]           = useState(false);
+  const [selectedDetails, setSelectedDetails]   = useState<TransactionDetails | null>(null);
+
+  // ── Data fetching ──────────────────────────────────────────────────────────
+
+ // ── Data fetching ──────────────────────────────────────────────────────────
+
+  const dateRange = filters.dateRange !== "alltime" ? buildDateRange(filters.dateRange) : {};
+
+  const { data: txResult, isLoading } = useGetWalletTransactions({
+    page,
+    limit:     PAGE_SIZE,
+    search:    search.trim() || undefined,
+    startDate: dateRange.startDate ? `${dateRange.startDate}T00:00:00.000Z` : undefined,
+    endDate:   dateRange.endDate   ? `${dateRange.endDate}T23:59:59.999Z`   : undefined,
+    type:      filters.statuses.length === 1
+                 ? filters.statuses[0] === "CREDIT"     ? "CREDIT"
+                 : filters.statuses[0] === "WITHDRAWAL" ? "DEBIT"
+                 : undefined
+               : undefined,
+    status:    filters.statuses.includes("FAILED") ? "FAILED" : undefined,
+  });
+
+  const allTransactions = useMemo(
+    () => (txResult?.data?.data ?? []).map(mapTransaction),
+    [txResult],
+  );
+
+  const meta       = txResult?.data?.meta;
+  const totalPages = meta ? Math.max(1, Math.ceil(meta.total / PAGE_SIZE)) : 1;
+  const filtered   = allTransactions; // backend handles all filtering
+
+  
+  // ── Handlers ───────────────────────────────────────────────────────────────
 
   const handleViewMore = (tx: Transaction) => {
     setSelectedDetails({
-      amount: tx.amount,
-      currency: "CAD",
-      status: tx.status,
-      date: tx.date,
-      time: "10:00am",
-      sender: "Shahnaz Recycle",
-      receiver: "Jane Doe",
-      fees: "0.00 CAD",
+      amount:    tx.amount,
+      currency:  "CAD",
+      status:    tx.status,
+      date:      tx.date,
+      time:      "10:00am",
+      sender:    "Shahnaz Recycle",
+      receiver:  "Jane Doe",
+      fees:      "0.00 CAD",
       reference: tx.id,
     });
     setOpenDetails(true);
   };
 
-  const filtered = MOCK_DATA.filter((tx) => {
-    const matchesSearch =
-      search.trim() === "" ||
-      tx.id.toLowerCase().includes(search.toLowerCase()) ||
-      tx.description.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus =
-      filters.statuses.length === 0 || filters.statuses.includes(tx.status);
-    return matchesSearch && matchesStatus;
-  });
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  // ── Columns ────────────────────────────────────────────────────────────────
 
   const columns: ColumnDef<Transaction>[] = [
     {
@@ -113,7 +151,7 @@ export default function TransactionHistory() {
         <button
           type="button"
           onClick={() => handleViewMore(row)}
-          className="text-sm font-semibold text-foreground hover:text-primary transition-colors"
+          className="text-sm font-semibold text-foreground hover:text-primary transition-colors w-fit"
         >
           View More
         </button>
@@ -121,10 +159,10 @@ export default function TransactionHistory() {
     },
   ];
 
+  // ── Render ─────────────────────────────────────────────────────────────────
+
   return (
     <div className="flex flex-col gap-6 p-4 sm:p-6 lg:p-8 bg-muted/30 min-h-screen">
-
-      {/* Back */}
       <button
         type="button"
         onClick={() => navigate(-1)}
@@ -135,7 +173,7 @@ export default function TransactionHistory() {
       </button>
 
       <DataTable
-        data={paginated}
+        data={isLoading ? [] : filtered}
         columns={columns}
         rowKey={(r) => r.id}
         title="Transaction History"
@@ -153,10 +191,10 @@ export default function TransactionHistory() {
         showTabs={false}
         page={page}
         totalPages={totalPages}
-        totalItems={filtered.length}
+        totalItems={meta?.total ?? 0}
         pageSize={PAGE_SIZE}
         onPageChange={setPage}
-        emptyText="No transactions found"
+        emptyText={isLoading ? "Loading..." : "No transactions found"}
         minHeight="300px"
       />
 

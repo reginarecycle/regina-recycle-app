@@ -7,9 +7,31 @@ import InputField from "@/components/forms/input-field";
 import { DeleteAccountBanner } from "@/components/shared/DeleteAccountBanner";
 import { DeleteAccountDialog } from "@/components/shared/DeleteAccountDialog";
 import { collectorSecuritySchema, type CollectorSecurityFormValues } from "@/lib/validation";
+import { useMutation } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/apiFetch";
+import { toast } from "sonner";
 
 export function CollectorSecurityTab() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const { mutate: changePassword, isPending } = useMutation({
+    mutationFn: (data: { currentPassword: string; newPassword: string }) =>
+      apiFetch("/auth/change-password", { method: "PATCH", data }),
+    onSuccess: () => {
+      toast.success("Password updated successfully");
+      reset();
+    },
+    onError: () => toast.error("Failed to update password. Check your current password."),
+  });
+
+  const { mutate: deleteAccount } = useMutation({
+    mutationFn: () => apiFetch("/users/delete", { method: "DELETE" }),
+    onSuccess: () => {
+      toast.success("Account deleted");
+      // TODO: redirect to login
+    },
+    onError: () => toast.error("Failed to delete account"),
+  });
 
   const {
     register,
@@ -18,13 +40,14 @@ export function CollectorSecurityTab() {
     reset,
   } = useForm<CollectorSecurityFormValues>({
     resolver: zodResolver(collectorSecuritySchema),
-    mode: "onChange",
+    mode: "onBlur",
   });
 
   const onSubmit = (data: CollectorSecurityFormValues) => {
-    console.log("Security data:", data);
-    // TODO: call your API here
-    reset();
+    changePassword({
+      currentPassword: data.currentPassword,
+      newPassword:     data.newPassword,
+    });
   };
 
   return (
@@ -44,13 +67,13 @@ export function CollectorSecurityTab() {
         </div>
 
         <div className="flex flex-col sm:flex-row justify-center sm:justify-end gap-3 pt-6">
-          <Button type="button" variant="outline" disabled={!isDirty} onClick={() => reset()}
+          <Button type="button" variant="outline" disabled={!isDirty || isPending} onClick={() => reset()}
             className="w-full sm:w-[174px] h-11 min-w-0 border-[rgba(221,30,30,0.60)] text-red-500 hover:bg-red-50 disabled:opacity-60">
             Cancel
           </Button>
-          <Button type="submit" disabled={!isDirty}
+          <Button type="submit" disabled={!isDirty || isPending}
             className="w-full sm:w-[174px] h-11 min-w-0 bg-primary hover:bg-primary/90 disabled:opacity-60">
-            Update Password
+            {isPending ? "Updating..." : "Update Password"}
           </Button>
         </div>
       </form>
@@ -68,10 +91,7 @@ export function CollectorSecurityTab() {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         description='This action is permanent and cannot be undone. All your data, company profile, and history will be lost. To confirm, please type "DELETE" in the box below.'
-        onConfirm={() => {
-          console.log("Collector account deleted");
-          // TODO: call your delete API here
-        }}
+        onConfirm={() => deleteAccount()}
       />
     </div>
   );

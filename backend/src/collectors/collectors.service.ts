@@ -6,13 +6,15 @@ import { UpdateCollectorDto } from './dto/update-collector.dto';
 import { UpdateMaterialPricingDto } from './dto/update-material-pricing.dto';
 import { UpdateMaterialSettingsDto } from './dto/update-material-settings.dto';
 import { CreateMaterialPricingDto } from './dto/create-material-pricing.dto';
-import { CollectorQueryDto } from './dto/collectors-query.dto';
+import { CollectorUsersQueryDto as CollectorQueryDto } from './dto/collectors-query.dto';
 import { PickupQueryDto } from './dto/pickup-query.dto';
+import { CollectorUsersQueryDto } from './dto/collectors-query.dto';
 import { getPaginationParams, paginate } from '../common/pagination/pagination-helper';
+
 
 @Injectable()
 export class CollectorsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   private async ensureCollectorExists(collectorId: string) {
     const collector = await this.prisma.user.findFirst({
@@ -50,6 +52,30 @@ export class CollectorsService {
       pendingAmount: Number(pendingAmount._sum.estimatedEarning ?? 0),
     };
   }
+
+
+  async checkMaterialsAvailability(materialIds: string[]) {
+    const unavailable: string[] = [];
+
+    for (const materialId of materialIds) {
+      const count = await this.prisma.collectorPricing.count({
+        where: {
+          materialId,
+          status: 'ACTIVE',
+        },
+      });
+      if (count === 0) unavailable.push(materialId);
+    }
+
+    return {
+      available: unavailable.length === 0,
+      unavailableMaterialIds: unavailable,
+    };
+  }
+
+
+
+
 
   async getMaterialDistribution(collectorId: string, period?: string) {
     await this.ensureCollectorExists(collectorId);
@@ -92,38 +118,64 @@ export class CollectorsService {
   async getPickupOverview(collectorId: string) {
     await this.ensureCollectorExists(collectorId);
 
-    const start = new Date();
-    start.setDate(start.getDate() - 6);
-    start.setHours(0, 0, 0, 0);
+    const now = new Date();
 
-    const pickups = await this.prisma.pickup.findMany({
-      where: {
-        collectorUserId: collectorId,
-        status: { in: [PickupStatus.ACCEPTED, PickupStatus.COMPLETED] },
-        scheduledAt: { gte: start },
-      },
-      include: { items: true },
-      orderBy: { scheduledAt: 'asc' },
-    });
+    // Monday of the current calendar week
+    const currentMonday = new Date(now);
+    const dow = currentMonday.getDay(); // 0=Sun … 6=Sat
+    currentMonday.setDate(currentMonday.getDate() - (dow === 0 ? 6 : dow - 1));
+    currentMonday.setHours(0, 0, 0, 0);
 
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    // Monday of the previous calendar week
+    const previousMonday = new Date(currentMonday);
+    previousMonday.setDate(currentMonday.getDate() - 7);
+
+    // Sunday end of current week (exclusive upper bound)
+    const nextMonday = new Date(currentMonday);
+    nextMonday.setDate(currentMonday.getDate() + 7);
+
+    const [currentPickups, previousPickups] = await Promise.all([
+      this.prisma.pickup.findMany({
+        where: {
+          collectorUserId: collectorId,
+          status: { in: [PickupStatus.ACCEPTED, PickupStatus.COMPLETED] },
+          scheduledAt: { gte: currentMonday, lt: nextMonday },
+        },
+        include: { items: true },
+      }),
+      this.prisma.pickup.findMany({
+        where: {
+          collectorUserId: collectorId,
+          status: { in: [PickupStatus.ACCEPTED, PickupStatus.COMPLETED] },
+          scheduledAt: { gte: previousMonday, lt: currentMonday },
+        },
+        include: { items: true },
+      }),
+    ]);
+
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    const isSameDay = (d: Date, ref: Date) =>
+      d.getFullYear() === ref.getFullYear() &&
+      d.getMonth() === ref.getMonth() &&
+      d.getDate() === ref.getDate();
 
     const overview = Array.from({ length: 7 }, (_, i) => {
-      const date = new Date(start);
-      date.setDate(start.getDate() + i);
+      const currentDate = new Date(currentMonday);
+      currentDate.setDate(currentMonday.getDate() + i);
 
-      const units = pickups
-        .filter((p) => {
-          const d = new Date(p.scheduledAt);
-          return (
-            d.getFullYear() === date.getFullYear() &&
-            d.getMonth() === date.getMonth() &&
-            d.getDate() === date.getDate()
-          );
-        })
+      const previousDate = new Date(previousMonday);
+      previousDate.setDate(previousMonday.getDate() + i);
+
+      const current = currentPickups
+        .filter((p) => isSameDay(new Date(p.scheduledAt), currentDate))
         .reduce((sum, p) => sum + p.items.reduce((s, item) => s + item.quantity, 0), 0);
 
-      return { day: dayNames[date.getDay()], units };
+      const previous = previousPickups
+        .filter((p) => isSameDay(new Date(p.scheduledAt), previousDate))
+        .reduce((sum, p) => sum + p.items.reduce((s, item) => s + item.quantity, 0), 0);
+
+      return { day: dayNames[i], current, previous };
     });
 
     return { collectorId, period: 'weekly', overview };
@@ -152,6 +204,9 @@ export class CollectorsService {
           requester: { select: { userId: true, name: true, email: true, phoneNumber: true } },
           address: true,
           items: { include: { material: true } },
+          snapshots: {
+            include: { material: true },
+          },
         },
         orderBy: { scheduledAt: 'asc' },
         skip,
@@ -203,6 +258,29 @@ export class CollectorsService {
       data: Object.values(grouped).sort((a, b) => b.units - a.units).slice(0, limit),
     };
   }
+
+  async getCustomerStats(collectorId: string) {
+  await this.ensureCollectorExists(collectorId);
+
+  const [uniqueCustomerRows, completedPickups] = await Promise.all([
+    this.prisma.pickup.findMany({
+      where: { collectorUserId: collectorId, requesterUserId: { not: null } },
+      select: { requesterUserId: true },
+      distinct: ['requesterUserId'],
+    }),
+    this.prisma.pickup.findMany({
+      where: { collectorUserId: collectorId, status: PickupStatus.COMPLETED, requesterUserId: { not: null } },
+      select: { requesterUserId: true, actualEarning: true },
+    }),
+  ]);
+
+  const totalUsers = uniqueCustomerRows.length;
+  const totalCollections = completedPickups.length;
+  const totalRevenue = completedPickups.reduce((sum, p) => sum + Number(p.actualEarning), 0);
+  const avgRevenuePerUser = totalUsers > 0 ? totalRevenue / totalUsers : 0;
+
+  return { totalUsers, avgRevenuePerUser, totalCollections };
+}
 
   async getCustomers(collectorId: string, query: CollectorQueryDto) {
     await this.ensureCollectorExists(collectorId);
@@ -273,6 +351,137 @@ export class CollectorsService {
     return { collectorId, customer, pickups };
   }
 
+  async getUsersStats(collectorId: string) {
+    await this.ensureCollectorExists(collectorId);
+
+    const totalUsers = await this.prisma.user.count({
+      where: {
+        role: 'CUSTOMER',
+        pickupsRequested: {
+          some: {
+            collectorUserId: collectorId,
+            status: PickupStatus.COMPLETED,
+          },
+        },
+      },
+    });
+
+    const completedPickups = await this.prisma.pickup.findMany({
+      where: {
+        collectorUserId: collectorId,
+        status: PickupStatus.COMPLETED,
+      },
+      select: { actualEarning: true },
+    });
+
+    const totalCollection = completedPickups.length;
+    const totalRevenue = completedPickups.reduce(
+      (sum, p) => sum + Number(p.actualEarning ?? 0),
+      0,
+    );
+
+    return {
+      totalUsers,
+      avgRevenuePerUser: totalUsers > 0 ? totalRevenue / totalUsers : 0,
+      totalCollection,
+    };
+  }
+
+  async getUsers(collectorId: string, query: CollectorUsersQueryDto) {
+    await this.ensureCollectorExists(collectorId);
+
+    const { page = 1, limit = 10, keyword } = query;
+    const { skip, take } = getPaginationParams(Number(page), Number(limit));
+    const userWhere: any = {
+      role: 'CUSTOMER',
+      pickupsRequested: {
+        some: {
+          collectorUserId: collectorId,
+          status: PickupStatus.COMPLETED,
+        },
+      },
+      ...(keyword && {
+        OR: [
+          { name: { contains: keyword, mode: 'insensitive' } },
+          { email: { contains: keyword, mode: 'insensitive' } },
+          { phoneNumber: { contains: keyword, mode: 'insensitive' } },
+        ],
+      }),
+    };
+
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where: userWhere,
+        skip,
+        take,
+        select: {
+          userId: true,
+          name: true,
+          email: true,
+          phoneNumber: true,
+          status: true,
+          addresses: {
+            take: 1,
+            orderBy: { createdAt: 'desc' },
+            select: { city: true },
+          },
+          pickupsRequested: {
+            where: {
+              collectorUserId: collectorId,
+              status: PickupStatus.COMPLETED,
+            },
+            select: {
+              actualEarning: true,
+              items: {
+                include: { material: true },
+              },
+            },
+          },
+        },
+      }),
+      this.prisma.user.count({ where: userWhere }),
+    ]);
+
+    const data = users.map((user) => {
+      const completedPickups = user.pickupsRequested;
+      const collections = completedPickups.length;
+      const revenue = completedPickups.reduce(
+        (sum, p) => sum + Number(p.actualEarning ?? 0),
+        0,
+      );
+      const avgPerOrder = collections > 0 ? revenue / collections : 0;
+      const collectedItems = [
+        ...new Set(
+          completedPickups.flatMap((p) =>
+            p.items.map((i) => i.material.type),
+          ),
+        ),
+      ];
+
+      return {
+        customerId: user.userId,
+        name: user.name,
+        email: user.email,
+        phone: user.phoneNumber,
+        neighborhood: user.addresses[0]?.city ?? '',
+        status: user.status,
+        collections,
+        revenue,
+        avgPerOrder,
+        collectedItems,
+      };
+    });
+
+    const totalPages = Math.ceil(total / limit);
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages,
+    };
+  }
+
   async updateProfile(collectorId: string, dto: UpdateCollectorDto) {
     await this.ensureCollectorExists(collectorId);
 
@@ -304,24 +513,52 @@ export class CollectorsService {
     const { page = 1, limit = 10, search, status } = query;
     const { skip, take } = getPaginationParams(page, limit);
 
-    const where = {
-      collectorUserId: collectorId,
-      ...(search ? { material: { name: { contains: search, mode: 'insensitive' as const } } } : {}),
-      ...(status ? { status: status as PricingStatus } : {}),
+    const materialWhere = {
+      ...(search ? { name: { contains: search, mode: 'insensitive' as const } } : {}),
     };
 
-    const [pricing, total] = await Promise.all([
-      this.prisma.collectorPricing.findMany({
-        where,
-        include: { material: true },
-        orderBy: { createdAt: 'desc' },
+    // Fetch all platform materials (paginated) + this collector's pricing in parallel
+    const [materials, total, pricings] = await Promise.all([
+      this.prisma.material.findMany({
+        where: materialWhere,
         skip,
         take,
+        orderBy: { createdAt: 'desc' },
+        select: { materialId: true, name: true, type: true, photoUrl: true },
       }),
-      this.prisma.collectorPricing.count({ where }),
+      this.prisma.material.count({ where: materialWhere }),
+      this.prisma.collectorPricing.findMany({
+        where: { collectorUserId: collectorId },
+      }),
     ]);
 
-    return paginate(pricing, total, page, limit);
+    const pricingMap = new Map(pricings.map((p) => [p.materialId, p]));
+
+    // Merge: every material gets the collector's real price (or 0/INACTIVE if not set)
+    const merged = materials.map((material) => {
+      const p = pricingMap.get(material.materialId);
+      return {
+        collectorPricingId: p?.collectorPricingId ?? null,
+        collectorUserId:    collectorId,
+        materialId:         material.materialId,
+        basePrice:          p ? Number(p.basePrice) : 0,
+        bulkPrice:          p?.bulkPrice ? Number(p.bulkPrice) : 0,
+        status:             p?.status ?? 'INACTIVE',
+        createdAt:          p?.createdAt ?? new Date(),
+        updatedAt:          p?.updatedAt ?? new Date(),
+        material: {
+          materialId: material.materialId,
+          name:       material.name,
+          type:       material.type,
+          photoUrl:   material.photoUrl ?? null,
+        },
+      };
+    });
+
+    // Apply optional status filter after merging
+    const filtered = status ? merged.filter((r) => r.status === status) : merged;
+
+    return paginate(filtered, status ? filtered.length : total, page, limit);
   }
 
   async createMaterialPricing(collectorId: string, dto: CreateMaterialPricingDto) {
@@ -361,7 +598,11 @@ export class CollectorsService {
       select: { bulkIncentiveEnabled: true, bulkThreshold: true, serviceFee: true, feeType: true },
     });
 
-    return { collectorId, settings: profile };
+    return {
+      settings: profile
+        ? { ...profile, serviceFee: Number(profile.serviceFee) }
+        : null,
+    };
   }
 
   async updateMaterialSettings(collectorId: string, dto: UpdateMaterialSettingsDto) {
@@ -398,12 +639,12 @@ export class CollectorsService {
       throw new BadRequestException('Collector pricing not found for this material');
     }
 
-    const unitPrice      = Number(collectorPricing.basePrice ?? 0);
-    const grossPayout    = quantity * unitPrice;
-    const feeType        = profile?.feeType ?? 'FLAT_FEE';
-    const feeValue       = Number(profile?.serviceFee ?? 0);
-    const serviceFee     = this.calculateServiceFee(feeType, feeValue, grossPayout);
-    const netPayout      = Math.max(0, grossPayout - serviceFee);
+    const unitPrice = Number(collectorPricing.basePrice ?? 0);
+    const grossPayout = quantity * unitPrice;
+    const feeType = profile?.feeType ?? 'FLAT_FEE';
+    const feeValue = Number(profile?.serviceFee ?? 0);
+    const serviceFee = this.calculateServiceFee(feeType, feeValue, grossPayout);
+    const netPayout = Math.max(0, grossPayout - serviceFee);
 
     return {
       collectorId,
@@ -422,6 +663,67 @@ export class CollectorsService {
     return ServiceFeeFactory.create(feeType, feeValue).calculate(amount);
   }
 
+  async getAverageMaterialPrice(materialId: string) {
+    const result = await this.prisma.collectorPricing.aggregate({
+      where: {
+        materialId,
+        status: PricingStatus.ACTIVE,
+      },
+      _min: {
+        basePrice: true,
+      },
+      _max: {
+        basePrice: true,
+      },
+      _avg: {
+        basePrice: true,
+      },
+    });
+
+
+    return {
+      minPrice: Number(result._min.basePrice ?? 0),
+      maxPrice: Number(result._max.basePrice ?? 0),
+      avgPrice: Number(result._avg.basePrice ?? 0),
+    };
+  }
+
+  async getDashboardStats(collectorId: string) {
+    await this.ensureCollectorExists(collectorId);
+
+    const [pendingRequests, acceptedRequests, totalItems, pendingAmount] = await Promise.all([
+      this.prisma.pickup.count({
+        where: {
+          status: PickupStatus.PENDING,
+          collectorUserId: null,
+          rejections: { none: { collectorId } },
+        },
+      }),
+      this.prisma.pickup.count({
+        where: { collectorUserId: collectorId, status: PickupStatus.ACCEPTED }
+      }),
+      this.prisma.pickupItem.aggregate({
+        where: { pickup: { is: { collectorUserId: collectorId } } },
+        _sum: { quantity: true },
+      }),
+      this.prisma.pickup.aggregate({
+        where: {
+          collectorUserId: collectorId,
+          status: { in: [PickupStatus.PENDING, PickupStatus.ACCEPTED] },
+        },
+        _sum: { estimatedEarning: true },
+      }),
+    ]);
+
+    return {
+      collectorId,
+      pendingRequests,
+      acceptedRequests,
+      totalItems: totalItems._sum.quantity ?? 0,
+      pendingAmount: Number(pendingAmount._sum.estimatedEarning ?? 0),
+    };
+  }
+
   private getStartDate(period?: string): Date | undefined {
     if (!period) return undefined;
     const date = new Date();
@@ -431,3 +733,4 @@ export class CollectorsService {
     return date;
   }
 }
+

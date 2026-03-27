@@ -34,45 +34,59 @@ export class NotificationGatewayService implements ISubject {
       where: { userId: event.userId },
     });
 
-    const emailPrefMap: Record<NotificationEventType, boolean> = {
-      [NotificationEventType.PICKUP_SCHEDULED]:       preference?.emailPickupReminder  ?? true,
-      [NotificationEventType.PICKUP_STATUS_CHANGED]:  preference?.emailPickupReminder  ?? true,
-      [NotificationEventType.PICKUP_COMPLETED]:       preference?.emailPickupReminder  ?? true,
-      [NotificationEventType.WALLET_UPDATED_CREDIT]:  preference?.emailAccountActivity ?? true,
-      [NotificationEventType.WALLET_UPDATED_DEBIT]:   preference?.emailAccountActivity ?? true,
-      [NotificationEventType.MATERIAL_PRICING_UPDATED]: preference?.emailAccountActivity ?? true,
-      [NotificationEventType.ALERT]:                  preference?.emailAccountActivity ?? true,
+    const emailEnabled = preference?.emailAccountActivity ?? true;
+    const inAppEnabled = preference?.inAppAlerts ?? true;
+
+    const eventEmailMap: Record<NotificationEventType, boolean> = {
+      [NotificationEventType.PICKUP_SCHEDULED]:          preference?.emailPickupReminder ?? true,
+      [NotificationEventType.PICKUP_STATUS_CHANGED]:     false,
+      [NotificationEventType.PICKUP_COMPLETED]:          preference?.emailPickupReminder ?? true,
+      [NotificationEventType.WALLET_UPDATED_CREDIT]:     emailEnabled,
+      [NotificationEventType.WALLET_UPDATED_DEBIT]:      emailEnabled,
+      [NotificationEventType.MATERIAL_PRICING_UPDATED]:  false,
+      [NotificationEventType.ALERT]:                     emailEnabled,
+      [NotificationEventType.PASSWORD_CHANGED]:          emailEnabled,
+      [NotificationEventType.PROFILE_UPDATED]:           emailEnabled,
     };
 
-    const inAppPrefMap: Record<NotificationEventType, boolean> = {
-      [NotificationEventType.PICKUP_SCHEDULED]:       preference?.inAppPickupReminder ?? true,
-      [NotificationEventType.PICKUP_STATUS_CHANGED]:  preference?.inAppAlerts         ?? true,
-      [NotificationEventType.PICKUP_COMPLETED]:       preference?.inAppAlerts         ?? true,
-      [NotificationEventType.WALLET_UPDATED_CREDIT]:  preference?.inAppAlerts         ?? true,
-      [NotificationEventType.WALLET_UPDATED_DEBIT]:   preference?.inAppAlerts         ?? true,
-      [NotificationEventType.MATERIAL_PRICING_UPDATED]: preference?.inAppAlerts       ?? true,
-      [NotificationEventType.ALERT]:                  preference?.inAppAlerts         ?? true,
+    const eventInAppMap: Record<NotificationEventType, boolean> = {
+      [NotificationEventType.PICKUP_SCHEDULED]:          inAppEnabled,
+      [NotificationEventType.PICKUP_STATUS_CHANGED]:     inAppEnabled,
+      [NotificationEventType.PICKUP_COMPLETED]:          inAppEnabled,
+      [NotificationEventType.WALLET_UPDATED_CREDIT]:     inAppEnabled,
+      [NotificationEventType.WALLET_UPDATED_DEBIT]:      inAppEnabled,
+      [NotificationEventType.MATERIAL_PRICING_UPDATED]:  inAppEnabled,
+      [NotificationEventType.ALERT]:                     inAppEnabled,
+      [NotificationEventType.PASSWORD_CHANGED]:          inAppEnabled,
+      [NotificationEventType.PROFILE_UPDATED]:           inAppEnabled,
     };
+
+    const shouldEmail = eventEmailMap[event.type];
+    const shouldInApp = eventInAppMap[event.type];
+
+    if (!shouldEmail && !shouldInApp) return;
 
     const activeObservers = this.observers.filter((o) => {
-      if (o instanceof EmailNotificationObserver) return emailPrefMap[event.type];
-      if (o instanceof InAppNotificationObserver) return inAppPrefMap[event.type];
+      if (o instanceof EmailNotificationObserver) return shouldEmail;
+      if (o instanceof InAppNotificationObserver) return shouldInApp;
       return true;
     });
 
     await Promise.all(activeObservers.map((o) => o.update(event)));
   }
-
   async notifyPickupScheduled(params: {
     userId: string;
     recipientEmail: string;
     pickupId: string;
     scheduledDate: string;
   }) {
+    const d = new Date(params.scheduledDate);
+    const formattedDate = `${d.getDate()} ${d.toLocaleString('en-US', { month: 'short' })}, ${d.getFullYear()}`;
+
     await this.sendNotification({
       type: NotificationEventType.PICKUP_SCHEDULED,
       title: 'Pickup Scheduled',
-      message: `Your pickup has been scheduled for ${params.scheduledDate}.`,
+      message: `Your pickup has been scheduled for ${formattedDate}.`,
       userId: params.userId,
       recipientEmail: params.recipientEmail,
       metadata: { pickupId: params.pickupId },
@@ -131,6 +145,34 @@ export class NotificationGatewayService implements ISubject {
       userId: params.userId,
       recipientEmail: params.recipientEmail,
       metadata: { amount: params.amount, balance: params.balance },
+    });
+  }
+
+  async notifyPasswordChanged(params: {
+    userId: string;
+    recipientEmail: string;
+  }) {
+    await this.sendNotification({
+      type: NotificationEventType.PASSWORD_CHANGED,
+      title: 'Password Changed',
+      message:
+        'If you did not make this change please contact us at info.reginarecycle@gmail.com',
+      userId: params.userId,
+      recipientEmail: params.recipientEmail,
+    });
+  }
+
+  async notifyProfileUpdated(params: {
+    userId: string;
+    recipientEmail: string;
+  }) {
+    await this.sendNotification({
+      type: NotificationEventType.PROFILE_UPDATED,
+      title: 'Profile Updated',
+      message:
+        'Your profile has been updated, if you did not make this change please contact us at info.reginarecycle@gmail.com',
+      userId: params.userId,
+      recipientEmail: params.recipientEmail,
     });
   }
 

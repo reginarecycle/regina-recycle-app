@@ -1,5 +1,6 @@
 import type { WithdrawBankFormValues } from "@/lib/validation";
 import * as React from "react";
+import { formatAmount } from "@/lib/utils";
 import { ModalFooter } from "../../components";
 
 interface WithdrawReviewStepProps {
@@ -28,7 +29,7 @@ export const WithdrawReviewStep: React.FC<WithdrawReviewStepProps> = ({
           </span>
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Amount:</span>
-            <span className="font-bold text-foreground">${amount.toFixed(2)} CAD</span>
+            <span className="font-bold text-foreground">${formatAmount(amount)} CAD</span>
           </div>
         </div>
 
@@ -55,7 +56,7 @@ export const WithdrawReviewStep: React.FC<WithdrawReviewStepProps> = ({
 
         {/* Fees */}
         {[
-          { label: "Withdrawal Amount:", value: `$${amount.toFixed(2)}` },
+          { label: "Withdrawal Amount:", value: `$${formatAmount(amount)}` },
           { label: "Processing Fee:",    value: "$0.00"                 },
         ].map(({ label, value }) => (
           <div key={label} className="flex items-center justify-between text-sm">
@@ -68,7 +69,7 @@ export const WithdrawReviewStep: React.FC<WithdrawReviewStepProps> = ({
 
         <div className="flex items-center justify-between">
           <span className="font-bold text-foreground">Total Deduction:</span>
-          <span className="font-bold text-destructive text-lg">-${amount.toFixed(2)}</span>
+          <span className="font-bold text-destructive text-lg">-${formatAmount(amount)}</span>
         </div>
       </div>
     </div>

@@ -4,6 +4,11 @@ import {
   BadRequestException,
   UnauthorizedException,
 } from '@nestjs/common';
+
+function generateReferenceNumber(): string {
+  const digits = Math.floor(100000 + Math.random() * 900000); // 6-digit number
+  return `RRY-${digits}`;
+}
 import { PrismaService } from '../prisma/prisma.service';
 import { ErrorMessage } from '../common/error-message';
 import { TxStatus, TxType, PaymentMethodType } from '@prisma/client';
@@ -233,6 +238,8 @@ export class WalletService {
 
     return {
       data: transactions.map((t) => ({
+        transactionId: t.transactionId,
+        referenceNumber: t.referenceNumber ?? undefined,
         userId: wallet.userId,
         walletId: t.walletId,
         type: t.type,
@@ -293,6 +300,7 @@ export class WalletService {
           status: TxStatus.COMPLETED,
           description: `Top-up via ${methodLabel}`,
           referenceType: 'TOP_UP',
+          referenceNumber: generateReferenceNumber(),
         },
       }),
       this.prisma.wallet.update({
@@ -354,6 +362,7 @@ export class WalletService {
           status: TxStatus.COMPLETED,
           description: `Interac withdrawal to ${dto.interacEmail}`,
           referenceType: 'WITHDRAWAL',
+          referenceNumber: generateReferenceNumber(),
         },
       }),
       this.prisma.wallet.update({
@@ -416,6 +425,7 @@ export class WalletService {
           status: TxStatus.COMPLETED,
           description: `Bank withdrawal to ${dto.bankName} — ${dto.accountHolderName}`,
           referenceType: 'WITHDRAWAL',
+          referenceNumber: generateReferenceNumber(),
         },
       }),
       this.prisma.wallet.update({

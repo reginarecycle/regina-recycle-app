@@ -2,6 +2,7 @@ import * as React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { withdrawAmountSchema, type WithdrawAmountFormValues } from "@/lib/validation";
+import { formatAmount } from "@/lib/utils";
 import { AmountInput, ModalFooter, QuickAmountBtn } from "../../components";
 
 interface WithdrawAmountStepProps {
@@ -89,7 +90,7 @@ export const WithdrawAmountStep: React.FC<WithdrawAmountStepProps> = ({
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Withdrawal amount:</span>
               <span className="font-semibold text-foreground">
-                ${currentAmount?.toFixed(2)}
+                ${formatAmount(currentAmount)}
               </span>
             </div>
             <div className="flex items-center justify-between text-sm">
