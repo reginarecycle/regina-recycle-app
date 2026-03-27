@@ -25,7 +25,8 @@ function formatRole(role?: string) {
   return "Verified User";
 }
 
-function getInitials(name: string) {
+function getInitials(name?: string) {
+  if (!name) return "U";
   return name.split(" ").map((n) => n[0]).join("").toUpperCase();
 }
 
