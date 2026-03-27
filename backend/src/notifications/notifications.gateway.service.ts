@@ -142,19 +142,32 @@ export class NotificationGatewayService implements ISubject {
   }
 
   async notifyPasswordChanged(params: {
-  userId: string;
-  recipientEmail: string;
-}) {
-  await this.sendNotification({
-    type: NotificationEventType.PASSWORD_CHANGED,
-    title: 'Password Changed',
-    message:
-      'If you did not make this change please contact us at info.reginarecycle@gmail.com',
-    userId: params.userId,
-    recipientEmail: params.recipientEmail,
-    // metadata: {} // optional
-  });
-}
+    userId: string;
+    recipientEmail: string;
+  }) {
+    await this.sendNotification({
+      type: NotificationEventType.PASSWORD_CHANGED,
+      title: 'Password Changed',
+      message:
+        'If you did not make this change please contact us at info.reginarecycle@gmail.com',
+      userId: params.userId,
+      recipientEmail: params.recipientEmail,
+    });
+  }
+
+  async notifyProfileUpdated(params: {
+    userId: string;
+    recipientEmail: string;
+  }) {
+    await this.sendNotification({
+      type: NotificationEventType.PROFILE_UPDATED,
+      title: 'Profile Updated',
+      message:
+        'Your profile has been updated, if you did not make this change please contact us at info.reginarecycle@gmail.com',
+      userId: params.userId,
+      recipientEmail: params.recipientEmail,
+    });
+  }
 
   async notifyAlert(params: {
     userId: string;
