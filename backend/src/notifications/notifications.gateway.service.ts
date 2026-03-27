@@ -53,7 +53,7 @@ export class NotificationGatewayService implements ISubject {
       [NotificationEventType.MATERIAL_PRICING_UPDATED]: preference?.inAppAlerts ?? true,
       [NotificationEventType.ALERT]: preference?.inAppAlerts ?? true,
       [NotificationEventType.PASSWORD_CHANGED]: preference?.emailAccountActivity ?? true,
-      [NotificationEventType.PROFILE_UPDATED]: preference?.inAppAlerts ?? true,
+      [NotificationEventType.PROFILE_UPDATED]: preference?.emailAccountActivity ?? true,
     };
 
     if (!eventPrefMap[event.type]) return;
