@@ -11,11 +11,6 @@ export class UpdateUserDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsEmail()
-  email?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
   @IsString()
   phoneNumber?: string;
 
@@ -23,4 +18,9 @@ export class UpdateUserDto {
   @IsDateString()
   @IsOptional()
   dateOfBirth?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  licenseId?: string;
 }

@@ -524,7 +524,7 @@ export class CollectorsService {
         skip,
         take,
         orderBy: { createdAt: 'desc' },
-        select: { materialId: true, name: true, type: true, photoUrl: true },
+        select: { materialId: true, name: true, type: true, description: true, tips: true, photoUrl: true },
       }),
       this.prisma.material.count({ where: materialWhere }),
       this.prisma.collectorPricing.findMany({
@@ -547,10 +547,12 @@ export class CollectorsService {
         createdAt:          p?.createdAt ?? new Date(),
         updatedAt:          p?.updatedAt ?? new Date(),
         material: {
-          materialId: material.materialId,
-          name:       material.name,
-          type:       material.type,
-          photoUrl:   material.photoUrl ?? null,
+          materialId:  material.materialId,
+          name:        material.name,
+          type:        material.type,
+          description: material.description ?? null,
+          tips:        material.tips ?? null,
+          photoUrl:    material.photoUrl ?? null,
         },
       };
     });

@@ -11,24 +11,10 @@ import { useUpdateUserProfile } from "@/api-hooks/useUsers";
 import { useGetDefaultAddress, useUpdateAddress, useCreateAddress } from "@/api-hooks/useAddress";
 import { useCurrentUser } from "@/api-hooks/useAuth";
 import { AddressAutocompleteField, type ParsedAddress } from "@/components/forms/address-field";
+import { maskDob, maskPhone } from "@/lib/utils";
 
 
-function maskPhone(raw: string): string {
-  const digits = raw.replace(/\D/g, "").slice(0, 10);
-  if (!digits) return "";
-  if (digits.length <= 3) return `(${digits}`;
-  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
-  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-}
 
-
-function maskDob(raw: string): string {
-  const digits = raw.replace(/\D/g, "").slice(0, 8);
-  if (!digits) return "";
-  if (digits.length <= 2) return digits;
-  if (digits.length <= 4) return `${digits.slice(0, 2)}-${digits.slice(2)}`;
-  return `${digits.slice(0, 2)}-${digits.slice(2, 4)}-${digits.slice(4)}`;
-}
 
 function isoToDmy(iso: string): string {
   if (!iso) return "";

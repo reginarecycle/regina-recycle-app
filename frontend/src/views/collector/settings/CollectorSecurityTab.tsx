@@ -10,8 +10,11 @@ import { collectorSecuritySchema, type CollectorSecurityFormValues } from "@/lib
 import { useMutation } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/apiFetch";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { Routes } from "@/routes/routes";
 
 export function CollectorSecurityTab() {
+  const navigate = useNavigate ();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { mutate: changePassword, isPending } = useMutation({
@@ -25,14 +28,16 @@ export function CollectorSecurityTab() {
   });
 
   const { mutate: deleteAccount } = useMutation({
-    mutationFn: () => apiFetch("/users/delete", { method: "DELETE" }),
-    onSuccess: () => {
-      toast.success("Account deleted");
-      // TODO: redirect to login
-    },
-    onError: () => toast.error("Failed to delete account"),
-  });
-
+  mutationFn: () => apiFetch("/users/delete", { method: "DELETE" }),
+  onSuccess: () => {
+    toast.success("Account deleted");
+    navigate(Routes.login);
+  },
+  onError: (error: any) => {
+    const message = error?.response?.data?.message ?? "Failed to delete account";
+    toast.error(message);
+  },
+});
   const {
     register,
     handleSubmit,

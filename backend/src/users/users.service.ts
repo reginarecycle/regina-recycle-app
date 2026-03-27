@@ -3,9 +3,8 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
-  ConflictException,
 } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationGatewayService } from '../notifications/notifications.gateway.service';
 import { NotificationEventType } from '../notifications/interface/observer.interface';
@@ -37,21 +36,10 @@ export class UsersService {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
-    // Guard: new email must not already be taken
-    if (dto.email && dto.email !== existing.email) {
-      const emailTaken = await this.prisma.user.findUnique({
-        where: { email: dto.email },
-      });
-      if (emailTaken) {
-        throw new ConflictException('Email is already in use');
-      }
-    }
-
     const updated = await this.prisma.user.update({
       where: { userId },
       data: {
-        ...(dto.name !== undefined && { name: dto.name }),
-        ...(dto.email !== undefined && { email: dto.email }),
+        ...(dto.name        !== undefined && { name:        dto.name        }),
         ...(dto.phoneNumber !== undefined && { phoneNumber: dto.phoneNumber }),
       },
       select: {
@@ -66,14 +54,16 @@ export class UsersService {
 
     if (dto.dateOfBirth !== undefined) {
       await this.prisma.customerDOB.upsert({
+        where:  { userId },
+        update: { dob: new Date(dto.dateOfBirth) },
+        create: { userId, dob: new Date(dto.dateOfBirth) },
+      });
+    }
+
+    if (dto.licenseId !== undefined) {
+      await this.prisma.collectorProfile.update({
         where: { userId },
-        update: {
-          dob: new Date(dto.dateOfBirth),
-        },
-        create: {
-          userId,
-          dob: new Date(dto.dateOfBirth),
-        },
+        data:  { licenseId: dto.licenseId },
       });
     }
 
@@ -89,6 +79,7 @@ export class UsersService {
     this.logger.log(`Profile updated for user ${userId}`);
     return updated;
   }
+
 
   // ─── Deactivate Account ───────────────────────────────────────────────────────
 
@@ -135,15 +126,12 @@ export class UsersService {
     if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
 
     const [pendingPickups, wallet] = await Promise.all([
-      // Pending or in-progress pickups the user requested
       this.prisma.pickup.count({
         where: {
           requesterUserId: userId,
           status: { in: ['PENDING', 'ACCEPTED', 'IN_PROGRESS'] },
         },
       }),
-
-      // Wallet balance
       this.prisma.wallet.findUnique({
         where: { userId },
         select: { balance: true },
@@ -163,7 +151,6 @@ export class UsersService {
   // ─── Delete Account ───────────────────────────────────────────────────────────
 
   async deleteAccount(userId: string) {
-    // checkDeleteEligibility already verifies the user exists
     const eligibility = await this.checkDeleteEligibility(userId);
     if (!eligibility.canDelete) {
       const { pendingPickups, walletBalance } = eligibility as DeleteBlockers;
@@ -177,7 +164,6 @@ export class UsersService {
 
     const user = await this.prisma.user.findUnique({ where: { userId }, select: { email: true } });
 
-    // Send email before deleting — record won't exist after
     await this.notificationService.sendNotification({
       type: NotificationEventType.ALERT,
       title: 'Account Deleted',
@@ -192,7 +178,6 @@ export class UsersService {
       ),
     );
 
-    // Soft delete — preserve wallet/transactions for audit (matches schema design)
     await this.prisma.user.update({
       where: { userId },
       data: { deletedAt: new Date(), status: 'INACTIVE' },

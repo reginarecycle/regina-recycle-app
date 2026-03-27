@@ -103,6 +103,26 @@ export class AuthService {
       },
     });
 
+
+    // Auto-seed CollectorPricing for all materials when a collector registers
+    if (dto.role === 'COLLECTOR') {
+      const materials = await this.prisma.material.findMany({
+        select: { materialId: true },
+      });
+
+      if (materials.length > 0) {
+        await this.prisma.collectorPricing.createMany({
+          data: materials.map((m) => ({
+            collectorUserId: user.userId,
+            materialId:      m.materialId,
+            basePrice:       0,
+            status:          'INACTIVE',
+          })),
+          skipDuplicates: true,
+        });
+      }
+    }
+
     const otp = this.generateOTP();
     const otpExpiresAt = new Date(Date.now() + 3 * 60 * 1000);
     const hashedOtp = await bcrypt.hash(otp, 10);
