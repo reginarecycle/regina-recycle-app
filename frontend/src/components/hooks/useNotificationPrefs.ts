@@ -37,9 +37,8 @@ const mapUiToApi = (
 });
 
 export function useNotificationPrefs() {
-  const { data, isLoading, error, refetch } = useNotificationsPreferences();
-  const updatePrefsMutation = useUpdateNotificationPreferences();
-  const [saved, setSaved, ] = useState<NotificationPrefs>(DEFAULT_PREFS);
+  const { data } = useNotificationsPreferences();
+  const [saved, setSaved] = useState<NotificationPrefs>(DEFAULT_PREFS);
   const [showSaving, setShowSaving] = useState(false);
   const { mutate: updatePrefs } = useUpdateNotificationPreferences();
   const [prefs, setPrefs] = useState<NotificationPrefs>(DEFAULT_PREFS);
@@ -62,16 +61,35 @@ export function useNotificationPrefs() {
   }, []);
 
   const handleSave = useCallback(() => {
+    // old update prefs function
+    //     updatePrefsMutation.mutate(mapUiToApi(prefs), {
+    //       onSuccess: () => {
+    //         setSaved(prefs);
+    //         refetch();
+    //       },
+    //     });
+    //   }, [prefs, refetch, updatePrefsMutation]);
+
+    //   return {
+    //     prefs,
+    //     changed,
+    //     handleToggle,
+    //     handleSave,
+    //     isLoading,
+    //     isSaving: updatePrefsMutation.isPending,
+    //     error,
+    //   };
+    // }
     setShowSaving(true);
 
-  updatePrefs(mapUiToApi(prefs), {
-    onSettled: () => {
-      setTimeout(() => {
-        setShowSaving(false);
-      }, 800);
-    },
-  });
-}, [prefs, updatePrefs]);
+    updatePrefs(mapUiToApi(prefs), {
+      onSettled: () => {
+        setTimeout(() => {
+          setShowSaving(false);
+        }, 800);
+      },
+    });
+  }, [prefs, updatePrefs]);
 
   return { prefs, changed, handleToggle, handleSave, isSaving: showSaving };
 }
