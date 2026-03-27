@@ -9,8 +9,8 @@ export class NotificationGatewayService implements ISubject {
   private observers: IObserver[] = [];
 
   constructor(
-    private readonly emailObserver: EmailNotificationObserver,
-    private readonly inAppObserver: InAppNotificationObserver,
+    emailObserver: EmailNotificationObserver,
+    inAppObserver: InAppNotificationObserver,
     private readonly prisma: PrismaService,
   ) {
     this.register(emailObserver);
@@ -30,35 +30,33 @@ export class NotificationGatewayService implements ISubject {
   }
 
   async sendNotification(event: NotificationEvent): Promise<void> {
-    // Check user preferences
     const preference = await this.prisma.notificationPreference.findUnique({
       where: { userId: event.userId },
     });
 
-    const prefs = preference ?? {
-      emailEnabled: true,
-      inAppEnabled: true,
-      pickupScheduled: true,
-      pickupStatusChanged: true,
-      pickupCompleted: true,
-      walletUpdated: true,
+    const emailPrefMap: Record<NotificationEventType, boolean> = {
+      [NotificationEventType.PICKUP_SCHEDULED]:       preference?.emailPickupReminder  ?? true,
+      [NotificationEventType.PICKUP_STATUS_CHANGED]:  preference?.emailPickupReminder  ?? true,
+      [NotificationEventType.PICKUP_COMPLETED]:       preference?.emailPickupReminder  ?? true,
+      [NotificationEventType.WALLET_UPDATED_CREDIT]:  preference?.emailAccountActivity ?? true,
+      [NotificationEventType.WALLET_UPDATED_DEBIT]:   preference?.emailAccountActivity ?? true,
+      [NotificationEventType.MATERIAL_PRICING_UPDATED]: preference?.emailAccountActivity ?? true,
+      [NotificationEventType.ALERT]:                  preference?.emailAccountActivity ?? true,
     };
 
-    const eventPrefMap: Record<NotificationEventType, boolean> = {
-      [NotificationEventType.PICKUP_SCHEDULED]: preference?.emailPickupReminder ?? true,
-      [NotificationEventType.PICKUP_STATUS_CHANGED]: preference?.inAppAlerts ?? true,
-      [NotificationEventType.PICKUP_COMPLETED]: preference?.inAppAlerts ?? true,
-      [NotificationEventType.WALLET_UPDATED_CREDIT]: preference?.emailAccountActivity ?? true,
-      [NotificationEventType.WALLET_UPDATED_DEBIT]: preference?.emailAccountActivity ?? true,
-      [NotificationEventType.MATERIAL_PRICING_UPDATED]: preference?.inAppAlerts ?? true,
-      [NotificationEventType.ALERT]: preference?.inAppAlerts ?? true,
+    const inAppPrefMap: Record<NotificationEventType, boolean> = {
+      [NotificationEventType.PICKUP_SCHEDULED]:       preference?.inAppPickupReminder ?? true,
+      [NotificationEventType.PICKUP_STATUS_CHANGED]:  preference?.inAppAlerts         ?? true,
+      [NotificationEventType.PICKUP_COMPLETED]:       preference?.inAppAlerts         ?? true,
+      [NotificationEventType.WALLET_UPDATED_CREDIT]:  preference?.inAppAlerts         ?? true,
+      [NotificationEventType.WALLET_UPDATED_DEBIT]:   preference?.inAppAlerts         ?? true,
+      [NotificationEventType.MATERIAL_PRICING_UPDATED]: preference?.inAppAlerts       ?? true,
+      [NotificationEventType.ALERT]:                  preference?.inAppAlerts         ?? true,
     };
-
-    if (!eventPrefMap[event.type]) return;
 
     const activeObservers = this.observers.filter((o) => {
-      if (o instanceof EmailNotificationObserver) return preference?.emailAccountActivity ?? true;
-      if (o instanceof InAppNotificationObserver) return preference?.inAppAlerts ?? true;
+      if (o instanceof EmailNotificationObserver) return emailPrefMap[event.type];
+      if (o instanceof InAppNotificationObserver) return inAppPrefMap[event.type];
       return true;
     });
 

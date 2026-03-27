@@ -1,4 +1,4 @@
-import { useCreate, useGetOne, usePatch } from "@/lib/queryHelpers";
+import { useGetOne, usePatch } from "@/lib/queryHelpers";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/apiFetch";
 
@@ -87,21 +87,6 @@ export function useNotificationsPreferences() {
         ["notifications", "preferences"],
         "/notifications/preferences"
     );
-}
-
-// export function useNotificationPreferences() {
-//   return useGetOne<NotificationPreferencesDto >(
-//     ["notification-preferences"],
-//     "/notifications/preferences"
-//   );
-// }
-
-// previously named useUpdateNotificationPreferences
-export function useCreateNotificationPreferences() {
-    return useCreate<
-        NotificationPreferencesDto,
-        UpdateNotificationPreferencePayload
-    >("/notifications/preferences", ["notifications", "preferences"]);
 }
 
 export function useUpdateNotificationPreferences() {
