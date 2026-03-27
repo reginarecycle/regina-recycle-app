@@ -35,32 +35,41 @@ export class NotificationGatewayService implements ISubject {
       where: { userId: event.userId },
     });
 
-    const prefs = preference ?? {
-      emailEnabled: true,
-      inAppEnabled: true,
-      pickupScheduled: true,
-      pickupStatusChanged: true,
-      pickupCompleted: true,
-      walletUpdated: true,
+    const emailEnabled = preference?.emailAccountActivity ?? true;
+    const inAppEnabled = preference?.inAppAlerts ?? true;
+
+    const eventEmailMap: Record<NotificationEventType, boolean> = {
+      [NotificationEventType.PICKUP_SCHEDULED]:       preference?.emailPickupReminder ?? true,
+      [NotificationEventType.PICKUP_STATUS_CHANGED]:  false,
+      [NotificationEventType.PICKUP_COMPLETED]:       preference?.emailPickupReminder ?? true,
+      [NotificationEventType.WALLET_UPDATED_CREDIT]:  emailEnabled,
+      [NotificationEventType.WALLET_UPDATED_DEBIT]:   emailEnabled,
+      [NotificationEventType.MATERIAL_PRICING_UPDATED]: false,
+      [NotificationEventType.ALERT]:                  emailEnabled,
+      [NotificationEventType.PASSWORD_CHANGED]:       emailEnabled,
+      [NotificationEventType.PROFILE_UPDATED]:        emailEnabled,
     };
 
-    const eventPrefMap: Record<NotificationEventType, boolean> = {
-      [NotificationEventType.PICKUP_SCHEDULED]: preference?.emailPickupReminder ?? true,
-      [NotificationEventType.PICKUP_STATUS_CHANGED]: preference?.inAppAlerts ?? true,
-      [NotificationEventType.PICKUP_COMPLETED]: preference?.inAppAlerts ?? true,
-      [NotificationEventType.WALLET_UPDATED_CREDIT]: preference?.emailAccountActivity ?? true,
-      [NotificationEventType.WALLET_UPDATED_DEBIT]: preference?.emailAccountActivity ?? true,
-      [NotificationEventType.MATERIAL_PRICING_UPDATED]: preference?.inAppAlerts ?? true,
-      [NotificationEventType.ALERT]: preference?.inAppAlerts ?? true,
-      [NotificationEventType.PASSWORD_CHANGED]: preference?.emailAccountActivity ?? true,
-      [NotificationEventType.PROFILE_UPDATED]: preference?.emailAccountActivity ?? true,
+    const eventInAppMap: Record<NotificationEventType, boolean> = {
+      [NotificationEventType.PICKUP_SCHEDULED]:       inAppEnabled,
+      [NotificationEventType.PICKUP_STATUS_CHANGED]:  inAppEnabled,
+      [NotificationEventType.PICKUP_COMPLETED]:       inAppEnabled,
+      [NotificationEventType.WALLET_UPDATED_CREDIT]:  inAppEnabled,
+      [NotificationEventType.WALLET_UPDATED_DEBIT]:   inAppEnabled,
+      [NotificationEventType.MATERIAL_PRICING_UPDATED]: inAppEnabled,
+      [NotificationEventType.ALERT]:                  inAppEnabled,
+      [NotificationEventType.PASSWORD_CHANGED]:       inAppEnabled,
+      [NotificationEventType.PROFILE_UPDATED]:        inAppEnabled,
     };
 
-    if (!eventPrefMap[event.type]) return;
+    const shouldEmail = eventEmailMap[event.type];
+    const shouldInApp = eventInAppMap[event.type];
+
+    if (!shouldEmail && !shouldInApp) return;
 
     const activeObservers = this.observers.filter((o) => {
-      if (o instanceof EmailNotificationObserver) return preference?.emailAccountActivity ?? true;
-      if (o instanceof InAppNotificationObserver) return preference?.inAppAlerts ?? true;
+      if (o instanceof EmailNotificationObserver) return shouldEmail;
+      if (o instanceof InAppNotificationObserver) return shouldInApp;
       return true;
     });
 

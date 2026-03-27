@@ -77,23 +77,14 @@ export class UsersService {
       });
     }
 
-    const preference = await this.prisma.notificationPreference.findUnique({
-      where: { userId },
-    });
-
-    if (preference?.emailAccountActivity ?? true) {
-      await this.notificationService
-        .notifyProfileUpdated({
-          userId,
-          recipientEmail: updated.email,
-        })
-        .catch((error) =>
-          this.logger.error(
-            `Failed to send profile update notification for user ${userId}`,
-            error.message,
-          ),
-        );
-    }
+    this.notificationService
+      .notifyProfileUpdated({ userId, recipientEmail: updated.email })
+      .catch((error) =>
+        this.logger.error(
+          `Failed to send profile update notification for user ${userId}`,
+          error.message,
+        ),
+      );
 
     this.logger.log(`Profile updated for user ${userId}`);
     return updated;

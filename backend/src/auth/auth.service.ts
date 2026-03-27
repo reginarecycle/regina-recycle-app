@@ -22,8 +22,7 @@ export class AuthService {
     private jwtService: JwtService,
     private emailService: EmailService,
     private notificationGatewayService: NotificationGatewayService,
-  ) { }
-
+  ) {}
 
   async register(dto: RegisterDto) {
     // Check if email already exists
@@ -81,10 +80,10 @@ export class AuthService {
         // Create customer DOB if customer and provided
         ...(dto.role === 'CUSTOMER' &&
           dto.dateOfBirth && {
-          customerDOB: {
-            create: { dob: new Date(dto.dateOfBirth) },
-          },
-        }),
+            customerDOB: {
+              create: { dob: new Date(dto.dateOfBirth) },
+            },
+          }),
 
         // Create collector profile if collector
         ...(dto.role === 'COLLECTOR' && {
@@ -108,7 +107,6 @@ export class AuthService {
     const otpExpiresAt = new Date(Date.now() + 3 * 60 * 1000);
     const hashedOtp = await bcrypt.hash(otp, 10);
 
-
     await this.prisma.user.update({
       where: { userId: user.userId },
       data: {
@@ -119,7 +117,12 @@ export class AuthService {
 
     // Send verification email
     try {
-      await this.emailService.sendVerificationEmail(user.email, otp, user.name, user.role);
+      await this.emailService.sendVerificationEmail(
+        user.email,
+        otp,
+        user.name,
+        user.role,
+      );
     } catch (error) {
       console.error('Failed to send verification email:', error);
     }
@@ -128,7 +131,8 @@ export class AuthService {
     // this.emailService.sendWelcomeEmail(user.email, user.name, user.role).catch(console.error);
 
     return {
-      message: 'Registration successful. Please check your email for your verification code.',
+      message:
+        'Registration successful. Please check your email for your verification code.',
       user: {
         userId: user.userId,
         name: user.name,
@@ -213,7 +217,9 @@ export class AuthService {
       },
     });
 
-    this.emailService.sendWelcomeEmail(user.email, user.name, user.role).catch(console.error);
+    this.emailService
+      .sendWelcomeEmail(user.email, user.name, user.role)
+      .catch(console.error);
 
     return { message: 'Email verified successfully' };
   }
@@ -241,21 +247,26 @@ export class AuthService {
       },
     });
 
-    await this.emailService.sendVerificationEmail(user.email, otp, user.name, user.role);
+    await this.emailService.sendVerificationEmail(
+      user.email,
+      otp,
+      user.name,
+      user.role,
+    );
 
     return { message: 'Verification code sent' };
   }
-
 
   async forgotPassword(email: string) {
     const user = await this.prisma.user.findUnique({ where: { email } });
 
     if (!user) {
       // Don't reveal if email exists
-      return { message: 'If that email is registered, a reset code has been sent.' };
+      return {
+        message: 'If that email is registered, a reset code has been sent.',
+      };
     }
 
-    // ✅ Generate OTP
     const otp = this.generateOTP();
     const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
     const hashedOtp = await bcrypt.hash(otp, 10);
@@ -269,15 +280,21 @@ export class AuthService {
     });
 
     try {
-      await this.emailService.sendPasswordResetEmail(user.email, otp, user.name, user.role);
+      await this.emailService.sendPasswordResetEmail(
+        user.email,
+        otp,
+        user.name,
+        user.role,
+      );
     } catch (error) {
       console.error('Failed to send password reset email:', error);
       throw new BadRequestException(ErrorMessage.EMAIL_SEND_FAILED);
     }
 
-    return { message: 'If that email is registered, a reset code has been sent.' };
+    return {
+      message: 'If that email is registered, a reset code has been sent.',
+    };
   }
-
 
   async resetPassword(email: string, otp: string, newPassword: string) {
     const user = await this.prisma.user.findUnique({ where: { email } });
@@ -290,7 +307,6 @@ export class AuthService {
       throw new BadRequestException(ErrorMessage.TOKEN_INVALID);
     }
 
-    // Check if OTP expired
     if (new Date() > user.passwordOtpExpiresAt) {
       throw new BadRequestException(ErrorMessage.TOKEN_EXPIRED_RESET);
     }
@@ -315,14 +331,21 @@ export class AuthService {
     return { message: 'Password reset successful' };
   }
 
-  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ) {
     const user = await this.prisma.user.findUnique({ where: { userId } });
 
     if (!user) {
       throw new NotFoundException(ErrorMessage.USER_NOT_FOUND);
     }
 
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password,
+    );
 
     if (!isPasswordValid) {
       throw new UnauthorizedException(ErrorMessage.PASSWORD_INVALID);
@@ -335,16 +358,14 @@ export class AuthService {
       data: { password: hashedPassword },
     });
 
-    const preference = await this.prisma.notificationPreference.findUnique({
-      where: { userId: user.userId },
-    });
-
-    if (preference?.emailAccountActivity ?? true) {
-      await this.notificationGatewayService.notifyPasswordChanged({
+    this.notificationGatewayService
+      .notifyPasswordChanged({
         userId: user.userId,
         recipientEmail: user.email,
-      });
-    }
+      })
+      .catch((e) =>
+        console.error('Failed to send password changed notification', e),
+      );
 
     return { message: 'Password changed successfully' };
   }
@@ -395,11 +416,13 @@ export class AuthService {
 
     return {
       ...rest,
-      ...(user.role === 'CUSTOMER' && { dateOfBirth: customerDOB?.dob ?? null }),
+      ...(user.role === 'CUSTOMER' && {
+        dateOfBirth: customerDOB?.dob ?? null,
+      }),
       ...(user.role === 'COLLECTOR' && { collectorProfile }),
     };
   }
-  //helpers
+
   private generateAccessToken(userId: string, email: string, role: string) {
     return this.jwtService.sign(
       { sub: userId, email, role, type: 'access' },
