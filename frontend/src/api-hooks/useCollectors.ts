@@ -64,6 +64,7 @@ export interface PaginatedCustomers {
   meta: { total: number; page: number; limit: number; hasNextPage: boolean };
 }
 
+
 export interface CustomerPickup {
   pickupId:    string;
   status:      string;
@@ -260,6 +261,10 @@ export const useCollectorCustomerDetail = (collectorId: string, customerId: stri
     `/collectors/${collectorId}/customers/${customerId}`,
     { enabled: Boolean(collectorId) && Boolean(customerId) },
   );
+
+  
+
+
 
 export const useCollectorPricing = (query?: { search?: string; status?: string; page?: number; limit?: number }) => {
   const params = new URLSearchParams();
@@ -472,3 +477,4 @@ export const useCancelPickupByCollector = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: pickupRequestKeys.all() }),
   });
 };
+
