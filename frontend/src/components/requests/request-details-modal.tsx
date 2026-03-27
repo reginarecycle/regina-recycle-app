@@ -1,13 +1,12 @@
-import { X, MapPin, CheckCircle2, XCircle } from "lucide-react";
+import { X, MapPin, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { formatAmount } from "@/lib/utils";
-import { RequestsData } from "@/components/requests/requests-data";
+import { type RequestRow } from "@/components/requests/requests-data";
 import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import ProfilePhoto from "../shared/profile-photo";
 
-type RequestRow = (typeof RequestsData)[number];
-type RequestTab = "incoming" | "accepted" | "completed" | "rejected";
+type RequestTab = "incoming" | "accepted" | "completed";
 
 interface RequestDetailsModalProps {
     isOpen: boolean;
@@ -15,6 +14,7 @@ interface RequestDetailsModalProps {
     onClose: () => void;
     onAccept?: () => void;
     onReject?: () => void;
+    isAccepting?: boolean;
     requestNum: string;
     earnings: number;
     estUnits: number;
@@ -29,6 +29,7 @@ export function RequestDetailsModal({
     onClose,
     onAccept,
     onReject,
+    isAccepting = false,
     requestNum,
     earnings,
     estUnits,
@@ -41,17 +42,18 @@ export function RequestDetailsModal({
     const isIncompatible = compatibilityStr.toLowerCase().includes("incompatible");
     const showActionButtons = sourceTab === "incoming";
 
-    const orderSummary = [
-        { material: "Glass bottles", estimatedUnits: 44, price: 100.0 },
-        { material: "Tins/Cans", estimatedUnits: 24, price: 10.0 },
-        { material: "Drink boxes", estimatedUnits: 16, price: 12.5 },
-    ];
+    const orderSummary = (request.items ?? []).map(i => ({
+        material:       i.materialName,
+        unitPrice:      i.unitPrice,
+        estimatedUnits: i.quantity,
+        price:          i.quantity * i.unitPrice,
+    }));
 
     return (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
             <div className="absolute inset-y-0 right-0 flex w-full justify-end">
-                <div className="h-full w-full max-w-[490px] overflow-y-auto bg-[#F8F8F8] shadow-2xl">
-                    <div className="relative border-b border-gray-200 bg-white px-6 pt-6 pb-5">
+                <div className="h-full w-full max-w-[490px] flex flex-col bg-[#F8F8F8] shadow-2xl">
+                    <div className="relative border-b border-gray-200 bg-white px-6 pt-6 pb-5 shrink-0">
                         <button
                             onClick={onClose}
                             className="absolute top-5 right-5 flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition hover:bg-gray-200"
@@ -67,8 +69,7 @@ export function RequestDetailsModal({
                     </div>
 
                     <div
-                        className={`px-4 py-6 md:px-5 ${isIncompatible ? "bg-[#DC2626]" : "bg-[#344E41] top-[92px]"
-                            }`}
+                        className={`px-4 py-6 md:px-5 shrink-0 ${isIncompatible ? "bg-[#DC2626]" : "bg-[#344E41]"}`}
                     >
                         <div className="mb-4 flex items-start justify-between gap-3">
                             <div className="text-[14px] font-medium uppercase tracking-wide text-white/95">
@@ -116,7 +117,7 @@ export function RequestDetailsModal({
                         </div>
                     </div>
 
-                    <div className="space-y-6 px-4 py-5 md:px-5">
+                    <div className="flex-1 overflow-y-auto space-y-6 px-4 py-5 md:px-5 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
                         <div>
                             <h3 className="mb-3 text-[14px] font-medium uppercase tracking-wide text-[#999CA0]">
                                 Order Summary
@@ -125,19 +126,19 @@ export function RequestDetailsModal({
                             <Card className="overflow-hidden rounded-2xl border border-[#D1D5DB] bg-white shadow-sm py-3">
                                 <div className="grid grid-cols-3 border-b border-[#E5E7EB] px-6 pb-2 text-[14px] font-semibold text-[#9CA3AF]">
                                     <div>Material</div>
-                                    <div className="text-center">Estimated Units</div>
-                                    <div className="text-right">Price</div>
+                                    <div className="text-center">Est. Units</div>
+                                    <div className="text-right">Total</div>
                                 </div>
 
                                 {orderSummary.map((item, index) => (
                                     <div
                                         key={item.material}
-                                        className={`grid grid-cols-3 px-6 pb-2 text-[14px] ${index !== orderSummary.length - 1
-                                            ? "border-b border-[#E5E7EB]"
-                                            : ""
-                                            }`}
+                                        className={`grid grid-cols-3 items-center px-6 py-2 text-[14px] ${index !== orderSummary.length - 1 ? "border-b border-[#E5E7EB]" : ""}`}
                                     >
-                                        <div className="font-medium text-[#344E41]">{item.material}</div>
+                                        <div>
+                                            <div className="font-medium text-[#344E41]">{item.material}</div>
+                                            <div className="text-[12px] text-[#9CA3AF]">${formatAmount(item.unitPrice)}/unit</div>
+                                        </div>
                                         <div className="text-center font-semibold text-[#111827]">
                                             {item.estimatedUnits}
                                         </div>
@@ -162,8 +163,7 @@ export function RequestDetailsModal({
                                         <div className="text-[18px] font-medium text-[#111827]">
                                             {username}
                                         </div>
-                                        <div className="text-[14px] text-[#9CA3AF]">(124 pickups)</div>
-                                    </div>
+                                        </div>
                                 </div>
 
                                 <div className="flex items-start gap-2 text-[#374151]">
@@ -179,19 +179,18 @@ export function RequestDetailsModal({
                             </h3>
 
                             <div className="border-t border-[#E5E7EB] pt-3 text-[14px] leading-7 text-[#4B5563]">
-                                Please ring the back doorbell when you arrive. Bags are labeled
-                                "Recycling" and placed near the garage door.
+                                {request.note ?? "No note provided."}
                             </div>
                         </div>
                     </div>
 
                     {showActionButtons && (
-                        <div className="border-t border-[#E5E7EB] bg-[#F8F8F8] p-5">
+                        <div className="shrink-0 border-t border-[#E5E7EB] bg-[#F8F8F8] p-5">
                             <div className="flex w-full gap-4">
                                 <Button
                                     onClick={onReject ?? onClose}
                                     variant="destructive"
-                                    className="min-w-[180px] flex-1 flex items-center justify-center gap-2 rounded-xl border border-red-400 bg-white text-[16px] font-semibold text-red-500 hover:bg-red-50 h-[48px]"
+                                    className="min-w-45 flex-1 flex items-center justify-center gap-2 rounded-xl border border-red-400 bg-white text-[16px] font-semibold text-red-500 hover:bg-red-50 h-12"
                                 >
                                     <XCircle size={18} />
                                     Reject
@@ -199,10 +198,11 @@ export function RequestDetailsModal({
 
                                 <Button
                                     onClick={onAccept}
-                                    className="min-w-[180px] flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#344E41] text-white hover:bg-[#2B4035] h-[48px]"
+                                    disabled={isAccepting}
+                                    className="min-w-45 flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#344E41] text-white hover:bg-[#2B4035] h-12 disabled:opacity-70"
                                 >
-                                    <CheckCircle2 size={18} />
-                                    Accept
+                                    {isAccepting ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />}
+                                    {isAccepting ? "Accepting..." : "Accept"}
                                 </Button>
                             </div>
                         </div>

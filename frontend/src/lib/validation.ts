@@ -83,11 +83,24 @@ export const resetPasswordSchema = z
 export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
 export const profileDetailsSchema = z.object({
-  fullName: z.string().min(1, "Full Name is required"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().min(1, "Phone number is required"),
-  dateOfBirth: z.string().min(1, "Date of birth is required"),
-  address: z.string().min(1, "Address is required"),
+  fullName: z.string(),
+  email: z.string().refine(
+    (v) => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+    "Invalid email address"
+  ),
+  phone: z.string().refine(
+    (v) => !v || v.replace(/\D/g, "").length === 10,
+    "Enter a valid 10-digit Canadian phone number"
+  ),
+  dateOfBirth: z.string()
+    .refine((v) => !v || /^\d{2}-\d{2}-\d{4}$/.test(v), "Enter date as DD-MM-YYYY")
+    .refine((v) => {
+      if (!v) return true;
+      const [dd, mm, yyyy] = v.split("-").map(Number);
+      const d = new Date(Date.UTC(yyyy, mm - 1, dd));
+      return d.getUTCFullYear() === yyyy && d.getUTCMonth() === mm - 1 && d.getUTCDate() === dd;
+    }, "Invalid date"),
+  address: z.string(),
 });
 
 export type ProfileDetailsFormValues = z.infer<typeof profileDetailsSchema>;
@@ -130,23 +143,24 @@ export const collectorSecuritySchema = z
   });
 
 export type CollectorSecurityFormValues = z.infer<typeof collectorSecuritySchema>;
-export const withdrawSchema = z.object({
-  amount: z
-    .string()
-    .min(1, "Amount is required.")
-    .refine((val) => !isNaN(Number(val)), "Enter a valid amount.")
-    .refine((val) => Number(val) > 0, "Amount must be greater than 0.")
-    .refine((val) => Number(val) <= 245.5, "Amount cannot exceed available balance."),
-  recipientEmail: z
-    .string()
-    .min(1, "Recipient email is required.")
-    .email("Enter a valid email address."),
-  securityQuestion: z.string().optional(),
-  securityAnswer: z.string().optional(),
-  message: z.string().optional(),
-});
+export const createWithdrawSchema = (availableBalance: number) =>
+  z.object({
+    amount: z
+      .string()
+      .min(1, "Amount is required.")
+      .refine((val) => !isNaN(Number(val)), "Enter a valid amount.")
+      .refine((val) => Number(val) > 0, "Amount must be greater than 0.")
+      .refine((val) => Number(val) <= availableBalance, "Amount cannot exceed available balance."),
+    recipientEmail: z
+      .string()
+      .min(1, "Recipient email is required.")
+      .email("Enter a valid email address."),
+    securityQuestion: z.string().optional(),
+    securityAnswer:   z.string().optional(),
+    message:          z.string().optional(),
+  });
 
-export type WithdrawFormValues = z.infer<typeof withdrawSchema>;
+export type WithdrawFormValues = z.infer<ReturnType<typeof createWithdrawSchema>>;
 
 export const deleteSchema = z.object({
   confirmText: z.string(),
@@ -218,4 +232,3 @@ export const addFundsCardSchema = z.object({
 export type AddFundsAmountFormValues = z.infer<typeof addFundsAmountSchema>;
 export type AddFundsCardFormValues   = z.infer<typeof addFundsCardSchema>;
 export type PaymentMethod = "card" | "mobile" | null;
-

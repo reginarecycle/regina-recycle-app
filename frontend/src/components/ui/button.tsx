@@ -25,7 +25,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-[52px] px-4 py-2 min-w-[270px]",
+        default: "h-[52px] px-6 py-2",
         sm: "h-8 rounded-md px-4 text-xs",
         md: "h-9 rounded-md px-4 text-sm min-w-[132px]",
         lg: "h-10 rounded-md px-4 min-w-[132px]",
@@ -71,11 +71,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || loading}
         {...props}
       >
+
+        { children}
+        {text}
         {loading && (
            <Spinner />
         )}
-        {!loading && children}
-        {!loading && text}
       </Comp>
     );
   }

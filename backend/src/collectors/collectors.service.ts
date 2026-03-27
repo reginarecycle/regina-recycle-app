@@ -6,13 +6,14 @@ import { UpdateCollectorDto } from './dto/update-collector.dto';
 import { UpdateMaterialPricingDto } from './dto/update-material-pricing.dto';
 import { UpdateMaterialSettingsDto } from './dto/update-material-settings.dto';
 import { CreateMaterialPricingDto } from './dto/create-material-pricing.dto';
-import { CollectorQueryDto } from './dto/collectors-query.dto';
+import { CollectorUsersQueryDto as CollectorQueryDto } from './dto/collectors-query.dto';
 import { PickupQueryDto } from './dto/pickup-query.dto';
+import { CollectorUsersQueryDto } from './dto/collectors-query.dto';
 import { getPaginationParams, paginate } from '../common/pagination/pagination-helper';
 
 @Injectable()
 export class CollectorsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   private async ensureCollectorExists(collectorId: string) {
     const collector = await this.prisma.user.findFirst({
@@ -48,6 +49,25 @@ export class CollectorsService {
       acceptedRequests,
       totalItems: totalItems._sum.quantity ?? 0,
       pendingAmount: Number(pendingAmount._sum.estimatedEarning ?? 0),
+    };
+  }
+
+  async checkMaterialsAvailability(materialIds: string[]) {
+    const unavailable: string[] = [];
+
+    for (const materialId of materialIds) {
+      const count = await this.prisma.collectorPricing.count({
+        where: {
+          materialId,
+          status: 'ACTIVE',
+        },
+      });
+      if (count === 0) unavailable.push(materialId);
+    }
+
+    return {
+      available: unavailable.length === 0,
+      unavailableMaterialIds: unavailable,
     };
   }
 
@@ -153,7 +173,7 @@ export class CollectorsService {
           address: true,
           items: { include: { material: true } },
           snapshots: {
-              include:{material: true},
+            include: { material: true },
           },
         },
         orderBy: { scheduledAt: 'asc' },
@@ -276,6 +296,137 @@ export class CollectorsService {
     return { collectorId, customer, pickups };
   }
 
+  // ─── NEW: Get Users Stats ──────────────────────────────────────────────────
+
+  async getUsersStats(collectorId: string) {
+    await this.ensureCollectorExists(collectorId);
+
+    const totalUsers = await this.prisma.user.count({
+      where: {
+        role: 'CUSTOMER',
+        pickupsRequested: {
+          some: {
+            collectorUserId: collectorId,
+            status: PickupStatus.COMPLETED,
+          },
+        },
+      },
+    });
+
+    const completedPickups = await this.prisma.pickup.findMany({
+      where: {
+        collectorUserId: collectorId,
+        status: PickupStatus.COMPLETED,
+      },
+      select: { actualEarning: true },
+    });
+
+    const totalCollection = completedPickups.length;
+    const totalRevenue = completedPickups.reduce(
+      (sum, p) => sum + Number(p.actualEarning ?? 0),
+      0,
+    );
+
+    return {
+      totalUsers,
+      avgRevenuePerUser: totalUsers > 0 ? totalRevenue / totalUsers : 0,
+      totalCollection,
+    };
+  }
+
+  async getUsers(collectorId: string, query: CollectorUsersQueryDto) {
+    await this.ensureCollectorExists(collectorId);
+
+    const { page = 1, limit = 10, keyword } = query;
+    const { skip, take } = getPaginationParams(page, limit);
+
+    const userWhere: any = {
+      role: 'CUSTOMER',
+      pickupsRequested: {
+        some: {
+          collectorUserId: collectorId,
+          status: PickupStatus.COMPLETED,
+        },
+      },
+      ...(keyword && {
+        OR: [
+          { name: { contains: keyword, mode: 'insensitive' } },
+          { email: { contains: keyword, mode: 'insensitive' } },
+          { phoneNumber: { contains: keyword, mode: 'insensitive' } },
+        ],
+      }),
+    };
+
+    const [users, total, stats] = await Promise.all([
+      this.prisma.user.findMany({
+        where: userWhere,
+        skip,
+        take,
+        select: {
+          userId: true,
+          name: true,
+          email: true,
+          phoneNumber: true,
+          status: true,
+          addresses: {
+            take: 1,
+            orderBy: { createdAt: 'desc' },
+            select: { city: true },
+          },
+          pickupsRequested: {
+            where: {
+              collectorUserId: collectorId,
+              status: PickupStatus.COMPLETED,
+            },
+            select: {
+              actualEarning: true,
+              items: {
+                include: { material: true },
+              },
+            },
+          },
+        },
+      }),
+      this.prisma.user.count({ where: userWhere }),
+      this.getUsersStats(collectorId),
+    ]);
+
+    const data = users.map((user) => {
+      const completedPickups = user.pickupsRequested;
+      const collections = completedPickups.length;
+      const revenue = completedPickups.reduce(
+        (sum, p) => sum + Number(p.actualEarning ?? 0),
+        0,
+      );
+      const avgPerOrder = collections > 0 ? revenue / collections : 0;
+      const collectedItems = [
+        ...new Set(
+          completedPickups.flatMap((p) =>
+            p.items.map((i) => i.material.type),
+          ),
+        ),
+      ];
+
+      return {
+        customerId: user.userId,
+        name: user.name,
+        email: user.email,
+        phone: user.phoneNumber,
+        neighborhood: user.addresses[0]?.city ?? '',
+        status: user.status,
+        collections,
+        revenue,
+        avgPerOrder,
+        collectedItems,
+      };
+    });
+
+    return {
+      stats,
+      ...paginate(data, total, page, limit),
+    };
+  }
+
   async updateProfile(collectorId: string, dto: UpdateCollectorDto) {
     await this.ensureCollectorExists(collectorId);
 
@@ -392,7 +543,11 @@ export class CollectorsService {
       select: { bulkIncentiveEnabled: true, bulkThreshold: true, serviceFee: true, feeType: true },
     });
 
-    return { collectorId, settings: profile };
+    return {
+      settings: profile
+        ? { ...profile, serviceFee: Number(profile.serviceFee) }
+        : null,
+    };
   }
 
   async updateMaterialSettings(collectorId: string, dto: UpdateMaterialSettingsDto) {
@@ -429,12 +584,12 @@ export class CollectorsService {
       throw new BadRequestException('Collector pricing not found for this material');
     }
 
-    const unitPrice      = Number(collectorPricing.basePrice ?? 0);
-    const grossPayout    = quantity * unitPrice;
-    const feeType        = profile?.feeType ?? 'FLAT_FEE';
-    const feeValue       = Number(profile?.serviceFee ?? 0);
-    const serviceFee     = this.calculateServiceFee(feeType, feeValue, grossPayout);
-    const netPayout      = Math.max(0, grossPayout - serviceFee);
+    const unitPrice = Number(collectorPricing.basePrice ?? 0);
+    const grossPayout = quantity * unitPrice;
+    const feeType = profile?.feeType ?? 'FLAT_FEE';
+    const feeValue = Number(profile?.serviceFee ?? 0);
+    const serviceFee = this.calculateServiceFee(feeType, feeValue, grossPayout);
+    const netPayout = Math.max(0, grossPayout - serviceFee);
 
     return {
       collectorId,
@@ -453,38 +608,38 @@ export class CollectorsService {
     return ServiceFeeFactory.create(feeType, feeValue).calculate(amount);
   }
 
+  async getAverageMaterialPrice(materialId: string) {
+    const result = await this.prisma.collectorPricing.aggregate({
+      where: {
+        materialId,
+        status: PricingStatus.ACTIVE,
+      },
+      _min: {
+        basePrice: true,
+      },
+      _max: {
+        basePrice: true,
+      },
+      _avg: {
+        basePrice: true,
+      },
+    });
 
-async getAverageMaterialPrice(materialId: string) {
-   const result = await this.prisma.collectorPricing.aggregate({
-     where: {
-       materialId,
-     },
-     _min: {
-       basePrice: true,
-     },
-     _max: {
-       basePrice: true,
-     },
-     _avg: {
-       basePrice: true,
-     },
-   });
 
+    return {
+      minPrice: Number(result._min.basePrice ?? 0),
+      maxPrice: Number(result._max.basePrice ?? 0),
+      avgPrice: Number(result._avg.basePrice ?? 0),
+    };
+  }
 
-   return {
-     minPrice: Number(result._min.basePrice ?? 0),
-     maxPrice: Number(result._max.basePrice ?? 0),
-     avgPrice: Number(result._avg.basePrice ?? 0),
-   };
- }
-
- private getStartDate(period?: string): Date | undefined {
-   if (!period) return undefined;
-   const date = new Date();
-   if (period === 'weekly') date.setDate(date.getDate() - 7);
-   else if (period === 'monthly') date.setDate(date.getDate() - 30);
-   else return undefined;
-   return date;
- }
-
+  private getStartDate(period?: string): Date | undefined {
+    if (!period) return undefined;
+    const date = new Date();
+    if (period === 'weekly') date.setDate(date.getDate() - 7);
+    else if (period === 'monthly') date.setDate(date.getDate() - 30);
+    else return undefined;
+    return date;
+  }
 }
+

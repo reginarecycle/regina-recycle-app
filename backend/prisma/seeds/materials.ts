@@ -1,59 +1,120 @@
 import { PrismaClient } from '@prisma/client';
+
+const materials = [
+  {
+    name: "Aluminum Can",
+    type: "recyclable",
+    description: "Rinse before placing in the blue bin — even a quick rinse helps prevent contamination.",
+    photoUrl: "https://res.cloudinary.com/dxhy4qyzp/image/upload/v1773718590/aluminum_can_muzqie.webp",
+    co2Saved: 1.2,
+    waterSaved: 3.5,
+  },
+  {
+    name: "Plastic Bottle",
+    type: "recyclable",
+    description: "Remove the cap and rinse thoroughly — caps are often a different plastic type.",
+    photoUrl: "https://res.cloudinary.com/dxhy4qyzp/image/upload/v1773718729/plastic_bottle_duowdx.webp",
+    co2Saved: 0.8,
+    waterSaved: 2.1,
+  },
+  {
+    name: "Glass Jar",
+    type: "recyclable",
+    description: "Remove lids and rinse before recycling — glass can be recycled indefinitely without losing quality.",
+    photoUrl: "https://res.cloudinary.com/dxhy4qyzp/image/upload/v1773720018/glass_jar_rzu3cl.webp",
+    co2Saved: 1.5,
+    waterSaved: 4.0,
+  },
+  {
+    name: "Cardboard Box",
+    type: "recyclable",
+    description: "Flatten all boxes before recycling — greasy or wet cardboard goes in compost, not recycling.",
+    photoUrl: "https://res.cloudinary.com/dxhy4qyzp/image/upload/v1773720424/cardboard_naeggh.jpg",
+    co2Saved: 0.6,
+    waterSaved: 1.8,
+  },
+  {
+    name: "Steel Can",
+    type: "recyclable",
+    description: "Rinse and place in the blue bin — steel cans are 100% recyclable and can be reused endlessly.",
+    photoUrl: "https://res.cloudinary.com/dxhy4qyzp/image/upload/v1773720361/steel_can_gkzqgr.webp",
+    co2Saved: 1.1,
+    waterSaved: 3.0,
+  },
+  {
+    name: "Battery",
+    type: "hazardous",
+    description: "Never put in regular bins — drop off at designated e-waste or battery collection points.",
+    photoUrl: "https://res.cloudinary.com/dxhy4qyzp/image/upload/v1773873765/battery_jovvg2.webp",
+    co2Saved: 1.0,
+    waterSaved: 2.5,
+  },
+  {
+    name: "Newspaper",
+    type: "recyclable",
+    description: "Keep dry and bundle together — wet newspaper cannot be recycled and should go in compost.",
+    photoUrl: "https://res.cloudinary.com/dxhy4qyzp/image/upload/v1774382800/annie-spratt-hWJsOnaWTqs-unsplash_fnc4zy.jpg",
+    co2Saved: 0.5,
+    waterSaved: 1.4,
+  },
+  {
+    name: "Electronics",
+    type: "hazardous",
+    description: "Old phones and monitors must be dropped off at certified e-waste collection points — never in regular bins.",
+    photoUrl: "https://res.cloudinary.com/dxhy4qyzp/image/upload/v1774382790/christopher-gower-_aXa21cf7rY-unsplash_hgxqfg.jpg",
+    co2Saved: 2.0,
+    waterSaved: 5.0,
+  },
+  {
+    name: "Food Scraps",
+    type: "compost",
+    description: "Fruit peels, veggie scraps and coffee grounds all go in the green compost bin — not the garbage.",
+    photoUrl: "https://res.cloudinary.com/dxhy4qyzp/image/upload/v1774382761/top-view-trash-cooking-concept_ddctme.jpg",
+    co2Saved: 0.3,
+    waterSaved: 0.8,
+  },
+  {
+    name: "Paint Can",
+    type: "hazardous",
+    description: "Household paint must be dropped off at a hazardous waste facility — never poured down the drain.",
+    photoUrl: "https://res.cloudinary.com/dxhy4qyzp/image/upload/v1774382782/waz-lght-yhuV5IF7eaQ-unsplash_bp2su7.jpg",
+    co2Saved: 0.9,
+    waterSaved: 2.2,
+  },
+  {
+    name: "Yard Waste",
+    type: "compost",
+    description: "Leaves, grass clippings and small branches go in the yard waste or compost bin.",
+    photoUrl: "https://res.cloudinary.com/dxhy4qyzp/image/upload/v1774382865/gary-meulemans-M8Q0ey-fFXw-unsplash_np5jad.jpg",
+    co2Saved: 0.4,
+    waterSaved: 1.0,
+  },
+  {
+    name: "Plastic Bag",
+    type: "garbage",
+    description: "Plastic bags cannot go in curbside recycling — drop them off at grocery store collection points instead.",
+    photoUrl: "https://res.cloudinary.com/dxhy4qyzp/image/upload/v1774382743/teslariu-mihai-Vebp8agAUxU-unsplash_nno7kr.jpg",
+    co2Saved: 0.2,
+    waterSaved: 0.5,
+  },
+];
+
 export default async function seedMaterials(prisma: PrismaClient) {
-  await prisma.material.createMany({
-    skipDuplicates: true,
-    data: [
-      {
-        name: "Aluminum Can",
-        type: "recyclable",
-        description: "Rinse before placing in the blue bin — even a quick rinse helps prevent contamination.",
-        photoUrl: "https://res.cloudinary.com/dxhy4qyzp/image/upload/v1773718590/aluminum_can_muzqie.webp",
-        co2Saved: 1.2,
-        waterSaved: 3.5,
-      },
-      {
-        name: "Plastic Bottle",
-        type: "recyclable",
-        description: "Remove the cap and rinse thoroughly — caps are often a different plastic type.",
-        photoUrl: "https://res.cloudinary.com/dxhy4qyzp/image/upload/v1773718729/plastic_bottle_duowdx.webp",
-        co2Saved: 0.8,
-        waterSaved: 2.1,
-      },
-      {
-        name: "Glass Jar",
-        type: "recyclable",
-        description: "Remove lids and rinse before recycling — glass can be recycled indefinitely without losing quality.",
-        photoUrl: "https://res.cloudinary.com/dxhy4qyzp/image/upload/v1773720018/glass_jar_rzu3cl.webp",
-        co2Saved: 1.5,
-        waterSaved: 4.0,
-      },
-      {
-        name: "Cardboard Box",
-        type: "recyclable",
-        description: "Flatten all boxes before recycling — greasy or wet cardboard goes in compost, not recycling.",
-        photoUrl: "https://res.cloudinary.com/dxhy4qyzp/image/upload/v1773720424/cardboard_naeggh.jpg",
-        co2Saved: 0.6,
-        waterSaved: 1.8,
-      },
-      {
-        name: "Steel Can",
-        type: "recyclable",
-        description: "Rinse and place in the blue bin — steel cans are 100% recyclable and can be reused endlessly.",
-        photoUrl: "https://res.cloudinary.com/dxhy4qyzp/image/upload/v1773720361/steel_can_gkzqgr.webp",
-        co2Saved: 1.1,
-        waterSaved: 3.0,
-      },
-      {
-        name: "Battery",
-        type: "hazardous",
-        description: "Never put in regular bins — drop off at designated e-waste or battery collection points.",
-        photoUrl: "https://res.cloudinary.com/dxhy4qyzp/image/upload/v1773873765/battery_jovvg2.webp",
-        co2Saved: 1.0,
-        waterSaved: 2.5,
-      },
-    ],
-  });
+  console.log('Seeding materials...');
 
-  console.log("Seed data inserted");
+  for (const material of materials) {
+    await prisma.material.upsert({
+      where: { name: material.name },
+      update: {
+        type: material.type,
+        description: material.description,
+        photoUrl: material.photoUrl,
+        co2Saved: material.co2Saved,
+        waterSaved: material.waterSaved,
+      },
+      create: material,
+    });
+  }
+
+  console.log(`Successfully seeded ${materials.length} materials`);
 }
-

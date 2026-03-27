@@ -59,11 +59,11 @@ export class PickupsController {
   }
 
   @ApiOperation({ summary: 'Get all pickups for logged in user' })
-@Get()
-@Auth('CUSTOMER')
-getUserPickups(@Request() req, @Query() query: PickupQueryDto) {
-  return this.pickupsService.findAll(req.user.userId, query);
-}
+  @Get()
+  @Auth('CUSTOMER')
+  getUserPickups(@Request() req, @Query() query: PickupQueryDto) {
+    return this.pickupsService.findAll(req.user.userId, query);
+  }
 
   @ApiOperation({ summary: 'Get all pickup requests (collector)' })
   @Get('requests')
@@ -101,6 +101,13 @@ getUserPickups(@Request() req, @Query() query: PickupQueryDto) {
   @Auth()
   getPickupById(@Param('id') id: string) {
     return this.pickupsService.findOne(id);
+  }
+
+  @ApiOperation({ summary: 'Reject a pickup request (collector)' })
+  @Patch(':id/reject')
+  @Auth('COLLECTOR')
+  rejectPickup(@Param('id') id: string, @Request() req, @Body() body: { reason?: string; comment?: string }) {
+    return this.pickupsService.rejectPickup(req.user.userId, id, body?.reason, body?.comment);
   }
 
   @ApiOperation({ summary: 'Accept a pickup (collector)' })
