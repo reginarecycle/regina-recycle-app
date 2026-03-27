@@ -158,7 +158,7 @@ export function CollectorPricingTab() {
       {settings && (
         <FeeSettings
           serviceFee={String(settings.serviceFee)}
-          feeType={settings.feeType as "PERCENTAGE_FEE" | "FLAT_FEE"}
+          feeType={settings.feeType === "PERCENTAGE" ? "PERCENTAGE_FEE" : "FLAT_FEE"}
           bulkThreshold={String(settings.bulkThreshold)}
           bulkIncentiveEnabled={settings.bulkIncentiveEnabled}
         />

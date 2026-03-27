@@ -1,44 +1,17 @@
-import { useGetOne, useCreate } from "@/lib/queryHelpers";
+// All customer wallet hooks and types live in useWallet.ts
+// This file re-exports them so existing imports don't break
 
-// ── Re-export shared types from useWallet so you don't duplicate them ─────────
-// useGetWalletTransactions already lives in useWallet.ts — import it from there
+export {
+  useGetCustomerWallet,
+  useCustomerWithdraw,
+} from "./useWallet";
 
 export type {
+  CustomerWallet,
+  CustomerWithdrawPayload,
   TxType,
   TxStatus,
   WalletTransaction,
   PaginatedTransactions,
   TransactionQuery,
 } from "./useWallet";
-
-// ── Customer-specific types ───────────────────────────────────────────────────
-
-export interface CustomerWallet {
-  userId: string;
-  walletId: string;
-  balance: number;
-  monthlyEarnings: number;
-  yearlyEarnings: number;
-  pendingEarningsAmount: number;
-  earningsChangeAmount: number;
-}
-
-export interface CustomerWithdrawPayload {
-  interacEmail: string;
-  securityQuestion: string;
-  securityAnswer: string;
-  amount: number;
-}
-
-// ── Hooks ─────────────────────────────────────────────────────────────────────
-
-// Same pattern as: useGetOne<CollectorWallet>(["wallet", "collector"], "/wallet/collector")
-export const useGetCustomerWallet = () =>
-  useGetOne<CustomerWallet>(["wallet", "customer"], "/wallet/customer");
-
-// Withdraw (customer — Interac e-Transfer)
-export const useCustomerWithdraw = () =>
-  useCreate<unknown, CustomerWithdrawPayload>(
-    "/wallet/withdraw",
-    ["wallet", "customer"]
-  );

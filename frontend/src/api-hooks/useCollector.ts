@@ -66,12 +66,20 @@ export const useCreateMaterialPricing = () => {
 
 export const useUpdateMaterialPricing = () => {
   const qc = useQueryClient();
+  const { data: meData } = useQuery({
+    queryKey: ["auth", "me"],
+    queryFn:  () => apiFetch<{ userId: string }>("/auth/me"),
+  });
+
+  const collectorId = (meData?.data as any)?.userId;
+
   return useMutation({
     mutationFn: ({ materialId, ...dto }: { materialId: string; basePrice?: number; bulkPrice?: number; status?: string }) =>
-      apiFetch(`/collectors/pricing/${materialId}`, { method: "PATCH", data: dto }),
+      apiFetch(`/collectors/${collectorId}/pricing/${materialId}`, { method: "PUT", data: dto }),
     onSuccess: () => qc.invalidateQueries({ queryKey: collectorKeys.pricing() }),
   });
 };
+
 
 export const useUpdatePricingSettings = () => {
   const qc = useQueryClient();

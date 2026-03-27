@@ -143,23 +143,24 @@ export const collectorSecuritySchema = z
   });
 
 export type CollectorSecurityFormValues = z.infer<typeof collectorSecuritySchema>;
-export const withdrawSchema = z.object({
-  amount: z
-    .string()
-    .min(1, "Amount is required.")
-    .refine((val) => !isNaN(Number(val)), "Enter a valid amount.")
-    .refine((val) => Number(val) > 0, "Amount must be greater than 0.")
-    .refine((val) => Number(val) <= 245.5, "Amount cannot exceed available balance."),
-  recipientEmail: z
-    .string()
-    .min(1, "Recipient email is required.")
-    .email("Enter a valid email address."),
-  securityQuestion: z.string().optional(),
-  securityAnswer: z.string().optional(),
-  message: z.string().optional(),
-});
+export const createWithdrawSchema = (availableBalance: number) =>
+  z.object({
+    amount: z
+      .string()
+      .min(1, "Amount is required.")
+      .refine((val) => !isNaN(Number(val)), "Enter a valid amount.")
+      .refine((val) => Number(val) > 0, "Amount must be greater than 0.")
+      .refine((val) => Number(val) <= availableBalance, "Amount cannot exceed available balance."),
+    recipientEmail: z
+      .string()
+      .min(1, "Recipient email is required.")
+      .email("Enter a valid email address."),
+    securityQuestion: z.string().optional(),
+    securityAnswer:   z.string().optional(),
+    message:          z.string().optional(),
+  });
 
-export type WithdrawFormValues = z.infer<typeof withdrawSchema>;
+export type WithdrawFormValues = z.infer<ReturnType<typeof createWithdrawSchema>>;
 
 export const deleteSchema = z.object({
   confirmText: z.string(),

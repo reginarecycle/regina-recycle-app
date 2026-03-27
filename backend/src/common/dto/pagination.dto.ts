@@ -1,11 +1,12 @@
-import { IsOptional, IsNumberString } from 'class-validator';
+import { IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class PaginationDto {
-    @IsOptional()
-    @IsNumberString()
-    page?: number;
+  @IsOptional()
+  @Type(() => Number)
+  page?: number;
 
-    @IsOptional()
-    @IsNumberString()
-    limit?: number;
+  @IsOptional()
+  @Type(() => Number)
+  limit?: number;
 }

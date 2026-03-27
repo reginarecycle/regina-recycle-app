@@ -13,6 +13,11 @@ import { MaterialTag } from "@/components/ui/material-tag";
 import { ScheduleDetailsModal } from "./ScheduleDetailsModal";
 import { useGetCustomerPickups } from "@/api-hooks/usePickups";
 import { useGetMaterials } from "@/api-hooks/useMaterials";
+import { formatDate } from "@/lib/utils";
+
+function makeRef(id: string): string {
+  return `RRY-${parseInt(id.replace(/-/g, "").slice(0, 8), 16) % 900000 + 100000}`;
+}
 
 const PAGE_SIZE = 10;
 
@@ -78,18 +83,6 @@ function buildColumns(
   ];
 }
 
-function formatDate(value?: string) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-
-  return date.toLocaleDateString("en-CA", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
-
 function buildLocation(pickup: any) {
   if (pickup?.address?.line1) return pickup.address.line1;
   if (pickup?.address?.city) return pickup.address.city;
@@ -116,7 +109,7 @@ function mapPickupToRecord(
 
   return {
     id: pickup.pickupId,
-    referenceNumber: pickup.pickupId,
+    referenceNumber: makeRef(pickup.pickupId),
     location: buildLocation(pickup),
     pickupLocation: buildLocation(pickup),
     materials,
@@ -277,3 +270,67 @@ export const RecycleHistory: React.FC = () => {
 };
 
 export default RecycleHistory;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
