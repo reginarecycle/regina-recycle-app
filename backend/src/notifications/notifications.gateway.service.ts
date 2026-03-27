@@ -52,6 +52,8 @@ export class NotificationGatewayService implements ISubject {
       [NotificationEventType.WALLET_UPDATED_DEBIT]: preference?.emailAccountActivity ?? true,
       [NotificationEventType.MATERIAL_PRICING_UPDATED]: preference?.inAppAlerts ?? true,
       [NotificationEventType.ALERT]: preference?.inAppAlerts ?? true,
+      [NotificationEventType.PASSWORD_CHANGED]: preference?.emailAccountActivity ?? true,
+      [NotificationEventType.PROFILE_UPDATED]: preference?.inAppAlerts ?? true,
     };
 
     if (!eventPrefMap[event.type]) return;
