@@ -28,6 +28,7 @@ import { toast } from "sonner";
 
 const PAGE_SIZE = 10;
 const TAB_PARAM  = "tab";
+const PICKUP_PARAM = "pickup";
 
 type ActiveTab = "incoming" | "accepted" | "completed";
 type CompatibilityFilter = "COMPATIBLE" | "INCOMPATIBLE";
@@ -67,26 +68,25 @@ function getDateBounds(range: DateRange, mode: "past" | "future"): { startDate?:
 }
 
 export default function RequestsTable() {
-  // ── URL-driven tab state ─────────────────────────────────────────────────
   const [searchParams, setSearchParams] = useSearchParams();
   const rawTab    = searchParams.get(TAB_PARAM);
   const activeTab: ActiveTab = VALID_TABS.includes(rawTab as ActiveTab)
     ? (rawTab as ActiveTab)
     : "incoming";
 
+  const rawPickupId = searchParams.get(PICKUP_PARAM);
+
   const switchTab = (tab: ActiveTab) => {
-    setSearchParams((prev) => { prev.set(TAB_PARAM, tab); return prev; });
+    setSearchParams((prev) => { prev.set(TAB_PARAM, tab); prev.delete(PICKUP_PARAM); return prev; });
     setPage(1);
   };
 
-  // ── Local state ──────────────────────────────────────────────────────────
   const [page, setPage]     = useState(1);
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<TableFilterState<CompatibilityFilter>>(
     DEFAULT_TABLE_FILTERS as TableFilterState<CompatibilityFilter>,
   );
 
-  // Reset page when tab changes in the URL
   const prevTabRef = useRef(activeTab);
   useEffect(() => {
     if (prevTabRef.current !== activeTab) {
@@ -95,7 +95,6 @@ export default function RequestsTable() {
     }
   }, [activeTab]);
 
-  // ── Modal state ──────────────────────────────────────────────────────────
   const [selectedRequest, setSelectedRequest] = useState<RequestRow | null>(null);
   const [detailsOpen,   setDetailsOpen]   = useState(false);
   const [feedbackOpen,  setFeedbackOpen]  = useState(false);
@@ -104,7 +103,6 @@ export default function RequestsTable() {
   const [rejectOpen,    setRejectOpen]    = useState(false);
   const [completeNote,  setCompleteNote]  = useState("");
 
-  // ── API: single query for the active tab ─────────────────────────────────
   const dateMode     = activeTab === "completed" ? "past" : "future" as const;
   const dateBounds   = getDateBounds(filters.dateRange, dateMode);
   const compatFilter = filters.statuses[0] as CompatibilityFilter | undefined;
@@ -113,27 +111,21 @@ export default function RequestsTable() {
     { status: STATUS_MAP[activeTab], search: search || undefined, page, limit: PAGE_SIZE, ...dateBounds },
   );
 
-  // ── API: wallet + service fee settings ───────────────────────────────────
   const { data: walletResult }   = useGetCollectorWallet();
   const { data: settingsResult } = useCollectorPricingSettings();
   const serviceFee = Number(settingsResult?.data.settings?.serviceFee ?? 0);
   const feeType    = settingsResult?.data.settings?.feeType ?? "PERCENTAGE";
 
-  // Collector's earnings = the service fee charged on top of the customer payout
   const calcEarnings = (grossPayout: number) =>
     feeType === "PERCENTAGE" ? grossPayout * (serviceFee / 100) : serviceFee;
 
-  // ── Mutations ─────────────────────────────────────────────────────────────
   const acceptMutation   = useAcceptPickup();
   const completeMutation = useCompletePickup();
   const rejectMutation   = useRejectPickup();
 
-  // ── Map API data → table rows ─────────────────────────────────────────────
   const tableData = useMemo((): RequestRow[] => {
     const toRow = (p: CollectorPickup): RequestRow => {
       const scheduled    = new Date(p.scheduledAt);
-      // For accepted/completed use snapshots (prices locked at acceptance time),
-      // for incoming use live items with current pricing.
       const useSnapshots = (activeTab === "accepted" || activeTab === "completed")
         && (p.snapshots ?? []).length > 0;
 
@@ -153,7 +145,6 @@ export default function RequestsTable() {
           }))
         : liveItems;
 
-      // Only attach currentItems when snapshot prices differ from live pricing
       const snapshotTotal = lineItems.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
       const liveTotal     = liveItems.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
       const hasPriceShift = useSnapshots && Math.abs(snapshotTotal - liveTotal) > 0.001;
@@ -198,7 +189,18 @@ export default function RequestsTable() {
   const totalItems    = pickupsResult?.data.meta.total      ?? 0;
   const walletBalance = walletResult?.data.balance ?? 0;
 
-  // ── Tabs — badge only on the active tab ──────────────────────────────────
+  const autoOpenedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!rawPickupId || isLoading) return;
+    if (autoOpenedRef.current === rawPickupId) return;
+    const row = tableData.find((r) => r.pickupId === rawPickupId);
+    if (!row) return;
+    autoOpenedRef.current = rawPickupId;
+    setSelectedRequest(row);
+    setDetailsOpen(true);
+    setSearchParams((prev) => { prev.delete(PICKUP_PARAM); return prev; }, { replace: true });
+  }, [rawPickupId, isLoading, tableData]);
+
   const tabs: DataTableTabItem[] = [
     {
       href:  "incoming",

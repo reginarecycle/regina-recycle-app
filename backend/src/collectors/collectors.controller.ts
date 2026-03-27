@@ -35,18 +35,6 @@ export class CollectorsController {
     return this.collectorsService.getDashboardStats(req.user.userId);
   }
 
-  @Get('dashboard/pickups')
-  @ApiOperation({ summary: 'Get dashboard pickups for the authenticated collector' })
-  @ApiBearerAuth()
-  @Auth('COLLECTOR')
-  getDashboardPickups(
-    @Request() req: any,
-    @Query('status') status: string,
-    @Query('limit') limit?: number,
-  ) {
-    return this.collectorsService.getDashboardPickups(req.user.userId, status, Number(limit) || 4);
-  }
-
   @Get('available-for-materials')
   @Auth()
   @ApiOperation({ summary: 'Check if collectors are available for given materials' })
@@ -101,8 +89,6 @@ export class CollectorsController {
     return this.collectorsService.getPricing(req.user.userId, query);
   }
 
-  // ─── JWT-based dashboard routes ───────────────────────────────────────────
-
   @Get('stats')
   @ApiOperation({ summary: 'Get stats for the authenticated collector' })
   @ApiBearerAuth()
@@ -141,16 +127,6 @@ export class CollectorsController {
   ) {
     return this.collectorsService.getTopLocations(req.user.userId, limit, period);
   }
-
-  @Get('pickups')
-  @ApiOperation({ summary: 'Get pickups for the authenticated collector' })
-  @ApiBearerAuth()
-  @Auth('COLLECTOR')
-  getPickupsMe(@Request() req: any, @Query() query: PickupQueryDto) {
-    return this.collectorsService.getPickups(req.user.userId, query);
-  }
-
-  // ─── Parameterized routes AFTER ───────────────────────────────────────────
 
   @Get(':collectorId/stats')
   @ApiOperation({ summary: 'Get collector stats by ID' })

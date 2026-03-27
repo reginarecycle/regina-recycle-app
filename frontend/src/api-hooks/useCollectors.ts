@@ -2,8 +2,6 @@ import { useGetOne, useGetList, useUpdate } from "@/lib/queryHelpers";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/apiFetch";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 export interface CollectorStats {
   collectorId: string;
   pendingRequests: number;
@@ -27,7 +25,8 @@ export interface MaterialDistribution {
 
 export interface PickupOverviewDay {
   day: string;
-  units: number;
+  cuurent: number;
+  previous: number;
 }
 
 export interface PickupOverview {
@@ -158,8 +157,6 @@ export interface CreateMaterialPricingPayload {
   status?: string;
 }
 
-// ─── Collector Pickup types ───────────────────────────────────────────────────
-
 export interface PickupItemMaterial {
   materialId: string;
   name: string;
@@ -223,7 +220,6 @@ export interface CollectorPickupsPaginated {
   };
 }
 
-// Alias for dashboard compatibility
 export type PaginatedPickups = CollectorPickupsPaginated;
 
 export interface CollectorPickupsQuery {
@@ -241,7 +237,6 @@ export interface CollectorPickupStats {
   potentialRevenue: number;
 }
 
-// ─── Collector Users types ────────────────────────────────────────────────────
 
 export interface CollectorUser {
   customerId: string;
@@ -271,8 +266,6 @@ export interface CollectorUsersResponse {
   totalPages: number;
 }
 
-// ─── Query keys ───────────────────────────────────────────────────────────────
-
 export const collectorKeys = {
   stats: () => ['collectors', 'stats'] as const,
   materialDistribution: (period?: string) => ['collectors', 'material-distribution', period] as const,
@@ -294,8 +287,6 @@ export const pickupRequestKeys = {
   stats: () => ['pickups', 'collector', 'stats'] as const,
 };
 
-// ─── Dashboard hooks (your branch) ───────────────────────────────────────────
-
 export const useGetCollectorStats = () =>
   useGetOne<CollectorStats>(["collectors", "stats"], "/collectors/stats");
 
@@ -310,12 +301,6 @@ export const useGetMaterialDistribution = (period?: string) =>
 
 export const useGetCollectorDashboardStats = () =>
   useGetOne<CollectorStats>(["collectors", "dashboard", "stats"], "/collectors/dashboard/stats");
-
-export const useGetCollectorDashboardPickups = (status: string, limit = 4) =>
-  useGetOne<{ data: CollectorPickup[]; meta: { total: number } }>(
-    ["collectors", "dashboard", "pickups", status, limit],
-    `/collectors/dashboard/pickups?status=${status}&limit=${limit}`
-  );
   
 export const useGetTopLocations = (limit = 3, period?: string) => {
   const params = new URLSearchParams();
@@ -326,19 +311,6 @@ export const useGetTopLocations = (limit = 3, period?: string) => {
     `/collectors/top-locations?${params.toString()}`
   );
 };
-
-export const useGetCollectorPickups = (status?: string, page = 1, limit = 10) => {
-  const params = new URLSearchParams();
-  params.append("page", String(page));
-  params.append("limit", String(limit));
-  if (status) params.append("status", status);
-  return useGetOne<PaginatedPickups>(
-    ["collectors", "pickups", status ?? "all", page, limit],
-    `/collectors/pickups?${params.toString()}`
-  );
-};
-
-// ─── Teammate hooks (development branch) ─────────────────────────────────────
 
 export const useCollectorStats = () =>
   useGetOne<CollectorStats>(collectorKeys.stats(), '/collectors/stats');

@@ -113,38 +113,64 @@ export class CollectorsService {
   async getPickupOverview(collectorId: string) {
     await this.ensureCollectorExists(collectorId);
 
-    const start = new Date();
-    start.setDate(start.getDate() - 6);
-    start.setHours(0, 0, 0, 0);
+    const now = new Date();
 
-    const pickups = await this.prisma.pickup.findMany({
-      where: {
-        collectorUserId: collectorId,
-        status: { in: [PickupStatus.ACCEPTED, PickupStatus.COMPLETED] },
-        scheduledAt: { gte: start },
-      },
-      include: { items: true },
-      orderBy: { scheduledAt: 'asc' },
-    });
+    // Monday of the current calendar week
+    const currentMonday = new Date(now);
+    const dow = currentMonday.getDay(); // 0=Sun … 6=Sat
+    currentMonday.setDate(currentMonday.getDate() - (dow === 0 ? 6 : dow - 1));
+    currentMonday.setHours(0, 0, 0, 0);
 
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    // Monday of the previous calendar week
+    const previousMonday = new Date(currentMonday);
+    previousMonday.setDate(currentMonday.getDate() - 7);
+
+    // Sunday end of current week (exclusive upper bound)
+    const nextMonday = new Date(currentMonday);
+    nextMonday.setDate(currentMonday.getDate() + 7);
+
+    const [currentPickups, previousPickups] = await Promise.all([
+      this.prisma.pickup.findMany({
+        where: {
+          collectorUserId: collectorId,
+          status: { in: [PickupStatus.ACCEPTED, PickupStatus.COMPLETED] },
+          scheduledAt: { gte: currentMonday, lt: nextMonday },
+        },
+        include: { items: true },
+      }),
+      this.prisma.pickup.findMany({
+        where: {
+          collectorUserId: collectorId,
+          status: { in: [PickupStatus.ACCEPTED, PickupStatus.COMPLETED] },
+          scheduledAt: { gte: previousMonday, lt: currentMonday },
+        },
+        include: { items: true },
+      }),
+    ]);
+
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    const isSameDay = (d: Date, ref: Date) =>
+      d.getFullYear() === ref.getFullYear() &&
+      d.getMonth() === ref.getMonth() &&
+      d.getDate() === ref.getDate();
 
     const overview = Array.from({ length: 7 }, (_, i) => {
-      const date = new Date(start);
-      date.setDate(start.getDate() + i);
+      const currentDate = new Date(currentMonday);
+      currentDate.setDate(currentMonday.getDate() + i);
 
-      const units = pickups
-        .filter((p) => {
-          const d = new Date(p.scheduledAt);
-          return (
-            d.getFullYear() === date.getFullYear() &&
-            d.getMonth() === date.getMonth() &&
-            d.getDate() === date.getDate()
-          );
-        })
+      const previousDate = new Date(previousMonday);
+      previousDate.setDate(previousMonday.getDate() + i);
+
+      const current = currentPickups
+        .filter((p) => isSameDay(new Date(p.scheduledAt), currentDate))
         .reduce((sum, p) => sum + p.items.reduce((s, item) => s + item.quantity, 0), 0);
 
-      return { day: dayNames[date.getDay()], units };
+      const previous = previousPickups
+        .filter((p) => isSameDay(new Date(p.scheduledAt), previousDate))
+        .reduce((sum, p) => sum + p.items.reduce((s, item) => s + item.quantity, 0), 0);
+
+      return { day: dayNames[i], current, previous };
     });
 
     return { collectorId, period: 'weekly', overview };
@@ -608,9 +634,12 @@ export class CollectorsService {
     await this.ensureCollectorExists(collectorId);
 
     const [pendingRequests, acceptedRequests, totalItems, pendingAmount] = await Promise.all([
-      // All unassigned pending pickups visible to this collector
       this.prisma.pickup.count({
-        where: { status: PickupStatus.PENDING }
+        where: {
+          status: PickupStatus.PENDING,
+          collectorUserId: null,
+          rejections: { none: { collectorId } },
+        },
       }),
       this.prisma.pickup.count({
         where: { collectorUserId: collectorId, status: PickupStatus.ACCEPTED }
@@ -635,28 +664,6 @@ export class CollectorsService {
       totalItems: totalItems._sum.quantity ?? 0,
       pendingAmount: Number(pendingAmount._sum.estimatedEarning ?? 0),
     };
-  }
-
-  async getDashboardPickups(collectorId: string, status: string, limit: number) {
-    await this.ensureCollectorExists(collectorId);
-
-    const where = status === 'PENDING'
-      ? { status: PickupStatus.PENDING }
-      : { collectorUserId: collectorId, status: status as PickupStatus };
-
-    const pickups = await this.prisma.pickup.findMany({
-      where,
-      include: {
-        requester: { select: { userId: true, name: true, email: true, phoneNumber: true } },
-        address: true,
-        items: { include: { material: true } },
-        snapshots: { include: { material: true } },
-      },
-      orderBy: { scheduledAt: 'asc' },
-      take: limit,
-    });
-
-    return { data: pickups, meta: { total: pickups.length } };
   }
 
   private getStartDate(period?: string): Date | undefined {
