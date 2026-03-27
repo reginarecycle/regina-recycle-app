@@ -12,6 +12,7 @@ export const getTypeStyles = (type: NotificationType) => {
     warning: { bg: "bg-yellow-50", iconBg: "bg-yellow-100", iconColor: "text-yellow-600", border: "border-yellow-200" },
     error: { bg: "bg-red-50", iconBg: "bg-red-100", iconColor: "text-red-600", border: "border-red-200" },
     info: { bg: "bg-blue-50", iconBg: "bg-blue-100", iconColor: "text-blue-600", border: "border-blue-200" },
+    marketing: { bg: "bg-purple-50", iconBg: "bg-purple-100", iconColor: "text-purple-600", border: "border-purple-200" },
   };
   return styles[type];
 };
@@ -29,6 +30,15 @@ export const formatTimestamp = (date: Date): string => {
   if (diffDays < 7) return `${diffDays}d ago`;
 
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+};
+
+export const formatFullDate = (date: Date): string => {
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };
 
 export type NotificationGroup = "Today" | "Yesterday" | "This Week" | "Older";

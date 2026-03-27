@@ -1,19 +1,11 @@
 import { useEffect, useRef } from "react";
 import Pusher from "pusher-js";
 import { Bell } from "lucide-react";
-import type { Notification } from "@/types/notification";
-
-type BackendNotification = {
-  notificationId: string;
-  type: "IN_APP_PICKUP_REMINDER" | "ALERT" | "ACCOUNT_ACTIVITY" | "PAYMENT_ACTIVITY" | "MARKETING" | "EMAIL_PICKUP_REMINDER";
-  title: string;
-  message: string;
-  isRead: boolean;
-  createdAt: string;
-};
+import type { Notification, BackendNotification } from "@/types/notification";
 
 function mapToFrontend(n: BackendNotification): Notification {
-  const typeMap: Record<BackendNotification["type"], Notification["type"]> = {
+  const typeMap: Record<string, Notification["type"]> = {
+    PICKUP_SCHEDULED: "info",
     IN_APP_PICKUP_REMINDER: "info",
     EMAIL_PICKUP_REMINDER:  "info",
     ACCOUNT_ACTIVITY:       "success",
@@ -22,7 +14,8 @@ function mapToFrontend(n: BackendNotification): Notification {
     ALERT:                  "warning",
   };
 
-  const categoryMap: Record<BackendNotification["type"], Notification["category"]> = {
+  const categoryMap: Record<string, Notification["category"]> = {
+    PICKUP_SCHEDULED: "pickups",
     IN_APP_PICKUP_REMINDER: "pickups",
     EMAIL_PICKUP_REMINDER:  "pickups",
     ACCOUNT_ACTIVITY:       "account",
@@ -33,8 +26,8 @@ function mapToFrontend(n: BackendNotification): Notification {
 
   return {
     id: n.notificationId,
-    type: typeMap[n.type],
-    category: categoryMap[n.type],
+    type: typeMap[n.type] ?? "info",
+    category: categoryMap[n.type] ?? "alerts",
     title: n.title,
     message: n.message,
     timestamp: new Date(n.createdAt),

@@ -9,8 +9,8 @@ export class NotificationGatewayService implements ISubject {
   private observers: IObserver[] = [];
 
   constructor(
-    private readonly emailObserver: EmailNotificationObserver,
-    private readonly inAppObserver: InAppNotificationObserver,
+    emailObserver: EmailNotificationObserver,
+    inAppObserver: InAppNotificationObserver,
     private readonly prisma: PrismaService,
   ) {
     this.register(emailObserver);
@@ -30,7 +30,6 @@ export class NotificationGatewayService implements ISubject {
   }
 
   async sendNotification(event: NotificationEvent): Promise<void> {
-    // Check user preferences
     const preference = await this.prisma.notificationPreference.findUnique({
       where: { userId: event.userId },
     });
@@ -39,27 +38,27 @@ export class NotificationGatewayService implements ISubject {
     const inAppEnabled = preference?.inAppAlerts ?? true;
 
     const eventEmailMap: Record<NotificationEventType, boolean> = {
-      [NotificationEventType.PICKUP_SCHEDULED]:       preference?.emailPickupReminder ?? true,
-      [NotificationEventType.PICKUP_STATUS_CHANGED]:  false,
-      [NotificationEventType.PICKUP_COMPLETED]:       preference?.emailPickupReminder ?? true,
-      [NotificationEventType.WALLET_UPDATED_CREDIT]:  emailEnabled,
-      [NotificationEventType.WALLET_UPDATED_DEBIT]:   emailEnabled,
-      [NotificationEventType.MATERIAL_PRICING_UPDATED]: false,
-      [NotificationEventType.ALERT]:                  emailEnabled,
-      [NotificationEventType.PASSWORD_CHANGED]:       emailEnabled,
-      [NotificationEventType.PROFILE_UPDATED]:        emailEnabled,
+      [NotificationEventType.PICKUP_SCHEDULED]:          preference?.emailPickupReminder ?? true,
+      [NotificationEventType.PICKUP_STATUS_CHANGED]:     false,
+      [NotificationEventType.PICKUP_COMPLETED]:          preference?.emailPickupReminder ?? true,
+      [NotificationEventType.WALLET_UPDATED_CREDIT]:     emailEnabled,
+      [NotificationEventType.WALLET_UPDATED_DEBIT]:      emailEnabled,
+      [NotificationEventType.MATERIAL_PRICING_UPDATED]:  false,
+      [NotificationEventType.ALERT]:                     emailEnabled,
+      [NotificationEventType.PASSWORD_CHANGED]:          emailEnabled,
+      [NotificationEventType.PROFILE_UPDATED]:           emailEnabled,
     };
 
     const eventInAppMap: Record<NotificationEventType, boolean> = {
-      [NotificationEventType.PICKUP_SCHEDULED]:       inAppEnabled,
-      [NotificationEventType.PICKUP_STATUS_CHANGED]:  inAppEnabled,
-      [NotificationEventType.PICKUP_COMPLETED]:       inAppEnabled,
-      [NotificationEventType.WALLET_UPDATED_CREDIT]:  inAppEnabled,
-      [NotificationEventType.WALLET_UPDATED_DEBIT]:   inAppEnabled,
-      [NotificationEventType.MATERIAL_PRICING_UPDATED]: inAppEnabled,
-      [NotificationEventType.ALERT]:                  inAppEnabled,
-      [NotificationEventType.PASSWORD_CHANGED]:       inAppEnabled,
-      [NotificationEventType.PROFILE_UPDATED]:        inAppEnabled,
+      [NotificationEventType.PICKUP_SCHEDULED]:          inAppEnabled,
+      [NotificationEventType.PICKUP_STATUS_CHANGED]:     inAppEnabled,
+      [NotificationEventType.PICKUP_COMPLETED]:          inAppEnabled,
+      [NotificationEventType.WALLET_UPDATED_CREDIT]:     inAppEnabled,
+      [NotificationEventType.WALLET_UPDATED_DEBIT]:      inAppEnabled,
+      [NotificationEventType.MATERIAL_PRICING_UPDATED]:  inAppEnabled,
+      [NotificationEventType.ALERT]:                     inAppEnabled,
+      [NotificationEventType.PASSWORD_CHANGED]:          inAppEnabled,
+      [NotificationEventType.PROFILE_UPDATED]:           inAppEnabled,
     };
 
     const shouldEmail = eventEmailMap[event.type];
@@ -75,7 +74,6 @@ export class NotificationGatewayService implements ISubject {
 
     await Promise.all(activeObservers.map((o) => o.update(event)));
   }
-
   async notifyPickupScheduled(params: {
     userId: string;
     recipientEmail: string;

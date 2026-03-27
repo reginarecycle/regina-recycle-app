@@ -1,11 +1,15 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { Routes } from "@/routes/routes";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Toolbar } from "@/components/layout/toolbar";
 import { useCurrentUser } from "@/api-hooks/useAuth";
+import { useUnreadNotificationCount } from "@/api-hooks/useNotifications";
+import { usePusherNotifications } from "@/hooks/usePusherNotifications";
 import { useInactivityLogout } from "@/hooks/use-inactivity";
 import { getUserRole } from "@/lib/helper";
+import type { Notification } from "@/types/notification";
 
 const PAGE_TITLES: Record<string, string> = {
   "/app/dashboard":           "Dashboard",
@@ -36,6 +40,18 @@ export default function DashboardLayout() {
 
   const { data: userResult, isLoading } = useCurrentUser();
   const user = userResult?.data;
+  const userId = user?.userId;
+
+  const { data: unreadData } = useUnreadNotificationCount();
+  const unreadCount = unreadData?.data?.count ?? 0;
+
+  const queryClient = useQueryClient();
+  const handlePusherNotification = useCallback((_n: Notification) => {
+    queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
+    queryClient.invalidateQueries({ queryKey: ["notifications"] });
+  }, [queryClient]);
+
+  usePusherNotifications(userId, handlePusherNotification);
 
   useInactivityLogout(60 * 60 * 1000);
 
@@ -119,7 +135,7 @@ export default function DashboardLayout() {
       <div className="flex flex-1 flex-col min-w-0">
         <Toolbar
           currentLocation={user?.addresses?.find((a) => a.isPrimary)?.line1 ?? "—"}
-          notificationCount={3}
+          notificationCount={unreadCount}
           pageTitle={getPageTitle(location.pathname)}
           onMenuClick={() => setMobileMenuOpen(true)}
           onNotificationClick={() => navigate(notificationsRoute)}
