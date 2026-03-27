@@ -141,6 +141,21 @@ export class NotificationGatewayService implements ISubject {
     });
   }
 
+  async notifyPasswordChanged(params: {
+  userId: string;
+  recipientEmail: string;
+}) {
+  await this.sendNotification({
+    type: NotificationEventType.PASSWORD_CHANGED,
+    title: 'Password Changed',
+    message:
+      'If you did not make this change please contact us at info.reginarecycle@gmail.com',
+    userId: params.userId,
+    recipientEmail: params.recipientEmail,
+    // metadata: {} // optional
+  });
+}
+
   async notifyAlert(params: {
     userId: string;
     recipientEmail: string;
