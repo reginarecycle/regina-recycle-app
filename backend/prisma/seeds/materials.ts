@@ -1,7 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 
-// Old material names that were renamed — must be removed to avoid duplicates.
-// We delete their CollectorPricing rows first (FK), then the material itself.
+
 const LEGACY_NAMES = [
   'Aluminum Can',
   'Plastic Bottle',
@@ -20,8 +19,8 @@ const materials = [
   {
     name:        'Glass Bottles',
     type:        'recyclable',
-    description: 'Reusable glass containers for beverages, sauces, and condiments',
-    tips:        'Rinse before drop-off and remove metal lids — glass can be recycled indefinitely without losing purity.',
+    description: 'Wine bottles, juice jars, and condiment containers.',
+    tips:        'Rinse thoroughly and remove metal caps or lids before recycling.',
     photoUrl:    'https://res.cloudinary.com/dxhy4qyzp/image/upload/v1773720018/glass_jar_rzu3cl.webp',
     co2Saved:    1.5,
     waterSaved:  4.0,
@@ -29,8 +28,8 @@ const materials = [
   {
     name:        'PET Plastic',
     type:        'recyclable',
-    description: 'Lightweight plastic bottles for water, juice, and soft drinks',
-    tips:        'Remove the cap and rinse thoroughly — caps are often a different plastic type and sorted separately.',
+    description: 'Water, juice, and soft drink bottles.',
+    tips:        'Remove the cap and rinse thoroughly before recycling.',
     photoUrl:    'https://res.cloudinary.com/dxhy4qyzp/image/upload/v1773718729/plastic_bottle_duowdx.webp',
     co2Saved:    0.8,
     waterSaved:  2.1,
@@ -38,8 +37,8 @@ const materials = [
   {
     name:        'Aluminium Cans',
     type:        'recyclable',
-    description: 'Thin-walled metal cans used for beverages like soda, beer, and energy drinks',
-    tips:        'A quick rinse is all it takes — aluminium is one of the most valuable recyclables and can be reprocessed endlessly.',
+    description: 'Soda cans, beer cans, and energy drink cans.',
+    tips:        'Rinse out food residue. Labels can be left on.',
     photoUrl:    'https://res.cloudinary.com/dxhy4qyzp/image/upload/v1773718590/aluminum_can_muzqie.webp',
     co2Saved:    1.2,
     waterSaved:  3.5,
@@ -47,8 +46,8 @@ const materials = [
   {
     name:        'Cardboard',
     type:        'recyclable',
-    description: 'Multi-layered paper-based material used for boxes, packaging, and shipping',
-    tips:        'Flatten all boxes before drop-off — wet or greasy cardboard (e.g. pizza boxes) should go to compost, not recycling.',
+    description: 'Shipping boxes, packaging, and clean pizza boxes.',
+    tips:        'Flatten boxes completely. Remove styrofoam or plastic packing materials.',
     photoUrl:    'https://res.cloudinary.com/dxhy4qyzp/image/upload/v1773720424/cardboard_naeggh.jpg',
     co2Saved:    0.6,
     waterSaved:  1.8,
@@ -56,8 +55,8 @@ const materials = [
   {
     name:        'HDPE Plastic',
     type:        'recyclable',
-    description: 'Rigid plastic containers used for milk, water jugs, and detergent bottles',
-    tips:        'Rinse out residue and leave the cap on — HDPE is one of the safest and most widely recycled plastics.',
+    description: 'Milk jugs, detergent bottles, and shampoo containers.',
+    tips:        'Rinse thoroughly. Remove caps if they are less than 2 inches in diameter.',
     photoUrl:    'https://res.cloudinary.com/dxhy4qyzp/image/upload/v1773718729/plastic_bottle_duowdx.webp',
     co2Saved:    0.9,
     waterSaved:  2.4,
@@ -65,8 +64,8 @@ const materials = [
   {
     name:        'Steel Cans',
     type:        'recyclable',
-    description: 'Steel containers used for canned food, vegetables, soups, and beverages',
-    tips:        'Rinse and place in the blue bin — steel cans are 100% recyclable and can be remelted and reused endlessly.',
+    description: 'Canned food, vegetables, and soup containers.',
+    tips:        'Rinse and place in the blue bin. Labels can be left on.',
     photoUrl:    'https://res.cloudinary.com/dxhy4qyzp/image/upload/v1773720361/steel_can_gkzqgr.webp',
     co2Saved:    1.1,
     waterSaved:  3.0,
@@ -74,8 +73,8 @@ const materials = [
   {
     name:        'Tetra Pak',
     type:        'recyclable',
-    description: 'Multi-layer cartons used for juice, milk, broth, and soup packaging',
-    tips:        'Rinse, flatten, and reseal — Tetra Pak cartons are fully recyclable but require a specialised processing facility.',
+    description: 'Juice cartons, milk cartons, and soup packaging.',
+    tips:        'Rinse thoroughly and flatten to save space in the blue bin.',
     photoUrl:    null,
     co2Saved:    0.7,
     waterSaved:  2.0,
@@ -83,8 +82,8 @@ const materials = [
   {
     name:        'Newspaper & Paper',
     type:        'recyclable',
-    description: 'Dry paper products including newsprint, office paper, magazines, and flyers',
-    tips:        'Keep dry and bundle together — wet or food-soiled paper cannot be recycled and should go to compost instead.',
+    description: 'Newsprint, office paper, magazines, and flyers.',
+    tips:        'Keep dry and bundle together. Wet or food-soiled paper goes to compost.',
     photoUrl:    'https://res.cloudinary.com/dxhy4qyzp/image/upload/v1774382800/annie-spratt-hWJsOnaWTqs-unsplash_fnc4zy.jpg',
     co2Saved:    0.5,
     waterSaved:  1.4,
@@ -92,8 +91,8 @@ const materials = [
   {
     name:        'Electronics',
     type:        'hazardous',
-    description: 'Electronic devices including phones, laptops, monitors, and small appliances',
-    tips:        'Never place in regular bins — drop off at a certified e-waste facility to prevent toxic materials from entering landfills.',
+    description: 'Old laptops, smartphones, tablets, and cables.',
+    tips:        'Drop off at designated e-waste recycling depots only. Do not discard in trash.',
     photoUrl:    'https://res.cloudinary.com/dxhy4qyzp/image/upload/v1774382790/christopher-gower-_aXa21cf7rY-unsplash_hgxqfg.jpg',
     co2Saved:    2.0,
     waterSaved:  5.0,
@@ -101,8 +100,8 @@ const materials = [
   {
     name:        'Batteries',
     type:        'hazardous',
-    description: 'Portable power cells including household AA/AAA, button cells, and automotive batteries',
-    tips:        'Never throw in the trash — drop off at a designated battery collection point to prevent chemical leaks into soil and water.',
+    description: 'AA, AAA, Lithium-ion, and button cell batteries.',
+    tips:        'Do not bin. Drop off at designated collection centers or hardware stores.',
     photoUrl:    'https://res.cloudinary.com/dxhy4qyzp/image/upload/v1773873765/battery_jovvg2.webp',
     co2Saved:    1.0,
     waterSaved:  2.5,
@@ -110,17 +109,17 @@ const materials = [
   {
     name:        'Scrap Metal',
     type:        'recyclable',
-    description: 'Ferrous and non-ferrous metal pieces including pipes, frames, and appliance parts',
-    tips:        'Remove non-metal attachments where possible — scrap metal is highly valuable and recycling it saves significant energy over mining new ore.',
-    photoUrl:    null,
+    description: 'Pipes, frames, and metal appliance parts.',
+    tips:        'Remove non-metal attachments where possible before drop-off.',
+    photoUrl:    'https://res.cloudinary.com/dxhy4qyzp/image/upload/v1774640376/photo-1723365316514-8509dea457f2_ewwaee.jpg',
     co2Saved:    1.3,
     waterSaved:  3.2,
   },
   {
     name:        'Soft Plastics',
     type:        'recyclable',
-    description: 'Flexible plastic films including grocery bags, bread bags, and stretch wrap',
-    tips:        'Do not place in curbside bins — collect and drop off at a grocery store soft-plastic return point for proper processing.',
+    description: 'Grocery bags, bread bags, and stretch wrap.',
+    tips:        'Do not place in curbside bins. Drop off at grocery store return points.',
     photoUrl:    'https://res.cloudinary.com/dxhy4qyzp/image/upload/v1774382743/teslariu-mihai-Vebp8agAUxU-unsplash_nno7kr.jpg',
     co2Saved:    0.2,
     waterSaved:  0.5,

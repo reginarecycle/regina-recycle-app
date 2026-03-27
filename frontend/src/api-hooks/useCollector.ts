@@ -13,6 +13,7 @@ export interface CollectorPricing {
     name:        string;
     type:        string;
     description: string | null;
+    tips: string|null;
     photoUrl:    string | null;
   };
 }
@@ -41,13 +42,17 @@ export const collectorKeys = {
   pricingSettings: () => ["collector", "pricing-settings"] as const,
 };
 
-export const useGetCollectorPricing = (params?: { page?: number; limit?: number }) =>
-  useQuery({
+export const useGetCollectorPricing = (params?: { page?: number; limit?: number; search?: string }) => {
+  const qs = new URLSearchParams({
+    page:  String(params?.page  ?? 1),
+    limit: String(params?.limit ?? 10),
+    ...(params?.search ? { search: params.search } : {}),
+  }).toString();
+  return useQuery({
     queryKey: [...collectorKeys.pricing(), params],
-    queryFn:  () => apiFetch<{ data: CollectorPricing[]; meta: PricingMeta }>(
-      `/collectors/me/pricing?page=${params?.page ?? 1}&limit=${params?.limit ?? 10}`
-    ),
+    queryFn:  () => apiFetch<{ data: CollectorPricing[]; meta: PricingMeta }>(`/collectors/me/pricing?${qs}`),
   });
+};
 
 export const useGetPricingSettings = () =>
   useQuery({

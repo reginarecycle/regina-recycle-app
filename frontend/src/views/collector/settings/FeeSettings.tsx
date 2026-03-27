@@ -46,6 +46,19 @@ export function FeeSettings({
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-semibold mb-1">Service Fees</h2>
+          <p className="text-sm text-muted-foreground">Manage your service fees</p>
+        </div>
+        <Button
+          onClick={handleSave}
+          disabled={isPending}
+          className="w-full sm:w-43.5 h-11 bg-primary hover:bg-primary/90 disabled:opacity-60"
+        >
+          {isPending ? "Saving..." : "Save Changes"}
+        </Button>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Service Fees */}
         <Card className="p-6 shadow-none border bg-white">
@@ -97,13 +110,12 @@ export function FeeSettings({
           <h3 className="font-semibold text-base mb-2">📈 Bulk Incentive Strategy</h3>
           <p className="text-sm text-muted-foreground mb-2">Automatically apply bulk rates when a single request exceeds the quantity threshold.</p>
           <div className="space-y-6">
-            <div>
-              <label className="text-base font-semibold mb-2 block">Standard Bulk Threshold</label>
+            <div className="flex items-center justify-between">
+              <label className="text-base font-semibold mb-2 block flex-1">Standard Bulk Threshold</label>
               <div className="relative">
                 <Input
                   value={bulkThreshold}
                   onChange={(e) => setBulkThreshold(e.target.value)}
-                  className="h-11 pr-16 bg-white border-gray-300"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">Units</span>
               </div>
@@ -116,15 +128,6 @@ export function FeeSettings({
         </Card>
       </div>
 
-      <div className="flex justify-end">
-        <Button
-          onClick={handleSave}
-          disabled={isPending}
-          className="w-full sm:w-[174px] h-11 bg-primary hover:bg-primary/90 disabled:opacity-60"
-        >
-          {isPending ? "Saving..." : "Save Settings"}
-        </Button>
-      </div>
     </div>
   );
 }

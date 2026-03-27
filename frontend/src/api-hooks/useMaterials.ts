@@ -6,6 +6,7 @@ export interface Material {
   type: string;
   photoUrl?: string;
   description?: string;
+  tips?: string;
   co2Saved?: number;
   waterSaved?: number;
 }

@@ -116,7 +116,7 @@ export class AuthService {
             collectorUserId: user.userId,
             materialId:      m.materialId,
             basePrice:       0,
-            status:          'ACTIVE',
+            status:          'INACTIVE',
           })),
           skipDuplicates: true,
         });
