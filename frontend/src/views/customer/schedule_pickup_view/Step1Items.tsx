@@ -1,4 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { THRESHOLD } from "@/components/scheduleView/ScheduleFooter";
 import BasketGif from "@/assets/basket.gif";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -489,17 +491,39 @@ export default function Step1Items({ onNext }: Props) {
           />
         </div>
 
-        <div className="mt-6 border-t border-border pt-4 flex justify-end">
-          <Button
-            type="button"
-            size="lg"
-            disabled={selectedItems.length === 0}
-            onClick={handleNext}
-            className="w-[158px]"
-          >
-            Next Step →
-          </Button>
-        </div>
+        {(() => {
+          const belowThreshold = scheduleData.estCost < THRESHOLD;
+          const noItems = selectedItems.length === 0;
+          const isDisabled = noItems || belowThreshold;
+          const tooltipMsg = noItems
+            ? "Select at least one item to continue"
+            : `Add more items to reach the $${THRESHOLD} minimum (currently $${scheduleData.estCost.toFixed(2)})`;
+
+          return (
+            <div className="mt-6 border-t border-border pt-4 flex justify-end">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className={isDisabled ? "cursor-not-allowed" : ""}>
+                    <Button
+                      type="button"
+                      size="lg"
+                      disabled={isDisabled}
+                      onClick={handleNext}
+                      className="w-39.5 pointer-events-none"
+                    >
+                      Next Step →
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                {isDisabled && (
+                  <TooltipContent>
+                    <p>{tooltipMsg}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </div>
+          );
+        })()}
       </div>
 
       <NoCollectorsModal

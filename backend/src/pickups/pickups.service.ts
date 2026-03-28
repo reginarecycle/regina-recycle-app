@@ -23,8 +23,23 @@ export class PickupsService {
   async create(requesterUserId: string, createPickupDto: CreatePickupDto, photoUrl?: string) {
     const { address, scheduledAt, items, estimatedCost, note } = createPickupDto;
 
-    if (new Date(scheduledAt) <= new Date()) {
-      throw new BadRequestException('Scheduled date must be in the future');
+    const scheduledDate = new Date(scheduledAt);
+    const todayMidnight = new Date();
+    todayMidnight.setHours(0, 0, 0, 0);
+    const scheduledDayMidnight = new Date(scheduledDate);
+    scheduledDayMidnight.setHours(0, 0, 0, 0);
+
+    if (scheduledDayMidnight < todayMidnight) {
+      throw new BadRequestException('Scheduled date must be today or in the future');
+    }
+
+    // For same-day bookings, reject only if the 2-hour slot window has fully ended
+    if (scheduledDayMidnight.getTime() === todayMidnight.getTime()) {
+      const slotEnd = new Date(scheduledDate);
+      slotEnd.setHours(slotEnd.getHours() + 2, 0, 0, 0);
+      if (slotEnd <= new Date()) {
+        throw new BadRequestException('This time slot has already passed');
+      }
     }
 
     if (!items || items.length === 0) {
@@ -111,6 +126,35 @@ export class PickupsService {
         pickupId: pickup.pickupId,
         scheduledDate: scheduledAt,
       }).catch(() => {});
+    }
+
+    // Notify all collectors who have active pricing for the pickup's materials
+    const compatibleCollectors = await this.prisma.collectorPricing.findMany({
+      where: { materialId: { in: materialIds }, status: 'ACTIVE' },
+      select: { collectorUserId: true },
+      distinct: ['collectorUserId'],
+    });
+
+    if (compatibleCollectors.length > 0) {
+      const formattedDate = new Date(scheduledAt).toLocaleDateString('en-CA', {
+        month: 'short', day: 'numeric', year: 'numeric',
+      });
+      const location = `${pickupAddress.line1}, ${pickupAddress.city}`;
+
+      const collectorUsers = await this.prisma.user.findMany({
+        where: { userId: { in: compatibleCollectors.map((c) => c.collectorUserId) } },
+        select: { userId: true, email: true },
+      });
+
+      for (const collector of collectorUsers) {
+        this.notificationService.notifyNewPickupAvailable({
+          userId: collector.userId,
+          recipientEmail: collector.email,
+          pickupId: pickup.pickupId,
+          scheduledDate: formattedDate,
+          location,
+        }).catch(() => {});
+      }
     }
 
     return {
@@ -458,22 +502,6 @@ export class PickupsService {
       });
     });
 
-    if (pickup.requesterUserId) {
-      const requester = await this.prisma.user.findUnique({
-        where: { userId: pickup.requesterUserId },
-        select: { email: true },
-      });
-
-      if (requester) {
-        this.notificationService.notifyPickupStatusChanged({
-          userId: pickup.requesterUserId,
-          recipientEmail: requester.email,
-          pickupId,
-          status: 'ACCEPTED',
-        }).catch(() => {});
-      }
-    }
-
     return {
       message: 'Pickup accepted successfully',
       pickup: updated,
@@ -507,6 +535,17 @@ export class PickupsService {
     // Only the collector who accepted can complete it
     if (pickup.collectorUserId !== collectorUserId) {
       throw new ForbiddenException('Only the assigned collector can complete this pickup');
+    }
+
+    // Cannot complete before the scheduled pickup day
+    const todayMidnight = new Date();
+    todayMidnight.setHours(0, 0, 0, 0);
+    const pickupDayMidnight = new Date(pickup.scheduledAt);
+    pickupDayMidnight.setHours(0, 0, 0, 0);
+    if (todayMidnight < pickupDayMidnight) {
+      throw new BadRequestException(
+        'Pickup cannot be completed before the scheduled day',
+      );
     }
 
     // Calculate actual earning from snapshots
@@ -596,23 +635,6 @@ export class PickupsService {
       return completedPickup;
     });
 
-    // Notify the customer
-    if (pickup.requesterUserId) {
-      const requester = await this.prisma.user.findUnique({
-        where: { userId: pickup.requesterUserId },
-        select: { email: true },
-      });
-
-      if (requester) {
-        this.notificationService.notifyPickupStatusChanged({
-          userId: pickup.requesterUserId,
-          recipientEmail: requester.email,
-          pickupId,
-          status: 'COMPLETED',
-        }).catch(() => {});
-      }
-    }
-
     return {
       message: 'Pickup completed successfully',
       pickup: updated,
@@ -675,7 +697,7 @@ export class PickupsService {
 
 
   // USER: Cancel a pickup
-  async cancel(pickupId: string, requesterUserId: string) {
+  async cancel(pickupId: string, requesterUserId: string, reason?: string) {
     const pickup = await this.prisma.pickup.findUnique({
       where: { pickupId },
     });
@@ -706,19 +728,19 @@ export class PickupsService {
       },
     });
 
-    // Notify on cancellation
-    if (pickup.requesterUserId) {
-      const requester = await this.prisma.user.findUnique({
-        where: { userId: pickup.requesterUserId },
+    // If an accepted collector is assigned, notify them
+    if (pickup.collectorUserId) {
+      const collector = await this.prisma.user.findUnique({
+        where: { userId: pickup.collectorUserId },
         select: { email: true },
       });
 
-      if (requester) {
-        this.notificationService.notifyPickupStatusChanged({
-          userId: pickup.requesterUserId,
-          recipientEmail: requester.email,
-          pickupId,
-          status: 'CANCELLED',
+      if (collector) {
+        this.notificationService.notifyAlert({
+          userId: pickup.collectorUserId,
+          recipientEmail: collector.email,
+          title: 'Pickup Cancelled',
+          message: `A pickup you accepted (${[cancelled.address?.line1, cancelled.address?.city].filter(Boolean).join(', ')}) has been cancelled by the customer${reason ? `. Reason: ${reason}` : '.'}`,
         }).catch(() => {});
       }
     }
@@ -792,6 +814,7 @@ export class PickupsService {
     }
 
     const totalDays = new Date(year, month, 0).getDate();
+    const now = new Date();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -806,11 +829,49 @@ export class PickupsService {
       const m = String(date.getMonth() + 1).padStart(2, "0");
       const d = String(date.getDate()).padStart(2, "0");
       const dateKey = `${y}-${m}-${d}`;
+      const isToday = date.getTime() === today.getTime();
+
+      const fmt12 = (h: number) => {
+        const period = h < 12 ? 'AM' : 'PM';
+        const display = h === 0 ? 12 : h > 12 ? h - 12 : h;
+        return `${display}:00 ${period}`;
+      };
 
       const available = ALL_SLOTS.filter((slot) => {
         const key = `${dateKey}-${slot.startHour}`;
-        return (takenCount[key] || 0) < MAX_PER_SLOT;
-      }).map(({ id, label }) => ({ id, label }));
+        if ((takenCount[key] || 0) >= MAX_PER_SLOT) return false;
+        // For today, exclude slots whose 2-hour window has fully ended
+        if (isToday) {
+          const slotEnd = new Date(year, month - 1, day, slot.startHour + 2, 0, 0, 0);
+          if (slotEnd <= now) return false;
+        }
+        return true;
+      }).map((slot) => {
+        // For today, if the slot has already started, relabel it as "Now – {end}"
+        if (isToday) {
+          const slotStart = new Date(year, month - 1, day, slot.startHour, 0, 0, 0);
+          if (slotStart <= now) {
+            return { id: slot.id, label: `Now – ${fmt12(slot.startHour + 2)}` };
+          }
+        }
+        return { id: slot.id, label: slot.label };
+      });
+
+      // For today: inject a dynamic "coming up" slot at the next whole hour
+      // if that hour isn't already covered by a fixed slot
+      if (isToday) {
+        const dynamicHour = now.getHours() + 1;
+        const noFixedSlotAtHour = !ALL_SLOTS.some((s) => s.startHour === dynamicHour);
+        const dynamicKey = `${dateKey}-${dynamicHour}`;
+        const notFull = (takenCount[dynamicKey] || 0) < MAX_PER_SLOT;
+        const slotEnd = new Date(year, month - 1, day, dynamicHour + 2, 0, 0, 0);
+        if (dynamicHour <= 21 && noFixedSlotAtHour && notFull && slotEnd > now) {
+          available.push({
+            id: `slot-dynamic-${dynamicHour}`,
+            label: `${fmt12(dynamicHour)} – ${fmt12(dynamicHour + 2)}`,
+          });
+        }
+      }
 
       if (available.length > 0) {
         result[dateKey] = available;

@@ -134,7 +134,7 @@ export class PickupsController {
   @ApiOperation({ summary: 'Cancel a pickup' })
   @Delete(':id/cancel')
   @Auth()
-  cancelPickup(@Param('id') id: string, @Request() req) {
-    return this.pickupsService.cancel(id, req.user.userId);
+  cancelPickup(@Param('id') id: string, @Request() req, @Body() body: { reason?: string }) {
+    return this.pickupsService.cancel(id, req.user.userId, body?.reason);
   }
 }

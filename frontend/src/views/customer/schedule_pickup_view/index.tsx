@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useSchedule } from "@/components/scheduleView/ScheduleContext";
@@ -35,6 +35,10 @@ export default function SchedulePickupFlow() {
   const [step, setStep] = useState<Step>(1);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  useEffect(() => {
+    return () => { resetScheduleData(); };
+  }, []);
+
   const handleConfirm = async () => {
     try {
       const primaryAddress = currentUserResult?.data?.addresses?.find((a) => a.isPrimary);
@@ -63,7 +67,11 @@ export default function SchedulePickupFlow() {
         };
       }
 
-      const slotHour = SLOT_HOURS[scheduleData.slotId ?? ""] ?? 9;
+      const slotHour =
+        SLOT_HOURS[scheduleData.slotId ?? ""] ??
+        (scheduleData.slotId?.startsWith("slot-dynamic-")
+          ? parseInt(scheduleData.slotId.replace("slot-dynamic-", ""), 10)
+          : 9);
       const [y, m, d] = (scheduleData.pickupDate ?? "").split("-").map(Number);
       const scheduledAt = new Date(y, m - 1, d, slotHour, 0, 0).toISOString();
 

@@ -29,7 +29,7 @@ export default function ProfilePage() {
       <Card className="p-0 bg-white border-0">
         <ProfileHeader
           avatarSrc="/avatar.png"
-          avatarFallback={user?.name?.charAt(0)??""}
+          avatarFallback={user?.name?.charAt(0).toUpperCase()??""}
           name={user?.name ?? ""}
           badge="VERIFIED CUSTOMER"
           memberSince={`Member since ${formatMemberSince(user?.createdAt)}`}

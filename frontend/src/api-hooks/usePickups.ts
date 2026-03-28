@@ -111,8 +111,8 @@ export const useCreatePickup = () => {
 export const useCancelPickup = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (pickupId: string) => {
-      const response = await apiClient.delete(`/pickups/${pickupId}/cancel`);
+    mutationFn: async ({ pickupId, reason }: { pickupId: string; reason: string }) => {
+      const response = await apiClient.delete(`/pickups/${pickupId}/cancel`, { data: { reason } });
       return response.data;
     },
     onSuccess: () => {

@@ -30,6 +30,11 @@ const PAGE_SIZE = 10;
 const TAB_PARAM  = "tab";
 const PICKUP_PARAM = "pickup";
 
+function formatRequestNumber(n: string | number | undefined, fallbackId: string): string {
+  if (n != null) return `RRY-PKP-${String(n).padStart(6, "0")}`;
+  return `RRY-PKP-${parseInt(fallbackId.replace(/-/g, "").slice(0, 8), 16) % 900000 + 100000}`;
+}
+
 type ActiveTab = "incoming" | "accepted" | "completed";
 type CompatibilityFilter = "COMPATIBLE" | "INCOMPATIBLE";
 
@@ -102,6 +107,8 @@ export default function RequestsTable() {
   const [completeOpen,  setCompleteOpen]  = useState(false);
   const [rejectOpen,    setRejectOpen]    = useState(false);
   const [completeNote,  setCompleteNote]  = useState("");
+  const [insufficientFundsOpen, setInsufficientFundsOpen] = useState(false);
+  const [tooEarlyOpen,          setTooEarlyOpen]          = useState(false);
 
   const dateMode     = activeTab === "completed" ? "past" : "future" as const;
   const dateBounds   = getDateBounds(filters.dateRange, dateMode);
@@ -155,7 +162,8 @@ export default function RequestsTable() {
       return {
         id:            p.pickupId,
         pickupId:      p.pickupId,
-        requestNumber: p.requestNumber,
+        scheduledAt:   p.scheduledAt,
+        requestNumber: formatRequestNumber(p.requestNumber, p.pickupId),
         Username:  p.requester?.name ?? "Unknown",
         Location:  p.address
           ? [p.address.line1, p.address.city].filter(Boolean).join(", ")
@@ -164,8 +172,8 @@ export default function RequestsTable() {
         material2: materials[1],
         material3: materials[2],
         Date:      scheduled.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" }),
-        startTime: scheduled.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
-        endTime:   scheduled.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+        startTime: scheduled.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }),
+        endTime:   new Date(scheduled.getTime() + 2 * 60 * 60 * 1000).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }),
         Compatibility:    p.isCompatible ? 100 : 0,
         status:           activeTab,
         estimatedCost:    Number(p.estimatedCost    ?? 0),
@@ -257,7 +265,7 @@ export default function RequestsTable() {
         cell:   (row) => (
           <div className="flex flex-col text-sm text-foreground">
             <span>{row.Date}</span>
-            <span className="text-muted-foreground">{row.startTime}</span>
+            <span className="text-muted-foreground">{row.startTime} – {row.endTime}</span>
           </div>
         ),
       },
@@ -292,7 +300,19 @@ export default function RequestsTable() {
             <Button
               variant="outlineprimary"
               size="sm"
-              onClick={() => { setSelectedRequest(row); setCompleteNote(""); setCompleteOpen(true); }}
+              onClick={() => {
+                setSelectedRequest(row);
+                setCompleteNote("");
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const pickupDay = new Date(row.scheduledAt);
+                pickupDay.setHours(0, 0, 0, 0);
+                if (pickupDay > today) {
+                  setTooEarlyOpen(true);
+                } else {
+                  setCompleteOpen(true);
+                }
+              }}
             >
               Complete
             </Button>
@@ -329,7 +349,15 @@ export default function RequestsTable() {
         setFeedbackOpen(true);
         switchTab("accepted");
       },
-      onError: () => toast.error("Failed to accept request. Please try again."),
+      onError: (err: any) => {
+        const message: string = err?.message ?? "";
+        if (message.toLowerCase().includes("insufficient wallet balance")) {
+          setDetailsOpen(false);
+          setInsufficientFundsOpen(true);
+        } else {
+          toast.error("Failed to accept request. Please try again.");
+        }
+      },
     });
   };
 
@@ -343,7 +371,15 @@ export default function RequestsTable() {
         setFeedbackOpen(true);
         switchTab("completed");
       },
-      onError: () => toast.error("Failed to complete request. Please try again."),
+      onError: (err: any) => {
+        const message: string = err?.message ?? "";
+        if (message.toLowerCase().includes("before the scheduled")) {
+          setCompleteOpen(false);
+          setTooEarlyOpen(true);
+        } else {
+          toast.error("Failed to complete request. Please try again.");
+        }
+      },
     });
   };
 
@@ -401,7 +437,7 @@ export default function RequestsTable() {
           onAccept={handleAcceptRequest}
           isAccepting={acceptMutation.isPending}
           onReject={() => { setDetailsOpen(false); setRejectOpen(true); }}
-          requestNum={selectedRequest.requestNumber ?? `#${selectedRequest.pickupId.slice(0, 8).toUpperCase()}`}
+          requestNum={selectedRequest.requestNumber!}
           earnings={calcEarnings(
             activeTab === "completed" ? selectedRequest.actualEarning :
             activeTab === "accepted"  ? selectedRequest.estimatedEarning :
@@ -421,7 +457,7 @@ export default function RequestsTable() {
             onClose={() => setCompleteOpen(false)}
             onComplete={() => handleCompleteRequest()}
             isPending={completeMutation.isPending}
-            requestId={selectedRequest.requestNumber ?? `#${selectedRequest.pickupId.slice(0, 8).toUpperCase()}`}
+            requestId={selectedRequest.requestNumber!}
             customer={selectedRequest.Username}
             location={selectedRequest.Location}
             dateTime={`${selectedRequest.Date}, ${selectedRequest.startTime}`}
@@ -464,6 +500,22 @@ export default function RequestsTable() {
         onClose={() => { setRejectOpen(false); }}
         onConfirm={(reason, comment) => handleRejectRequest(reason, comment)}
         isPending={rejectMutation.isPending}
+      />
+
+      <RequestFeedbackModal
+        isOpen={insufficientFundsOpen}
+        onClose={() => setInsufficientFundsOpen(false)}
+        type="error"
+        title="Insufficient Funds"
+        description="Your wallet balance is too low to accept this pickup. Please top up your wallet and try again."
+      />
+
+      <RequestFeedbackModal
+        isOpen={tooEarlyOpen}
+        onClose={() => setTooEarlyOpen(false)}
+        type="error"
+        title="Too Early to Complete"
+        description="You cannot complete this pickup before its scheduled time. Please wait until the pickup time has passed."
       />
     </>
   );

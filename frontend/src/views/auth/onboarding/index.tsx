@@ -7,7 +7,7 @@ import { Routes } from "@/routes/routes";
 
 const onboardingOptions = [
   {
-    title: "User",
+    title: "Customer",
     description:
       "I want to manage my household or business waste and schedule pickups.",
     icon: User,

@@ -25,6 +25,7 @@ export type RequestRow = {
   actualEarning:    number;
   estUnits:         number;
   requestNumber?:   string;
+  scheduledAt:      string;
   items:            PickupItem[];
   /** Live items at current pricing — only set when snapshot prices differ */
   currentItems?:    PickupItem[];

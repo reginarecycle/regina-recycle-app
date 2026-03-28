@@ -41,7 +41,7 @@ export function ComingNext({
   }
 
   const handleConfirmCancel = (reason: string) => {
-    cancelPickup(pickupId, {
+    cancelPickup({ pickupId, reason }, {
       onSuccess: () => {
         setModalOpen(false);
         toast.success("Pickup cancelled", { description: `Reason: ${reason}` });
