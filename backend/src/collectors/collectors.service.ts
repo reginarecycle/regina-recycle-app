@@ -270,13 +270,18 @@ export class CollectorsService {
     }),
     this.prisma.pickup.findMany({
       where: { collectorUserId: collectorId, status: PickupStatus.COMPLETED, requesterUserId: { not: null } },
-      select: { requesterUserId: true, actualEarning: true },
+      select: { requesterUserId: true, actualEarning: true, serviceFeeSnapshot: true, feeTypeSnapshot: true },
     }),
   ]);
 
   const totalUsers = uniqueCustomerRows.length;
   const totalCollections = completedPickups.length;
-  const totalRevenue = completedPickups.reduce((sum, p) => sum + Number(p.actualEarning), 0);
+  const totalRevenue = completedPickups.reduce((sum, p) => {
+    const gross = Number(p.actualEarning ?? 0);
+    const fee = Number(p.serviceFeeSnapshot ?? 0);
+    const feeAmount = p.feeTypeSnapshot === 'FLAT_FEE' ? fee : gross * (fee / 100);
+    return sum + Math.max(0, gross - feeAmount);
+  }, 0);
   const avgRevenuePerUser = totalUsers > 0 ? totalRevenue / totalUsers : 0;
 
   return { totalUsers, avgRevenuePerUser, totalCollections };
@@ -344,7 +349,16 @@ export class CollectorsService {
 
     const pickups = await this.prisma.pickup.findMany({
       where: { collectorUserId: collectorId, requesterUserId: customerId },
-      include: { address: true, items: { include: { material: true } } },
+      select: {
+        pickupId: true,
+        status: true,
+        scheduledAt: true,
+        actualEarning: true,
+        serviceFeeSnapshot: true,
+        feeTypeSnapshot: true,
+        address: true,
+        items: { include: { material: true } },
+      },
       orderBy: { scheduledAt: 'desc' },
     });
 
@@ -366,19 +380,25 @@ export class CollectorsService {
       },
     });
 
-    const completedPickups = await this.prisma.pickup.findMany({
-      where: {
-        collectorUserId: collectorId,
-        status: PickupStatus.COMPLETED,
-      },
-      select: { actualEarning: true },
-    });
+    const [collectorProfile, completedPickups] = await Promise.all([
+      this.prisma.collectorProfile.findUnique({
+        where: { userId: collectorId },
+        select: { serviceFee: true, feeType: true },
+      }),
+      this.prisma.pickup.findMany({
+        where: { collectorUserId: collectorId, status: PickupStatus.COMPLETED },
+        select: { actualEarning: true, serviceFeeSnapshot: true, feeTypeSnapshot: true },
+      }),
+    ]);
+
+    const fallbackFee     = Number(collectorProfile?.serviceFee ?? 0);
+    const fallbackFeeType = collectorProfile?.feeType ?? 'PERCENTAGE';
 
     const totalCollection = completedPickups.length;
-    const totalRevenue = completedPickups.reduce(
-      (sum, p) => sum + Number(p.actualEarning ?? 0),
-      0,
-    );
+    const totalRevenue = completedPickups.reduce((sum, p) => {
+      const gross = Number(p.actualEarning ?? 0);
+      return sum + this.computeNet(gross, p.serviceFeeSnapshot, p.feeTypeSnapshot, fallbackFee, fallbackFeeType);
+    }, 0);
 
     return {
       totalUsers,
@@ -387,8 +407,22 @@ export class CollectorsService {
     };
   }
 
+  private computeNet(gross: number, serviceFeeSnapshot: any, feeTypeSnapshot: any, fallbackFee: number, fallbackFeeType: string): number {
+    const fee     = Number(serviceFeeSnapshot ?? fallbackFee);
+    const feeType = (feeTypeSnapshot ?? fallbackFeeType) as string;
+    const feeAmount = feeType === 'FLAT' ? fee : gross * (fee / 100);
+    return Math.max(0, gross - feeAmount);
+  }
+
   async getUsers(collectorId: string, query: CollectorUsersQueryDto) {
     await this.ensureCollectorExists(collectorId);
+
+    const collectorProfile = await this.prisma.collectorProfile.findUnique({
+      where: { userId: collectorId },
+      select: { serviceFee: true, feeType: true },
+    });
+    const fallbackFee     = Number(collectorProfile?.serviceFee ?? 0);
+    const fallbackFeeType = collectorProfile?.feeType ?? 'PERCENTAGE';
 
     const { page = 1, limit = 10, keyword } = query;
     const { skip, take } = getPaginationParams(Number(page), Number(limit));
@@ -432,6 +466,8 @@ export class CollectorsService {
             },
             select: {
               actualEarning: true,
+              serviceFeeSnapshot: true,
+              feeTypeSnapshot: true,
               items: {
                 include: { material: true },
               },
@@ -445,10 +481,10 @@ export class CollectorsService {
     const data = users.map((user) => {
       const completedPickups = user.pickupsRequested;
       const collections = completedPickups.length;
-      const revenue = completedPickups.reduce(
-        (sum, p) => sum + Number(p.actualEarning ?? 0),
-        0,
-      );
+      const revenue = completedPickups.reduce((sum, p) => {
+        const gross = Number(p.actualEarning ?? 0);
+        return sum + this.computeNet(gross, p.serviceFeeSnapshot, p.feeTypeSnapshot, fallbackFee, fallbackFeeType);
+      }, 0);
       const avgPerOrder = collections > 0 ? revenue / collections : 0;
       const collectedItems = [
         ...new Set(

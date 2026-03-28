@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 interface CollectionItem {
+  materialId:    string;
   material:      string;
   expectedUnits: number;
   unitPrice:     number;

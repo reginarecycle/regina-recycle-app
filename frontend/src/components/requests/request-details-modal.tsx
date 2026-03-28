@@ -17,6 +17,9 @@ interface RequestDetailsModalProps {
     isAccepting?: boolean;
     requestNum: string;
     earnings: number;
+    actualEarning?: number;
+    serviceFeeSnapshot?: number;
+    feeTypeSnapshot?: string;
     estUnits: number;
     compatibilityStr: string;
     username: string;
@@ -32,6 +35,9 @@ export function RequestDetailsModal({
     isAccepting = false,
     requestNum,
     earnings,
+    actualEarning = 0,
+    serviceFeeSnapshot = 0,
+    feeTypeSnapshot = "PERCENTAGE",
     estUnits,
     compatibilityStr,
     username,
@@ -41,6 +47,13 @@ export function RequestDetailsModal({
 
     const isIncompatible = compatibilityStr.toLowerCase().includes("incompatible");
     const showActionButtons = sourceTab === "incoming";
+    const isCompleted = sourceTab === "completed";
+
+    const feeAmount = feeTypeSnapshot === "PERCENTAGE"
+        ? actualEarning * (serviceFeeSnapshot / 100)
+        : serviceFeeSnapshot;
+    const customerReceived = Math.max(0, actualEarning - feeAmount);
+    const feeLabel = feeTypeSnapshot === "PERCENTAGE" ? `${serviceFeeSnapshot}%` : `$${formatAmount(serviceFeeSnapshot)}`;
 
     const orderSummary = (request.items ?? []).map(i => ({
         material:       i.materialName,
@@ -73,7 +86,7 @@ export function RequestDetailsModal({
                     >
                         <div className="mb-4 flex items-start justify-between gap-3">
                             <div className="text-[14px] font-medium uppercase tracking-wide text-white/95">
-                                Potential Earnings
+                                {isCompleted ? "Your Earnings" : "Potential Earnings"}
                             </div>
 
                             <Badge
@@ -149,6 +162,31 @@ export function RequestDetailsModal({
                                 ))}
                             </Card>
                         </div>
+
+                        {isCompleted && (
+                            <div>
+                                <h3 className="mb-3 text-[14px] font-medium uppercase tracking-wide text-[#999CA0]">
+                                    Payment Breakdown
+                                </h3>
+                                <Card className="overflow-hidden rounded-2xl border border-[#D1D5DB] bg-white shadow-sm px-5 py-4 space-y-3">
+                                    <div className="flex items-center justify-between text-[14px]">
+                                        <span className="text-[#4B5563]">Gross Collected</span>
+                                        <span className="font-semibold text-[#111827]">${formatAmount(actualEarning)}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-[14px]">
+                                        <span className="text-[#4B5563]">
+                                            Your Service Fee
+                                            <span className="ml-1.5 rounded-full bg-[#F3F4F6] px-2 py-0.5 text-[11px] text-[#6B7280]">{feeLabel}</span>
+                                        </span>
+                                        <span className="font-semibold text-red-500">-${formatAmount(feeAmount)}</span>
+                                    </div>
+                                    <div className="border-t border-[#E5E7EB] pt-3 flex items-center justify-between text-[14px]">
+                                        <span className="font-semibold text-[#111827]">Customer Received</span>
+                                        <span className="font-bold text-[#344E41] text-[16px]">${formatAmount(customerReceived)}</span>
+                                    </div>
+                                </Card>
+                            </div>
+                        )}
 
                         <Card className="rounded-2xl border border-[#D1D5DB] bg-white px-5 shadow-sm">
                             <h3 className="mb-3 text-[14px] font-medium uppercase tracking-wide text-[#4B5563] -mt-2">

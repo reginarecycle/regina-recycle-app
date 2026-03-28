@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePickupDto } from './dto/create-pickup.dto';
 import { UpdatePickupDto } from './dto/update-pickup.dto';
+import { CompletePickupDto } from './dto/complete-pickup.dto';
 import { NotificationGatewayService } from '../notifications/notifications.gateway.service';
 import { PickupQueryDto, PickupStatus } from './dto/pickup-query.dto';
 import { paginate, getPaginationParams } from '../common/pagination/pagination-helper';
@@ -208,9 +209,20 @@ export class PickupsService {
 
   // COLLECTOR: Request-level stats (pending, accepted, potential revenue)
   async getCollectorPickupStats(collectorId: string) {
+    // Get rejected pickup IDs separately to avoid nested relation filter issues
+    const rejectedPickups = await this.prisma.pickupRejection.findMany({
+      where: { collectorId },
+      select: { pickupId: true },
+    });
+    const rejectedIds = rejectedPickups.map((r) => r.pickupId);
+
     const [pending, accepted, acceptedRevenueAgg, collectorProfile] = await Promise.all([
       this.prisma.pickup.count({
-        where: { status: PickupStatus.PENDING, collectorUserId: null, rejections: { none: { collectorId } } },
+        where: {
+          status: PickupStatus.PENDING,
+          collectorUserId: null,
+          ...(rejectedIds.length > 0 ? { pickupId: { notIn: rejectedIds } } : {}),
+        },
       }),
       this.prisma.pickup.count({
         where: { collectorUserId: collectorId, status: PickupStatus.ACCEPTED },
@@ -254,9 +266,21 @@ export class PickupsService {
 
     // PENDING = unassigned pickups this collector hasn't rejected
     // ACCEPTED/COMPLETED/CANCELLED = pickups assigned to this collector
-    const where: any = validStatus === PickupStatus.PENDING
-      ? { status: PickupStatus.PENDING, collectorUserId: null, rejections: { none: { collectorId } } }
-      : { collectorUserId: collectorId, ...(validStatus ? { status: validStatus } : {}) };
+    let where: any;
+    if (validStatus === PickupStatus.PENDING) {
+      const rejected = await this.prisma.pickupRejection.findMany({
+        where: { collectorId },
+        select: { pickupId: true },
+      });
+      const rejectedIds = rejected.map((r) => r.pickupId);
+      where = {
+        status: PickupStatus.PENDING,
+        collectorUserId: null,
+        ...(rejectedIds.length > 0 ? { pickupId: { notIn: rejectedIds } } : {}),
+      };
+    } else {
+      where = { collectorUserId: collectorId, ...(validStatus ? { status: validStatus } : {}) };
+    }
 
     if (startDate || endDate) {
       where.scheduledAt = {
@@ -493,6 +517,8 @@ export class PickupsService {
           collectorUserId,
           status: 'ACCEPTED',
           estimatedEarning,
+          serviceFeeSnapshot: collectorProfile.serviceFee,
+          feeTypeSnapshot:    collectorProfile.feeType,
         },
         include: {
           items: { include: { material: true } },
@@ -510,10 +536,10 @@ export class PickupsService {
 
 
   // COLLECTOR: Complete a pickup
-  async complete(pickupId: string, collectorUserId: string) {
+  async complete(pickupId: string, collectorUserId: string, dto: CompletePickupDto = {}) {
     const pickup = await this.prisma.pickup.findUnique({
       where: { pickupId },
-      include: { items: true, snapshots: true },
+      include: { items: true, snapshots: true, requester: true, collector: true },
     });
 
     if (!pickup) {
@@ -548,19 +574,35 @@ export class PickupsService {
       );
     }
 
-    // Calculate actual earning from snapshots
+    // Apply collector-edited quantities to snapshots if provided
+    if (dto.items && dto.items.length > 0) {
+      const quantityMap = new Map(dto.items.map((i) => [i.materialId, i.quantity]));
+      await Promise.all(
+        pickup.snapshots.map((s) => {
+          const newQty = quantityMap.get(s.materialId);
+          if (newQty !== undefined && newQty !== s.quantity) {
+            return this.prisma.pickupSnapshot.update({
+              where: { snapshotId: s.snapshotId },
+              data: { quantity: newQty },
+            });
+          }
+        }),
+      );
+      // Reflect updated quantities locally for payout calculation
+      for (const s of pickup.snapshots) {
+        const newQty = quantityMap.get(s.materialId);
+        if (newQty !== undefined) s.quantity = newQty;
+      }
+    }
+
+    // Calculate actual earning from snapshots (with any updated quantities)
     const actualEarning = pickup.snapshots.reduce((total, snapshot) => {
       return total + snapshot.quantity * Number(snapshot.priceUsed);
     }, 0);
 
-    // Compute service fee so we can net the collector's deduction
-    const collectorProfile = await this.prisma.collectorProfile.findUnique({
-      where: { userId: collectorUserId },
-      select: { serviceFee: true, feeType: true },
-    });
-
-    const rawFee = Number(collectorProfile?.serviceFee ?? 0);
-    const feeType = collectorProfile?.feeType ?? 'PERCENTAGE';
+    // Use the fee that was locked in at acceptance time, not the current profile fee
+    const rawFee = Number(pickup.serviceFeeSnapshot ?? 0);
+    const feeType = pickup.feeTypeSnapshot ?? 'PERCENTAGE';
     const serviceFeeAmount =
       feeType === 'PERCENTAGE' ? actualEarning * (rawFee / 100) : rawFee;
     // Net amount deducted from the collector = gross payout − service fee they earn back
@@ -578,8 +620,8 @@ export class PickupsService {
         },
       });
 
-      // Credit the customer's wallet
-      if (pickup.requesterUserId && actualEarning > 0) {
+      // Credit the customer's wallet with the net payout (after service fee)
+      if (pickup.requesterUserId && collectorDebit > 0) {
         const customerWallet = await tx.wallet.findUnique({
           where: { userId: pickup.requesterUserId },
         });
@@ -587,7 +629,7 @@ export class PickupsService {
         if (customerWallet) {
           await tx.wallet.update({
             where: { walletId: customerWallet.walletId },
-            data: { balance: { increment: actualEarning } },
+            data: { balance: { increment: collectorDebit } },
           });
 
           await tx.walletTransaction.create({
@@ -595,7 +637,7 @@ export class PickupsService {
               walletId: customerWallet.walletId,
               userId: pickup.requesterUserId,
               type: 'CREDIT',
-              amount: actualEarning,
+              amount: collectorDebit,
               status: 'COMPLETED',
               description: `Pickup completed – ${pickup.items.length} item(s) collected`,
               referenceType: 'PICKUP',
@@ -634,6 +676,39 @@ export class PickupsService {
 
       return completedPickup;
     });
+
+    // Send notifications outside the transaction
+    if (pickup.requester && collectorDebit > 0) {
+      const customerWallet = await this.prisma.wallet.findUnique({ where: { userId: pickup.requesterUserId! } });
+      const customerBalance = Number(customerWallet?.balance ?? 0);
+      await Promise.allSettled([
+        this.notificationService.notifyWalletUpdated({
+          userId: pickup.requesterUserId!,
+          recipientEmail: pickup.requester.email,
+          amount: collectorDebit,
+          balance: customerBalance,
+          type: 'CREDIT',
+        }),
+        this.notificationService.notifyPickupCompleted({
+          userId: pickup.requesterUserId!,
+          recipientEmail: pickup.requester.email,
+          pickupId,
+          amount: collectorDebit,
+        }),
+      ]);
+    }
+
+    if (pickup.collector && collectorDebit > 0) {
+      const collectorWallet = await this.prisma.wallet.findUnique({ where: { userId: collectorUserId } });
+      const collectorBalance = Number(collectorWallet?.balance ?? 0);
+      await this.notificationService.notifyWalletUpdated({
+        userId: collectorUserId,
+        recipientEmail: pickup.collector.email,
+        amount: collectorDebit,
+        balance: collectorBalance,
+        type: 'DEBIT',
+      });
+    }
 
     return {
       message: 'Pickup completed successfully',

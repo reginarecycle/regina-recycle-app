@@ -509,7 +509,7 @@ export default function Step1Items({ onNext }: Props) {
                       size="lg"
                       disabled={isDisabled}
                       onClick={handleNext}
-                      className="w-39.5 pointer-events-none"
+                      className="w-39.5"
                     >
                       Next Step →
                     </Button>

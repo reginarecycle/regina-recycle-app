@@ -20,7 +20,7 @@ const CollectorDashboard = () => {
   const { data: pendingResult,     isLoading: pendingLoading }      = useGetCollectorPickupRequests({ status: "PENDING", limit: 4 });
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">ickup but
+    <div className="min-h-screen bg-gray-100 p-6">
       <CollectorStatCards
         stats={statsResult?.data}
         isLoading={statsLoading}

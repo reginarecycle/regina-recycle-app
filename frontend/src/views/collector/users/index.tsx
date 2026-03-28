@@ -12,6 +12,7 @@ import {
   useCollectorUsers,
   useCollectorUsersStats,
   useCollectorCustomerDetail,
+  useCollectorPricingSettings,
 } from "@/api-hooks/useCollectors.ts";
 import type { CollectorUser } from "@/api-hooks/useCollectors.ts";
 import { useCurrentUser } from "@/api-hooks/useAuth.ts";
@@ -58,13 +59,20 @@ const CustomerModal = ({
   const { data: currentUser } = useCurrentUser();
   const collectorId = (currentUser as any)?.data?.userId ?? "";
   const { data: result, isLoading } = useCollectorCustomerDetail(collectorId, customerId);
+  const { data: pricingResult } = useCollectorPricingSettings();
   const detail = result?.data;
 
+  const fallbackFee     = Number(pricingResult?.data?.settings?.serviceFee ?? 0);
+  const fallbackFeeType = pricingResult?.data?.settings?.feeType ?? "PERCENTAGE";
+
   const completedPickups = detail?.pickups.filter((p) => p.status === "COMPLETED") ?? [];
-  const totalRevenue = completedPickups.reduce(
-    (sum: number, p) => sum + (p.items?.reduce((s: number, i) => s + i.quantity, 0) ?? 0),
-    0,
-  );
+  const totalRevenue = completedPickups.reduce((sum: number, p) => {
+    const gross = Number(p.actualEarning) ?? 0;
+    const fee     = Number(p.serviceFeeSnapshot ?? fallbackFee);
+    const feeType = p.feeTypeSnapshot ?? fallbackFeeType;
+    const feeAmount = feeType === "FLAT" ? fee : gross * (fee / 100);
+    return sum + Math.max(0, gross - feeAmount);
+  }, 0);
   const avgOrder = completedPickups.length > 0 ? totalRevenue / completedPickups.length : 0;
 
   const materials = [

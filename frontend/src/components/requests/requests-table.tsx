@@ -176,10 +176,12 @@ export default function RequestsTable() {
         endTime:   new Date(scheduled.getTime() + 2 * 60 * 60 * 1000).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }),
         Compatibility:    p.isCompatible ? 100 : 0,
         status:           activeTab,
-        estimatedCost:    Number(p.estimatedCost    ?? 0),
-        estimatedEarning: Number(p.estimatedEarning ?? 0),
-        actualEarning:    Number(p.actualEarning    ?? 0),
-        estUnits:         totalUnits,
+        estimatedCost:      Number(p.estimatedCost      ?? 0),
+        estimatedEarning:   Number(p.estimatedEarning   ?? 0),
+        actualEarning:      Number(p.actualEarning      ?? 0),
+        serviceFeeSnapshot: Number(p.serviceFeeSnapshot ?? serviceFee),
+        feeTypeSnapshot:    p.feeTypeSnapshot            ?? feeType,
+        estUnits:           totalUnits,
         items:            lineItems,
         currentItems:     hasPriceShift ? liveItems : undefined,
         note:             p.note,
@@ -230,7 +232,7 @@ export default function RequestsTable() {
   // ── Columns ───────────────────────────────────────────────────────────────
   const columns = useMemo((): ColumnDef<RequestRow>[] => {
     const showMaterials = activeTab === "incoming";
-    const payoutLabel   = "Est. Payout ($)";
+    const payoutLabel   = activeTab === "completed" ? "Actual Payout ($)" : "Est. Payout ($)";
 
     return [
       {
@@ -281,10 +283,16 @@ export default function RequestsTable() {
         key:    "payment",
         header: payoutLabel,
         cell:   (row: RequestRow) => {
-          const amount =
+          const gross =
             activeTab === "completed" ? row.actualEarning :
             activeTab === "accepted"  ? row.estimatedEarning :
             row.items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
+          const feeAmt = row.feeTypeSnapshot === "PERCENTAGE"
+            ? gross * (row.serviceFeeSnapshot / 100)
+            : row.serviceFeeSnapshot;
+          const amount = activeTab === "completed"
+            ? Math.max(0, gross - feeAmt)
+            : gross;
           return (
             <span className="text-sm font-semibold text-foreground">
               ${amount.toFixed(2)}
@@ -361,9 +369,9 @@ export default function RequestsTable() {
     });
   };
 
-  const handleCompleteRequest = () => {
+  const handleCompleteRequest = (items?: { materialId: string; quantity: number }[]) => {
     if (!selectedRequest) return;
-    completeMutation.mutate(selectedRequest.pickupId, {
+    completeMutation.mutate({ pickupId: selectedRequest.pickupId, items }, {
       onSuccess: () => {
         toast.success("Request completed successfully");
         setCompleteOpen(false);
@@ -438,11 +446,21 @@ export default function RequestsTable() {
           isAccepting={acceptMutation.isPending}
           onReject={() => { setDetailsOpen(false); setRejectOpen(true); }}
           requestNum={selectedRequest.requestNumber!}
-          earnings={calcEarnings(
-            activeTab === "completed" ? selectedRequest.actualEarning :
-            activeTab === "accepted"  ? selectedRequest.estimatedEarning :
-            selectedRequest.items.reduce((s, i) => s + i.quantity * i.unitPrice, 0)
-          )}
+          earnings={(() => {
+            if (activeTab === "completed") {
+              const gross = selectedRequest.actualEarning;
+              const snap  = selectedRequest.serviceFeeSnapshot ?? serviceFee;
+              const type  = selectedRequest.feeTypeSnapshot ?? feeType;
+              return type === "PERCENTAGE" ? gross * (snap / 100) : snap;
+            }
+            const gross = activeTab === "accepted"
+              ? selectedRequest.estimatedEarning
+              : selectedRequest.items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
+            return calcEarnings(gross);
+          })()}
+          actualEarning={selectedRequest.actualEarning}
+          serviceFeeSnapshot={selectedRequest.serviceFeeSnapshot}
+          feeTypeSnapshot={selectedRequest.feeTypeSnapshot}
           estUnits={selectedRequest.estUnits}
           compatibilityStr={selectedRequest.Compatibility === 100 ? "100% MATCH" : "INCOMPATIBLE"}
           username={selectedRequest.Username}
@@ -455,7 +473,11 @@ export default function RequestsTable() {
           <CompleteRequestModal
             isOpen={completeOpen}
             onClose={() => setCompleteOpen(false)}
-            onComplete={() => handleCompleteRequest()}
+            onComplete={(editableItems) =>
+              handleCompleteRequest(
+                editableItems.map((i) => ({ materialId: i.materialId, quantity: i.actualUnits })),
+              )
+            }
             isPending={completeMutation.isPending}
             requestId={selectedRequest.requestNumber!}
             customer={selectedRequest.Username}
@@ -468,12 +490,14 @@ export default function RequestsTable() {
             note={completeNote}
             setNote={setCompleteNote}
             items={selectedRequest.items.map((i) => ({
+              materialId:    i.materialId,
               material:      i.materialName,
               expectedUnits: i.quantity,
               unitPrice:     i.unitPrice,
               actualUnits:   i.quantity,
             }))}
             currentItems={selectedRequest.currentItems?.map((i) => ({
+              materialId:    i.materialId,
               material:      i.materialName,
               expectedUnits: i.quantity,
               unitPrice:     i.unitPrice,
