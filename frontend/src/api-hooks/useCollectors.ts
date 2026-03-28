@@ -485,8 +485,7 @@ export const useCompletePickup = () => {
     mutationFn: ({ pickupId, items }: { pickupId: string; items?: { materialId: string; quantity: number }[] }) =>
       apiFetch(`/pickups/${pickupId}/complete`, {
         method: 'PATCH',
-        body: JSON.stringify({ items }),
-        headers: { 'Content-Type': 'application/json' },
+        data: { items },
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: pickupRequestKeys.all() }),
   });
