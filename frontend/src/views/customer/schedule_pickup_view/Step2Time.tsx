@@ -15,6 +15,7 @@ interface Slot { id: string; label: string }
 
 const FIXED_SLOT_HOURS: Record<string, number> = {
   "slot-1": 9, "slot-2": 11, "slot-3": 13, "slot-4": 15,
+  "slot-5": 17, // TODO: remove after testing
 };
 
 function fmt12(h: number): string {
