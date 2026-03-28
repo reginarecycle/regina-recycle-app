@@ -70,7 +70,7 @@ export function FeeSettings({
                 { key: "FLAT_FEE",       label: "Flat Rate",  icon: "$" },
               ]}
               value={feeType}
-              onChange={setFeeType}
+              onChange={(v) => { setFeeType(v); setServiceFee(v === initialFeeType ? initialServiceFee : ""); }}
             />
           </div>
           <div className="space-y-4">

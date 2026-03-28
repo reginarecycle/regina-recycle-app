@@ -17,6 +17,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { PickupsService } from './pickups.service';
 import { CreatePickupDto } from './dto/create-pickup.dto';
 import { UpdatePickupDto } from './dto/update-pickup.dto';
+import { CompletePickupDto } from './dto/complete-pickup.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Auth } from '../common/decorator/auth.decorator';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
@@ -120,8 +121,8 @@ export class PickupsController {
   @ApiOperation({ summary: 'Complete a pickup (collector)' })
   @Patch(':id/complete')
   @Auth('COLLECTOR')
-  completePickup(@Param('id') id: string, @Request() req) {
-    return this.pickupsService.complete(id, req.user.userId);
+  completePickup(@Param('id') id: string, @Request() req, @Body() dto: CompletePickupDto) {
+    return this.pickupsService.complete(id, req.user.userId, dto);
   }
 
   @ApiOperation({ summary: 'Update a pickup (customer only, PENDING only)' })

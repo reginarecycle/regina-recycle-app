@@ -7,6 +7,7 @@ interface ToolbarProps {
   currentLocation?: string;
   notificationCount?: number;
   pageTitle?: string;
+  settingsRoute?: string;
   onMenuClick?: () => void;
   onNotificationClick?: () => void;
 }
@@ -15,6 +16,7 @@ export function Toolbar({
   currentLocation = "—",
   notificationCount = 0,
   pageTitle = "Dashboard",
+  settingsRoute = Routes.profile,
   onMenuClick,
   onNotificationClick,
 }: ToolbarProps) {
@@ -54,7 +56,7 @@ export function Toolbar({
           )}
         </Button>
 
-        <Button variant="ghost" size="icon" className="text-black-800 bg-card rounded-full px-2 py-2" onClick={() => navigate(Routes.profile)}>
+        <Button variant="ghost" size="icon" className="text-black-800 bg-card rounded-full px-2 py-2" onClick={() => navigate(settingsRoute)}>
           <Settings className="h-5 w-5" />
         </Button>
       </div>

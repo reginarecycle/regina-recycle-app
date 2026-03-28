@@ -11,7 +11,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 /// ENUMS
@@ -222,10 +222,12 @@ model Pickup {
   status          PickupStatus @default(PENDING)
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
-  estimatedEarning Decimal?    @db.Decimal(14, 2)
-  actualEarning   Decimal?   @db.Decimal(14,2)
-  estimatedCost   Decimal?   @db.Decimal(14, 2)
-  note            String?
+  estimatedEarning    Decimal? @db.Decimal(14, 2)
+  actualEarning       Decimal? @db.Decimal(14, 2)
+  estimatedCost       Decimal? @db.Decimal(14, 2)
+  serviceFeeSnapshot  Decimal? @db.Decimal(10, 2)
+  feeTypeSnapshot     String?
+  note                String?
   items       PickupItem[]
   snapshots   PickupSnapshot[]
   rejections  PickupRejection[]

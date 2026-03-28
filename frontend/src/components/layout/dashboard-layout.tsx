@@ -137,6 +137,7 @@ export default function DashboardLayout() {
           currentLocation={user?.addresses?.find((a) => a.isPrimary)?.line1 ?? "—"}
           notificationCount={unreadCount}
           pageTitle={getPageTitle(location.pathname)}
+          settingsRoute={isCollectorRoute ? Routes.collectorsettings : Routes.profile}
           onMenuClick={() => setMobileMenuOpen(true)}
           onNotificationClick={() => navigate(notificationsRoute)}
         />

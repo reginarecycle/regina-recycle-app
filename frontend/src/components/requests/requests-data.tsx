@@ -22,8 +22,10 @@ export type RequestRow = {
   estimatedCost:    number;
   /** Collector's net earning after fees — set on acceptance */
   estimatedEarning: number;
-  actualEarning:    number;
-  estUnits:         number;
+  actualEarning:       number;
+  serviceFeeSnapshot:  number;
+  feeTypeSnapshot:     string;
+  estUnits:            number;
   requestNumber?:   string;
   scheduledAt:      string;
   items:            PickupItem[];

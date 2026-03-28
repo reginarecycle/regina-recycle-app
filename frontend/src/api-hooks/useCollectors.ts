@@ -68,6 +68,9 @@ export interface CustomerPickup {
   pickupId: string;
   status: string;
   scheduledAt: string;
+  actualEarning: number | null;
+  serviceFeeSnapshot: number | null;
+  feeTypeSnapshot: string | null;
   address: { line1: string; city: string; province: string } | null;
   items: { materialId: string; quantity: number; material: { name: string } }[];
 }
@@ -201,6 +204,8 @@ export interface CollectorPickup {
   estimatedCost?: number | string;
   estimatedEarning?: number | string;
   actualEarning?: number | string;
+  serviceFeeSnapshot?: number | string | null;
+  feeTypeSnapshot?: string | null;
   note?: string;
   isCompatible?: boolean;
   requester?: PickupRequester;
@@ -477,8 +482,12 @@ export const useRejectPickup = () => {
 export const useCompletePickup = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (pickupId: string) =>
-      apiFetch(`/pickups/${pickupId}/complete`, { method: 'PATCH' }),
+    mutationFn: ({ pickupId, items }: { pickupId: string; items?: { materialId: string; quantity: number }[] }) =>
+      apiFetch(`/pickups/${pickupId}/complete`, {
+        method: 'PATCH',
+        body: JSON.stringify({ items }),
+        headers: { 'Content-Type': 'application/json' },
+      }),
     onSuccess: () => qc.invalidateQueries({ queryKey: pickupRequestKeys.all() }),
   });
 };
