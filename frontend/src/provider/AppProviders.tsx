@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { Toaster } from "sonner";
 import { queryClient } from "../lib/queryClient";
 import { GlobalQueryErrorHandler } from "./GlobalQueryErrorHandler";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 interface AppProvidersProps {
   children: ReactNode;
@@ -12,10 +13,12 @@ interface AppProvidersProps {
 export function AppProviders({ children }: AppProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <GlobalQueryErrorHandler />
-      <Toaster position="top-right" richColors />
-      {children}
-      <ReactQueryDevtools initialIsOpen={false} />
+      <TooltipProvider>
+        <GlobalQueryErrorHandler />
+        <Toaster position="top-right" richColors />
+        {children}
+        <ReactQueryDevtools initialIsOpen={false} />
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }

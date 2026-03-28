@@ -25,11 +25,6 @@ function formatRole(role?: string) {
   return "Verified User";
 }
 
-function getInitials(name?: string) {
-  if (!name) return "U";
-  return name.split(" ").map((n) => n[0]).join("").toUpperCase();
-}
-
 export function Sidebar({
   isCollectorMode = false,
   userName,
@@ -93,7 +88,7 @@ export function Sidebar({
 
       {/* User card */}
       <div className="relative p-4 pb-10">
-        <img src="/design.png" alt="" className="absolute bottom-1" />
+        <img src="/design.png" alt="" className="absolute bottom-1 pointer-events-none select-none" />
         <div className={cn( userRole=== 'COLLECTOR'? 'h-43.25 flex-col py-4' : "h-14.5 py-2" , "relative z-10 flex w-56 items-center justify-between rounded-lg border border-primary bg-background-green-100 px-3 ")}>
           {isLoading ?  (
             userRole === 'COLLECTOR' ? (
@@ -125,10 +120,10 @@ export function Sidebar({
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={userAvatar} alt={userName} />
                   <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                    {getInitials(userName)}
+                    {userName.charAt(0).toUpperCase() ?? ""}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col items-center gap-1.5">
+                <div className={cn(userRole=== 'COLLECTOR'? "items-center" :"items-start", "flex flex-col  gap-1.5")}>
                   <span className="font-bold leading-tight text-center">{userName}</span>
                   <span className="text-xs text-foreground/60 leading-tight">{formatRole(userRole)}</span>
                 </div>

@@ -6,7 +6,7 @@ import ThresholdProgress from "./progressBar";
 import { Button } from "@/components/ui/button";
 import GoldCoins from "@/assets/goldcoins.svg?react";
 
-const THRESHOLD = 15.0;
+export const THRESHOLD = 15.0;
 
 function Divider() {
   return <div className="hidden sm:block h-10 w-px shrink-0 bg-border" />;

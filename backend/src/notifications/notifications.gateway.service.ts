@@ -47,6 +47,7 @@ export class NotificationGatewayService implements ISubject {
       [NotificationEventType.ALERT]:                     emailEnabled,
       [NotificationEventType.PASSWORD_CHANGED]:          emailEnabled,
       [NotificationEventType.PROFILE_UPDATED]:           emailEnabled,
+      [NotificationEventType.NEW_PICKUP_AVAILABLE]:      preference?.emailPickupReminder ?? true,
     };
 
     const eventInAppMap: Record<NotificationEventType, boolean> = {
@@ -59,6 +60,7 @@ export class NotificationGatewayService implements ISubject {
       [NotificationEventType.ALERT]:                     inAppEnabled,
       [NotificationEventType.PASSWORD_CHANGED]:          inAppEnabled,
       [NotificationEventType.PROFILE_UPDATED]:           inAppEnabled,
+      [NotificationEventType.NEW_PICKUP_AVAILABLE]:      inAppEnabled,
     };
 
     const shouldEmail = eventEmailMap[event.type];
@@ -145,6 +147,23 @@ export class NotificationGatewayService implements ISubject {
       userId: params.userId,
       recipientEmail: params.recipientEmail,
       metadata: { amount: params.amount, balance: params.balance },
+    });
+  }
+
+  async notifyNewPickupAvailable(params: {
+    userId: string;
+    recipientEmail: string;
+    pickupId: string;
+    scheduledDate: string;
+    location: string;
+  }) {
+    await this.sendNotification({
+      type: NotificationEventType.NEW_PICKUP_AVAILABLE,
+      title: 'New Pickup Available',
+      message: `A new pickup request is available at ${params.location} on ${params.scheduledDate}. Go to request page to accept it.`,
+      userId: params.userId,
+      recipientEmail: params.recipientEmail,
+      metadata: { pickupId: params.pickupId },
     });
   }
 

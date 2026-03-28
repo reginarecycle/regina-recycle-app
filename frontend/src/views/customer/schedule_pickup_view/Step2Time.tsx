@@ -13,6 +13,37 @@ function toDateKey(date: Date): string {
 
 interface Slot { id: string; label: string }
 
+const FIXED_SLOT_HOURS: Record<string, number> = {
+  "slot-1": 9, "slot-2": 11, "slot-3": 13, "slot-4": 15,
+};
+
+function fmt12(h: number): string {
+  const period = h < 12 ? "AM" : "PM";
+  const display = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${display}:00 ${period}`;
+}
+
+function adjustSlotLabel(slot: Slot, isToday: boolean): Slot {
+  if (!isToday) return slot;
+
+  let startHour: number | null =
+    FIXED_SLOT_HOURS[slot.id] ??
+    (slot.id.startsWith("slot-dynamic-")
+      ? parseInt(slot.id.replace("slot-dynamic-", ""), 10)
+      : null);
+
+  if (startHour === null) return slot;
+
+  const now = new Date();
+  const slotStart = new Date();
+  slotStart.setHours(startHour, 0, 0, 0);
+
+  if (slotStart <= now) {
+    return { ...slot, label: `Now – ${fmt12(startHour + 2)}` };
+  }
+  return slot;
+}
+
 function TimeSlotPicker({
   slots,
   selectedId,
@@ -116,7 +147,10 @@ export default function Step2Time({ onBack, onNext }: Props) {
 
   const slotsByDate: Record<string, Slot[]> = (slotsResult?.data as any) ?? {};
 
-  const availableSlots = selectedDate ? slotsByDate[toDateKey(selectedDate)] ?? [] : [];
+  const isToday = selectedDate ? selectedDate.getTime() === today.getTime() : false;
+
+  const availableSlots = (selectedDate ? slotsByDate[toDateKey(selectedDate)] ?? [] : [])
+    .map((slot) => adjustSlotLabel(slot, isToday));
 
   const handleDateChange = (date: Date) => {
     setSelectedDate(date);
@@ -151,7 +185,7 @@ export default function Step2Time({ onBack, onNext }: Props) {
           isDisabled={(date) => {
             const d = new Date(date);
             d.setHours(0, 0, 0, 0);
-            return d <= today;
+            return d < today;
           }}
           isAvailable={(date) => !!slotsByDate[toDateKey(date)]}
         />

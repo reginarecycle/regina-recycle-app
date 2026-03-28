@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatTimeRange } from "@/lib/utils";
 import { Routes } from "@/routes/routes";
 import type { CollectorPickup } from "@/api-hooks/useCollectors";
 
@@ -13,13 +13,7 @@ export function ActivePickupCard({ pickup, isLoading }: Props) {
   const navigate = useNavigate();
 
   const totalUnits = pickup?.items?.reduce((s, i) => s + i.quantity, 0) ?? 0;
-  const scheduledTime = pickup
-    ? new Date(pickup.scheduledAt).toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      })
-    : "";
+  const scheduledTime = pickup ? formatTimeRange(pickup.scheduledAt) : "";
 
   return (
     <div className="flex flex-1 flex-col w-full rounded-[16px] border border-[#E5E7EB] bg-white">
@@ -73,7 +67,7 @@ export function ActivePickupCard({ pickup, isLoading }: Props) {
                   Doorstep Pickup {pickup.requestNumber}
                 </p>
                 <p className="text-[12px] text-[#10131D]">
-                  {formatDate(pickup.scheduledAt)} at {scheduledTime}
+                  {formatDate(pickup.scheduledAt)} · {scheduledTime}
                 </p>
 
                 <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[14px] text-[#111827]/75">

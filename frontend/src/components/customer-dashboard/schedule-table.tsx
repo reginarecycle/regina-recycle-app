@@ -44,13 +44,23 @@ export function Schedule({ recentSchedule = [] }: Props) {
     {
       key: "materials",
       header: "Material",
-      cell: (row) => (
-        <div className="flex flex-wrap gap-1.5">
-          {row.items?.map((i) => (
-            <MaterialTag key={i.materialId} material={i.material?.name as any} size="sm" />
-          ))}
-        </div>
-      ),
+      cell: (row) => {
+        const all = row.items?.map((i) => i.material?.name).filter(Boolean) ?? [];
+        const shown = all.slice(0, 3);
+        const extra = all.length - shown.length;
+        return (
+          <div className="flex flex-wrap gap-1.5">
+            {shown.map((name) => (
+              <MaterialTag key={name} material={name as any} size="sm" />
+            ))}
+            {extra > 0 && (
+              <span className="inline-flex items-center rounded-full border border-border bg-card px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                +{extra} more
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: "date",

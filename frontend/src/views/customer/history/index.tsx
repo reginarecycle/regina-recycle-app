@@ -50,13 +50,22 @@ function buildColumns(
     {
       key: "material",
       header: "Material",
-      cell: (row) => (
-        <div className="flex flex-wrap items-center gap-1.5">
-          {row.materials.map((m) => (
-            <MaterialTag key={m} material={m} size="sm" />
-          ))}
-        </div>
-      ),
+      cell: (row) => {
+        const shown = row.materials.slice(0, 3);
+        const extra = row.materials.length - shown.length;
+        return (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {shown.map((m) => (
+              <MaterialTag key={m} material={m} size="sm" />
+            ))}
+            {extra > 0 && (
+              <span className="inline-flex items-center rounded-full border border-border bg-card px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                +{extra} more
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: "date",

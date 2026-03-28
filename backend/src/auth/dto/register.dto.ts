@@ -5,21 +5,38 @@ import {
   IsEnum,
   IsOptional,
   IsDateString,
-  Matches,
   IsBoolean,
   ValidateNested,
   IsNotEmpty,
   ValidateIf,
   IsNumber,
+  Validate,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+  ValidationArguments,
+  Matches,
 } from 'class-validator';
 import { Role } from '@prisma/client';
 import { AddressDto } from '../../addresses/dto/address.dto';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+@ValidatorConstraint({ name: 'passwordStrength', async: false })
+class PasswordStrengthConstraint implements ValidatorConstraintInterface {
+  validate(value: string, args: ValidationArguments) {
+    const object = args.object as RegisterDto;
+    if (object.role === Role.COLLECTOR) return true;
+    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value);
+  }
+  defaultMessage() {
+    return 'Password must contain uppercase, lowercase, number and special character';
+  }
+}
+
 export class RegisterDto {
   @ApiProperty()
   @IsString()
+  @IsNotEmpty()
   name: string;
 
   @ApiProperty()
@@ -29,9 +46,7 @@ export class RegisterDto {
   @ApiProperty()
   @IsString()
   @MinLength(8)
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, {
-    message: 'Password must contain at least 8 characters...',
-  })
+  @Validate(PasswordStrengthConstraint)
   password: string;
 
   @ApiPropertyOptional()
