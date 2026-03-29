@@ -83,7 +83,7 @@ export const resetPasswordSchema = z
 export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
 export const profileDetailsSchema = z.object({
-  fullName: z.string(),
+  fullName: z.string().min(1, "Full name is required"),
   email: z.string().refine(
     (v) => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
     "Invalid email address"
@@ -122,6 +122,10 @@ export const changePasswordSchema = z
   .refine((data) => data.newPassword === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
+  })
+  .refine((data) => data.newPassword !== data.currentPassword, {
+    message: "New password must be different from current password",
+    path: ["newPassword"],
   });
 
 export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
@@ -129,7 +133,7 @@ export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 export const collectorProfileSchema = z.object({
   businessName: z.string().min(1, "Business name is required"),
   businessEmail: z.string().email("Invalid email address"),
-  businessPhone: z.string().min(1, "Phone number is required"),
+  businessPhone: z.string().optional(),
   registrationNumber: z.string().min(1, "Registration number is required"),
   address: z.string().min(1, "Address is required"),
   city: z.string().min(1, "City is required"),
@@ -148,6 +152,10 @@ export const collectorSecuritySchema = z
   .refine((data) => data.newPassword === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
+  })
+  .refine((data) => data.newPassword !== data.currentPassword, {
+    message: "New password must be different from current password",
+    path: ["newPassword"],
   });
 
 export type CollectorSecurityFormValues = z.infer<typeof collectorSecuritySchema>;

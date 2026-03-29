@@ -91,7 +91,7 @@ export function CollectorStatCards({ stats, isLoading }: Props) {
       {/* Pending Amount */}
       <div className="flex min-h-[141px] w-full flex-col items-start gap-3 rounded-[8px] border border-[#E5E7EB] bg-white px-3 py-4">
         <div className="flex w-full items-start justify-between">
-          <p className="text-[14px] font-medium text-[#4B5563]">Pending Amount</p>
+          <p className="text-[14px] font-medium text-[#4B5563]">Total Pending Payout</p>
           <img src={cashIcon} className="h-6 w-6" alt="" />
         </div>
         <div className="flex items-center gap-3">
@@ -101,7 +101,7 @@ export function CollectorStatCards({ stats, isLoading }: Props) {
         </div>
         <div className="flex items-center gap-1">
           <img src={cashIcon} className="h-4 w-4" alt="" />
-          <p className="text-[14px] text-[#9CA3AF]">Estimated earnings</p>
+          <p className="text-[14px] text-[#9CA3AF]">Estimated payout (incl. service fee)</p>
         </div>
       </div>
     </div>

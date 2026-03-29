@@ -1,4 +1,5 @@
 import InputField from "@/components/forms/input-field";
+import { toast } from "sonner";
 import { useForm, Controller } from 'react-hook-form';
 import { profileDetailsSchema, type ProfileDetailsFormValues } from '@/lib/validation';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -86,22 +87,28 @@ const UserProfile = () => {
   };
 
   const onSubmitDetails = (data: ProfileDetailsFormValues) => {
-    const profileUpdate: Record<string, string> = {};
+    const profileUpdate: Record<string, string | null> = {};
     if (data.fullName)    profileUpdate.name         = data.fullName;
-    if (data.phone)       profileUpdate.phoneNumber  = data.phone.replace(/\D/g, "");
-    if (data.dateOfBirth) profileUpdate.dateOfBirth  = dmyToIso(data.dateOfBirth);
+    profileUpdate.phoneNumber = data.phone ? data.phone.replace(/\D/g, "") : null;
+    profileUpdate.dateOfBirth = data.dateOfBirth ? dmyToIso(data.dateOfBirth) : null;
 
     if (Object.keys(profileUpdate).length > 0) {
-      updateUserProfile(profileUpdate as any);
+      updateUserProfile(profileUpdate as any, {
+        onSuccess: () => toast.success("Profile updated successfully."),
+        onError: () => toast.error("Failed to update profile. Please try again."),
+      });
     }
 
     // Use the autocomplete-parsed address if the user picked one, otherwise fall
     // back to the raw form value (pre-filled existing address that wasn't changed)
     const parsed = parsedAddressRef.current;
-    const addressLine = parsed?.line1 ?? data.address;
+    const addressLine = parsed?.line1;
     if (addressLine) {
       if (addressData?.data?.addressId) {
-        updateAddress({ id: addressData.data.addressId, body: { line1: addressLine } });
+        updateAddress({ id: addressData.data.addressId, body: { line1: addressLine } }, {
+          onSuccess: () => toast.success("Address updated successfully."),
+          onError: () => toast.error("Failed to update address. Please try again."),
+        });
       } else if (parsed) {
         // Only create a new address when we have full geocoded data
         createAddress({
@@ -112,6 +119,9 @@ const UserProfile = () => {
           latitude: parsed.latitude,
           longitude: parsed.longitude,
           isPrimary: true,
+        }, {
+          onSuccess: () => toast.success("Address saved successfully."),
+          onError: () => toast.error("Failed to save address. Please try again."),
         });
       }
     }

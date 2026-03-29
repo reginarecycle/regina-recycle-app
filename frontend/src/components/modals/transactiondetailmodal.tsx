@@ -1,3 +1,4 @@
+import { Copy } from "lucide-react";
 
 export type TxStatus = "CREDIT" | "WITHDRAWAL" | "FAILED";
 
@@ -251,12 +252,9 @@ export default function TransactionDetailsModal({
                     type="button"
                     aria-label="Copy reference"
                     onClick={() => navigator.clipboard?.writeText(details.reference)}
-                    className="flex h-4 w-4 items-center justify-center text-primary"
+                    className="flex h-4 w-4 items-center justify-center text-primary cursor-pointer hover:text-accent-foreground"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <path d="M13.333 5.33301H6.66634C5.92996 5.33301 5.33301 5.92996 5.33301 6.66634V13.333C5.33301 14.0694 5.92996 14.6663 6.66634 14.6663H13.333C14.0694 14.6663 14.6663 14.0694 14.6663 13.333V6.66634C14.6663 5.92996 14.0694 5.33301 13.333 5.33301Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M2.66634 10.6663C1.93301 10.6663 1.33301 10.0663 1.33301 9.33301V2.66634C1.33301 1.93301 1.93301 1.33301 2.66634 1.33301H9.33301C10.0663 1.33301 10.6663 1.93301 10.6663 2.66634" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                   <Copy/>
                   </button>
                 </div>
               </div>

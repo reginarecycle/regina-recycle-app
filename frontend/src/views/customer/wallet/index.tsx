@@ -33,12 +33,13 @@ type RecentTx = {
 // ── Mapper ────────────────────────────────────────────────────────────────────
 
 function mapTransaction(tx: {
-  transactionId: string;
-  type:          string;
-  amount:        number;
-  status:        string;
-  description?:  string;
-  createdAt:     string;
+  transactionId:   string;
+  referenceNumber?: string;
+  type:            string;
+  amount:          number;
+  status:          string;
+  description?:    string;
+  createdAt:       string;
 }): RecentTx {
   const statusUI: TxStatusUI =
     tx.type === "CREDIT"   ? "CREDIT"
@@ -46,7 +47,7 @@ function mapTransaction(tx: {
     : "WITHDRAWAL";
 
   return {
-    id:        tx.transactionId,
+    id:        tx.referenceNumber ?? `RRY-${parseInt(tx.transactionId.replace(/-/g, "").slice(0, 8), 16) % 900000 + 100000}`,
     date:      new Date(tx.createdAt).toLocaleDateString("en-CA", {
       day: "numeric", month: "short", year: "numeric",
     }),
@@ -150,10 +151,15 @@ function CustomerWallet() {
       status:    tx.status,
       date:      tx.date,
       time,
-      sender:    tx.status === "CREDIT" ? "Regina Recycle" : userName,
-      receiver:  tx.status === "CREDIT" ? userName : "Bank Transfer",
+      sender:    tx.status === "CREDIT"
+        ? (tx.desc.startsWith("Payout from ") ? tx.desc.replace("Payout from ", "") : "Regina Recycle")
+        : userName,
+      receiver:  tx.status === "CREDIT" ? userName
+        : tx.desc.startsWith("Interac withdrawal to ") ? tx.desc.replace("Interac withdrawal to ", "")
+        : tx.desc.startsWith("Bank withdrawal to ")    ? tx.desc.replace("Bank withdrawal to ", "")
+        : "Bank Transfer",
       fees:      "0.00 CAD",
-      reference: tx.id,
+      reference: tx.id,  // already mapped to referenceNumber in mapTransaction
     });
     setOpenDetails(true);
   };

@@ -485,8 +485,8 @@ export default function RequestsTable() {
             dateTime={`${selectedRequest.Date}, ${selectedRequest.startTime}`}
             compatibility={selectedRequest.Compatibility === 100 ? "100%" : "0%"}
             balance={walletBalance}
-            serviceFee={serviceFee}
-            feeType={feeType}
+            serviceFee={selectedRequest.serviceFeeSnapshot ?? serviceFee}
+            feeType={selectedRequest.feeTypeSnapshot ?? feeType}
             note={completeNote}
             setNote={setCompleteNote}
             items={selectedRequest.items.map((i) => ({

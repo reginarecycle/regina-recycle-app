@@ -67,10 +67,10 @@ const CustomerModal = ({
 
   const completedPickups = detail?.pickups.filter((p) => p.status === "COMPLETED") ?? [];
   const totalRevenue = completedPickups.reduce((sum: number, p) => {
-    const gross = Number(p.actualEarning) ?? 0;
+    const gross = Number(p.actualEarning ?? 0);
     const fee     = Number(p.serviceFeeSnapshot ?? fallbackFee);
     const feeType = p.feeTypeSnapshot ?? fallbackFeeType;
-    const feeAmount = feeType === "FLAT" ? fee : gross * (fee / 100);
+    const feeAmount = feeType === "FLAT_FEE" ? fee : gross * (fee / 100);
     return sum + Math.max(0, gross - feeAmount);
   }, 0);
   const avgOrder = completedPickups.length > 0 ? totalRevenue / completedPickups.length : 0;

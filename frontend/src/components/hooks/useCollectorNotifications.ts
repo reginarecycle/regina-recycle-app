@@ -43,7 +43,7 @@ function mapFrontendToBackend(
 }
 
 export function useCollectorNotifications() {
-  const { data, isLoading, error, refetch } = useNotificationsPreferences();
+  const { data, isLoading, error } = useNotificationsPreferences();
   const updatePrefsMutation = useUpdateNotificationPreferences();
 
   const [saved, setSaved] = useState<CollectorNotificationPrefs>(DEFAULT_PREFS);
@@ -79,7 +79,7 @@ export function useCollectorNotifications() {
         toast.error("Failed to update preferences. Please try again.");
       },
     });
-  }, [prefs, refetch, updatePrefsMutation]);
+  }, [prefs, updatePrefsMutation]);
 
   return {
     prefs,

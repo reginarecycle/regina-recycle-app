@@ -32,7 +32,7 @@ export function Schedule({ recentSchedule = [] }: Props) {
       date:                formatDate(pickup.scheduledAt),
       status:              pickup.status as RecycleRecord["status"],
       referenceNumber:     makeRef(pickup.pickupId),
-      collectorName:       "Assigned Collector",
+      collectorName:       pickup.collector?.name ?? "Not assigned yet",
       collectorId:         pickup.pickupId,
       requestDate:         formatDate(pickup.scheduledAt),
       scheduledPickupDate: formatDate(pickup.scheduledAt),

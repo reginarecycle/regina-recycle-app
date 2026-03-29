@@ -65,6 +65,7 @@ export interface Pickup {
   note?:         string;
   address?:      PickupAddress;
   items?:        PickupItem[];
+  collector?:    { name: string };
 }
 
 export interface CustomerPickupsQuery {

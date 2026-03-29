@@ -91,7 +91,7 @@ export function CollectorProfileTab() {
     updateProfile(
       {
         name:        data.businessName,
-        phoneNumber: data.businessPhone,
+        phoneNumber: data.businessPhone || undefined,
         licenseId:   data.registrationNumber,
       },
       {

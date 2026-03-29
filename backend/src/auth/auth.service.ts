@@ -368,7 +368,7 @@ export class AuthService {
     );
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException(ErrorMessage.PASSWORD_INVALID);
+      throw new BadRequestException(ErrorMessage.PASSWORD_INVALID);
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);

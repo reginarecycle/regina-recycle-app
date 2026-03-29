@@ -410,7 +410,7 @@ export class CollectorsService {
   private computeNet(gross: number, serviceFeeSnapshot: any, feeTypeSnapshot: any, fallbackFee: number, fallbackFeeType: string): number {
     const fee     = Number(serviceFeeSnapshot ?? fallbackFee);
     const feeType = (feeTypeSnapshot ?? fallbackFeeType) as string;
-    const feeAmount = feeType === 'FLAT' ? fee : gross * (fee / 100);
+    const feeAmount = feeType === 'FLAT_FEE' ? fee : gross * (fee / 100);
     return Math.max(0, gross - feeAmount);
   }
 
