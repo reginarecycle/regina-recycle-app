@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { toast } from "sonner";
 import {
   useNotificationsPreferences,
   useUpdateNotificationPreferences,
@@ -39,8 +40,7 @@ const mapUiToApi = (
 export function useNotificationPrefs() {
   const { data } = useNotificationsPreferences();
   const [saved, setSaved] = useState<NotificationPrefs>(DEFAULT_PREFS);
-  const [showSaving, setShowSaving] = useState(false);
-  const { mutate: updatePrefs } = useUpdateNotificationPreferences();
+  const { mutate: updatePrefs, isPending: isSaving } = useUpdateNotificationPreferences();
   const [prefs, setPrefs] = useState<NotificationPrefs>(DEFAULT_PREFS);
 
   useEffect(() => {
@@ -61,35 +61,16 @@ export function useNotificationPrefs() {
   }, []);
 
   const handleSave = useCallback(() => {
-    // old update prefs function
-    //     updatePrefsMutation.mutate(mapUiToApi(prefs), {
-    //       onSuccess: () => {
-    //         setSaved(prefs);
-    //         refetch();
-    //       },
-    //     });
-    //   }, [prefs, refetch, updatePrefsMutation]);
-
-    //   return {
-    //     prefs,
-    //     changed,
-    //     handleToggle,
-    //     handleSave,
-    //     isLoading,
-    //     isSaving: updatePrefsMutation.isPending,
-    //     error,
-    //   };
-    // }
-    setShowSaving(true);
-
     updatePrefs(mapUiToApi(prefs), {
-      onSettled: () => {
-        setTimeout(() => {
-          setShowSaving(false);
-        }, 800);
+      onSuccess: () => {
+        setSaved(prefs);
+        toast.success("Notification preferences updated.");
+      },
+      onError: () => {
+        toast.error("Failed to update preferences. Please try again.");
       },
     });
   }, [prefs, updatePrefs]);
 
-  return { prefs, changed, handleToggle, handleSave, isSaving: showSaving };
+  return { prefs, changed, handleToggle, handleSave, isSaving };
 }

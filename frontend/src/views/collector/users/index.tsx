@@ -319,7 +319,7 @@ export default function CollectorUsersPage() {
       </div>
 
       {/* Table */}
-      <div className="flex-1 px-6 pb-6 min-h-0">
+      <div className="px-6 pb-6">
         <DataTable
           data={filtered}
           columns={columns}
@@ -332,7 +332,6 @@ export default function CollectorUsersPage() {
           totalItems={totalItems}
           pageSize={PAGE_SIZE}
           onPageChange={(p) => { setCurrentPage(p); }}
-          className="h-full"
           headerRight={
             <DataTableHeaderControls
               search={search}

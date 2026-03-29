@@ -5,7 +5,7 @@ import { COLLECTOR_NOTIFICATION_SECTIONS } from "@/constants/data";
 import { useCollectorNotifications } from "@/components/hooks/useCollectorNotifications";
 
 export function CollectorNotificationsTab() {
-  const { prefs, changed, handleToggle, handleSave } = useCollectorNotifications();
+  const { prefs, changed, handleToggle, handleSave, isSaving } = useCollectorNotifications();
 
   return (
     <section className="p-8">
@@ -19,6 +19,7 @@ export function CollectorNotificationsTab() {
               onToggle={handleToggle as any}
               changed={i === 0 ? changed : undefined}
               onSave={i === 0 ? handleSave : undefined}
+              isSaving={i === 0 ? isSaving : undefined}
             />
           </Fragment>
         ))}

@@ -616,12 +616,19 @@ export class CollectorsService {
   async updateMaterialPricing(collectorId: string, materialId: string, dto: UpdateMaterialPricingDto) {
     await this.ensureCollectorExists(collectorId);
 
-    const updated = await this.prisma.collectorPricing.update({
+    const updated = await this.prisma.collectorPricing.upsert({
       where: { collectorUserId_materialId: { collectorUserId: collectorId, materialId } },
-      data: {
+      update: {
         ...(dto.basePrice !== undefined && { basePrice: dto.basePrice }),
         ...(dto.bulkPrice !== undefined && { bulkPrice: dto.bulkPrice }),
         ...(dto.status !== undefined && { status: dto.status }),
+      },
+      create: {
+        collectorUserId: collectorId,
+        materialId,
+        basePrice: dto.basePrice ?? 0,
+        bulkPrice: dto.bulkPrice ?? null,
+        status: dto.status ?? 'ACTIVE',
       },
     });
 
