@@ -27,12 +27,13 @@ type Transaction = {
 // ── Mapper ────────────────────────────────────────────────────────────────────
 
 function mapTransaction(tx: {
-  transactionId: string;
-  type:          string;
-  amount:        number;
-  status:        string;
-  description?:  string;
-  createdAt:     string;
+  transactionId:   string;
+  referenceNumber?: string;
+  type:            string;
+  amount:          number;
+  status:          string;
+  description?:    string;
+  createdAt:       string;
 }): Transaction {
   const status: TxStatusUI =
     tx.type === "CREDIT"     ? "CREDIT"
@@ -40,7 +41,7 @@ function mapTransaction(tx: {
     : "WITHDRAWAL";
 
   return {
-    id:          tx.transactionId,
+    id:          tx.referenceNumber ?? `RRY-${parseInt(tx.transactionId.replace(/-/g, "").slice(0, 8), 16) % 900000 + 100000}`,
     date:        new Date(tx.createdAt).toLocaleDateString("en-CA", {
       day: "numeric", month: "short", year: "numeric",
     }),
@@ -114,13 +115,21 @@ export default function TransactionHistory() {
     const time = new Date(tx.createdAt).toLocaleTimeString("en-CA", {
       hour: "2-digit", minute: "2-digit",
     });
+    console.log(tx, "my transaction")
+    const sender =
+      tx.status === "CREDIT"
+        ? tx.description.startsWith("Payout from ")
+          ? tx.description.replace("Payout from ", "")
+          : "Regina Recycle"
+        : userName;
+
     setSelectedDetails({
       amount:    tx.rawAmount.toFixed(2),
       currency:  "CAD",
       status:    tx.status,
       date:      tx.date,
       time,
-      sender:    tx.status === "CREDIT" ? "Regina Recycle" : userName,
+      sender,
       receiver:  tx.status === "CREDIT" ? userName : "Bank Transfer",
       fees:      "0.00 CAD",
       reference: tx.id,

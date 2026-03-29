@@ -24,7 +24,6 @@ const SLOT_HOURS: Record<string, number> = {
   "slot-2": 11,
   "slot-3": 13,
   "slot-4": 15,
-  "slot-5": 17, // TODO: remove after testing
 };
 
 export default function SchedulePickupFlow() {
