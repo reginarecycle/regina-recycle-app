@@ -129,7 +129,10 @@ export default function TransactionHistory() {
       date:      tx.date,
       time,
       sender,
-      receiver:  tx.status === "CREDIT" ? userName : "Bank Transfer",
+      receiver:  tx.status === "CREDIT" ? userName
+        : tx.description.startsWith("Interac withdrawal to ") ? tx.description.replace("Interac withdrawal to ", "")
+        : tx.description.startsWith("Bank withdrawal to ")    ? tx.description.replace("Bank withdrawal to ", "")
+        : "Bank Transfer",
       fees:      "0.00 CAD",
       reference: tx.id,
     });
@@ -214,7 +217,7 @@ export default function TransactionHistory() {
         pageSize={PAGE_SIZE}
         onPageChange={setPage}
         emptyText={isLoading ? "Loading..." : "No transactions found"}
-        minHeight="300px"
+        minHeight="600px"
       />
 
       <TransactionDetailsModal

@@ -706,13 +706,15 @@ export class PickupsService {
     if (pickup.collector && collectorDebit > 0) {
       const collectorWallet = await this.prisma.wallet.findUnique({ where: { userId: collectorUserId } });
       const collectorBalance = Number(collectorWallet?.balance ?? 0);
-      await this.notificationService.notifyWalletUpdated({
-        userId: collectorUserId,
-        recipientEmail: pickup.collector.email,
-        amount: collectorDebit,
-        balance: collectorBalance,
-        type: 'DEBIT',
-      });
+      await Promise.allSettled([
+        this.notificationService.notifyWalletUpdated({
+          userId: collectorUserId,
+          recipientEmail: pickup.collector.email,
+          amount: collectorDebit,
+          balance: collectorBalance,
+          type: 'DEBIT',
+        }),
+      ]);
     }
 
     return {
@@ -945,7 +947,7 @@ export class PickupsService {
         const dynamicKey = `${dateKey}-${dynamicHour}`;
         const notFull = (takenCount[dynamicKey] || 0) < MAX_PER_SLOT;
         const slotEnd = new Date(year, month - 1, day, dynamicHour + 2, 0, 0, 0);
-        if (dynamicHour <= 21 && noFixedSlotAtHour && notFull && slotEnd > now) {
+        if (dynamicHour >= 9 && dynamicHour <= 15 && noFixedSlotAtHour && notFull && slotEnd > now) {
           available.push({
             id: `slot-dynamic-${dynamicHour}`,
             label: `${fmt12(dynamicHour)} – ${fmt12(dynamicHour + 2)}`,

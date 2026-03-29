@@ -121,10 +121,19 @@ const onSubmitPassword = (data: ChangePasswordFormValues) => {
 
       <DeleteAccountBanner
         onDelete={() => {
-      if (deleteEligibility?.data?.canDelete) {
-      setDeleteDialogOpen(true);
-      }
-      }}
+          if (deleteEligibility?.data?.canDelete) {
+            setDeleteDialogOpen(true);
+          } else {
+            const d = deleteEligibility?.data as any;
+            if (d?.pendingPickups > 0) {
+              toast.error("You have pending or active pickups. Please wait for them to complete before deleting your account.");
+            } else if (d?.walletBalance > 0) {
+              toast.error("You have a wallet balance. Please withdraw all funds before deleting your account.");
+            } else {
+              toast.error("Your account cannot be deleted at this time. Please contact support.");
+            }
+          }
+        }}
         imageSrc="/delete-account.png"
       />
 
@@ -132,7 +141,7 @@ const onSubmitPassword = (data: ChangePasswordFormValues) => {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={() => {
-       deleteUserAccount("delete");
+       deleteUserAccount();
        setDeleteDialogOpen(false);
         }}
       />

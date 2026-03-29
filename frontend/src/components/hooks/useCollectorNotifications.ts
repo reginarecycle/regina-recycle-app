@@ -79,7 +79,7 @@ export function useCollectorNotifications() {
         toast.error("Failed to update preferences. Please try again.");
       },
     });
-  }, [prefs, refetch, updatePrefsMutation]);
+  }, [prefs, updatePrefsMutation]);
 
   return {
     prefs,

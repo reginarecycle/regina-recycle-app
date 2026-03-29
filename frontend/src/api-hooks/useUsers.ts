@@ -50,9 +50,14 @@ export interface DeleteEligibility {
 
 export const useCheckDeleteEligibility = () =>
  useGetOne<DeleteEligibility>(userKeys.deleteCheck(), "/users/delete/check");
-export const useDeleteUserAccount = () =>
-  useRemove(
-    () => "/users/delete",
-    ["users", "profile"]
-  );
+export const useDeleteUserAccount = () => {
+  return useMutation({
+    mutationFn: () => apiFetch("/users/delete", { method: "DELETE" }),
+    onSuccess: async () => {
+      const { clearAuth } = await import("@/lib/helper");
+      clearAuth();
+      window.location.href = "/auth/login";
+    },
+  });
+};
   

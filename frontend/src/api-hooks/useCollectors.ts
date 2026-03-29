@@ -293,7 +293,10 @@ export const pickupRequestKeys = {
 };
 
 export const useGetCollectorStats = () =>
-  useGetOne<CollectorStats>(["collectors", "stats"], "/collectors/stats");
+  useGetOne<CollectorStats>(["collectors", "dashboard", "stats"], "/collectors/dashboard/stats", {
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+  });
 
 export const useGetPickupOverview = () =>
   useGetOne<PickupOverview>(["collectors", "pickup-overview"], "/collectors/pickup-overview");
@@ -305,7 +308,7 @@ export const useGetMaterialDistribution = (period?: string) =>
   );
 
 export const useGetCollectorDashboardStats = () =>
-  useGetOne<CollectorStats>(["collectors", "stats"], "/collectors/stats");
+  useGetOne<CollectorStats>(["collectors", "dashboard", "stats"], "/collectors/dashboard/stats");
   
 export const useGetTopLocations = (limit = 3, period?: string) => {
   const params = new URLSearchParams();
@@ -463,7 +466,10 @@ export const useAcceptPickup = () => {
   return useMutation({
     mutationFn: (pickupId: string) =>
       apiFetch(`/pickups/${pickupId}/accept`, { method: 'PATCH' }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: pickupRequestKeys.all() }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: pickupRequestKeys.all() });
+      qc.invalidateQueries({ queryKey: ["collectors", "dashboard", "stats"] });
+    },
   });
 };
 
@@ -475,7 +481,10 @@ export const useRejectPickup = () => {
         method: 'PATCH',
         data: { reason, comment },
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: pickupRequestKeys.all() }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: pickupRequestKeys.all() });
+      qc.invalidateQueries({ queryKey: ["collectors", "dashboard", "stats"] });
+    },
   });
 };
 
@@ -487,7 +496,10 @@ export const useCompletePickup = () => {
         method: 'PATCH',
         data: { items },
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: pickupRequestKeys.all() }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: pickupRequestKeys.all() });
+      qc.invalidateQueries({ queryKey: ["collectors", "dashboard", "stats"] });
+    },
   });
 };
 

@@ -53,11 +53,15 @@ export class UsersService {
     });
 
     if (dto.dateOfBirth !== undefined) {
-      await this.prisma.customerDOB.upsert({
-        where:  { userId },
-        update: { dob: new Date(dto.dateOfBirth) },
-        create: { userId, dob: new Date(dto.dateOfBirth) },
-      });
+      if (dto.dateOfBirth === null) {
+        await this.prisma.customerDOB.deleteMany({ where: { userId } });
+      } else {
+        await this.prisma.customerDOB.upsert({
+          where:  { userId },
+          update: { dob: new Date(dto.dateOfBirth) },
+          create: { userId, dob: new Date(dto.dateOfBirth) },
+        });
+      }
     }
 
     if (dto.licenseId !== undefined) {
