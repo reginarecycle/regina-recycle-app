@@ -43,7 +43,7 @@ function mapFrontendToBackend(
 }
 
 export function useCollectorNotifications() {
-  const { data, isLoading, error, refetch } = useNotificationsPreferences();
+  const { data, isLoading, error } = useNotificationsPreferences();
   const updatePrefsMutation = useUpdateNotificationPreferences();
 
   const [saved, setSaved] = useState<CollectorNotificationPrefs>(DEFAULT_PREFS);
