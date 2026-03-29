@@ -276,6 +276,7 @@ export class PickupsService {
       where = {
         status: PickupStatus.PENDING,
         collectorUserId: null,
+        scheduledAt: { gte: new Date() },
         ...(rejectedIds.length > 0 ? { pickupId: { notIn: rejectedIds } } : {}),
       };
     } else {
@@ -439,6 +440,10 @@ export class PickupsService {
               ? 'This pickup has been cancelled and cannot be accepted'
               : `Pickup is already ${pickup.status}`,
       );
+    }
+
+    if (pickup.scheduledAt < new Date()) {
+      throw new BadRequestException('This pickup slot has already passed and can no longer be accepted');
     }
 
     const collectorProfile = await this.prisma.collectorProfile.findUnique({

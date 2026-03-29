@@ -85,6 +85,53 @@ export class NotificationsCronService {
         );
     }
 
+    async cancelExpiredPickups() {
+        this.logger.log('Running expired pickups cleanup...');
+
+        const now = new Date();
+
+        const expired = await this.prisma.pickup.findMany({
+            where: {
+                status: 'PENDING',
+                scheduledAt: { lt: now },
+            },
+            include: {
+                requester: {
+                    select: { userId: true, email: true },
+                },
+            },
+        });
+
+        if (expired.length === 0) {
+            this.logger.log('No expired pickups found.');
+            return;
+        }
+
+        await this.prisma.pickup.updateMany({
+            where: { pickupId: { in: expired.map((p) => p.pickupId) } },
+            data: { status: 'CANCELLED' },
+        });
+
+        for (const pickup of expired) {
+            if (!pickup.requester) continue;
+            await this.notificationService.sendNotification({
+                type: NotificationEventType.ALERT,
+                title: 'Pickup Not Accepted',
+                message: 'Your scheduled pickup was not accepted by any collector in time. Please reschedule at your convenience.',
+                userId: pickup.requester.userId,
+                recipientEmail: pickup.requester.email,
+                metadata: { pickupId: pickup.pickupId, scheduledAt: pickup.scheduledAt },
+            }).catch((err) =>
+                this.logger.error(
+                    `Failed to notify customer ${pickup.requester?.userId} for expired pickup ${pickup.pickupId}`,
+                    err.message,
+                ),
+            );
+        }
+
+        this.logger.log(`Cancelled ${expired.length} expired pickup(s).`);
+    }
+
     private async processCustomerReminder(pickup: any) {
         const scheduledTime = new Date(pickup.scheduledAt).toLocaleTimeString(
             'en-CA',

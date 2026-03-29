@@ -8,6 +8,7 @@ import TransactionDetailsModal from "@/components/modals/transactiondetailmodal"
 import type { TransactionDetails } from "@/components/modals/transactiondetailmodal";
 import { useGetWalletTransactions } from "@/api-hooks/useWallet";
 import { buildDateRange } from "@/lib/utils";
+import { useCurrentUser } from "@/api-hooks/useAuth";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -19,6 +20,8 @@ type Transaction = {
   status:      TxStatusUI;
   description: string;
   amount:      string;
+  rawAmount:   number;
+  createdAt:   string;
 };
 
 // ── Mapper ────────────────────────────────────────────────────────────────────
@@ -44,6 +47,8 @@ function mapTransaction(tx: {
     status,
     description: tx.description ?? "Wallet transaction",
     amount:      `CAD ${tx.amount.toFixed(2)}`,
+    rawAmount:   tx.amount,
+    createdAt:   tx.createdAt,
   };
 }
 
@@ -76,6 +81,8 @@ export default function TransactionHistory() {
 
   const dateRange = filters.dateRange !== "alltime" ? buildDateRange(filters.dateRange) : {};
 
+  const { data: currentUserResult } = useCurrentUser();
+
   const { data: txResult, isLoading } = useGetWalletTransactions({
     page,
     limit:     PAGE_SIZE,
@@ -103,14 +110,18 @@ export default function TransactionHistory() {
   // ── Handlers ───────────────────────────────────────────────────────────────
 
   const handleViewMore = (tx: Transaction) => {
+    const userName = currentUserResult?.data?.name ?? "You";
+    const time = new Date(tx.createdAt).toLocaleTimeString("en-CA", {
+      hour: "2-digit", minute: "2-digit",
+    });
     setSelectedDetails({
-      amount:    tx.amount,
+      amount:    tx.rawAmount.toFixed(2),
       currency:  "CAD",
       status:    tx.status,
       date:      tx.date,
-      time:      "10:00am",
-      sender:    "Shahnaz Recycle",
-      receiver:  "Jane Doe",
+      time,
+      sender:    tx.status === "CREDIT" ? "Regina Recycle" : userName,
+      receiver:  tx.status === "CREDIT" ? userName : "Bank Transfer",
       fees:      "0.00 CAD",
       reference: tx.id,
     });

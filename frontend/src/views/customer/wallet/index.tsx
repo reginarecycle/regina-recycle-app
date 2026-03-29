@@ -14,17 +14,20 @@ import TransactionDetailsModal from "@/components/modals/transactiondetailmodal"
 import type { TransactionDetails } from "@/components/modals/transactiondetailmodal";
 import { useGetCustomerWallet } from "@/api-hooks/useCustomerWallet";
 import { useGetWalletTransactions } from "@/api-hooks/useWallet";
+import { useCurrentUser } from "@/api-hooks/useAuth";
 
 
 
 type TxStatusUI = "CREDIT" | "WITHDRAWAL" | "FAILED";
 
 type RecentTx = {
-  id:     string;
-  date:   string;
-  status: TxStatusUI;
-  desc:   string;
-  amount: string;
+  id:         string;
+  date:       string;
+  status:     TxStatusUI;
+  desc:       string;
+  amount:     string;
+  rawAmount:  number;
+  createdAt:  string;
 };
 
 // ── Mapper ────────────────────────────────────────────────────────────────────
@@ -43,13 +46,15 @@ function mapTransaction(tx: {
     : "WITHDRAWAL";
 
   return {
-    id:     tx.transactionId,
-    date:   new Date(tx.createdAt).toLocaleDateString("en-CA", {
+    id:        tx.transactionId,
+    date:      new Date(tx.createdAt).toLocaleDateString("en-CA", {
       day: "numeric", month: "short", year: "numeric",
     }),
-    status: statusUI,
-    desc:   tx.description ?? "Wallet transaction",
-    amount: `CAD ${formatAmount(tx.amount)}`,
+    status:    statusUI,
+    desc:      tx.description ?? "Wallet transaction",
+    amount:    `CAD ${formatAmount(tx.amount)}`,
+    rawAmount: tx.amount,
+    createdAt: tx.createdAt,
   };
 }
 
@@ -88,6 +93,7 @@ function CustomerWallet() {
 
   const { data: walletResult, isLoading: walletLoading } = useGetCustomerWallet();
   const { data: txResult,     isLoading: txLoading     } = useGetWalletTransactions({ page: 1, limit: 5 });
+  const { data: currentUserResult }                       = useCurrentUser();
 
   const wallet       = walletResult?.data;
   const transactions = useMemo(
@@ -134,14 +140,18 @@ function CustomerWallet() {
   // ── Handlers ───────────────────────────────────────────────────────────────
 
   const handleViewMore = (tx: RecentTx) => {
+    const userName = currentUserResult?.data?.name ?? "You";
+    const time = new Date(tx.createdAt).toLocaleTimeString("en-CA", {
+      hour: "2-digit", minute: "2-digit",
+    });
     setSelectedDetails({
-      amount:    tx.amount,
+      amount:    formatAmount(tx.rawAmount),
       currency:  "CAD",
       status:    tx.status,
       date:      tx.date,
-      time:      "10:00am",
-      sender:    "Shahnaz Recycle",
-      receiver:  "Jane Doe",
+      time,
+      sender:    tx.status === "CREDIT" ? "Regina Recycle" : userName,
+      receiver:  tx.status === "CREDIT" ? userName : "Bank Transfer",
       fees:      "0.00 CAD",
       reference: tx.id,
     });
