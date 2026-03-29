@@ -6,13 +6,13 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-
 export const getTypeStyles = (type: NotificationType) => {
   const styles = {
     success: { bg: "bg-green-50", iconBg: "bg-green-100", iconColor: "text-green-600", border: "border-green-200" },
     warning: { bg: "bg-yellow-50", iconBg: "bg-yellow-100", iconColor: "text-yellow-600", border: "border-yellow-200" },
     error: { bg: "bg-red-50", iconBg: "bg-red-100", iconColor: "text-red-600", border: "border-red-200" },
     info: { bg: "bg-blue-50", iconBg: "bg-blue-100", iconColor: "text-blue-600", border: "border-blue-200" },
+    marketing: { bg: "bg-purple-50", iconBg: "bg-purple-100", iconColor: "text-purple-600", border: "border-purple-200" },
   };
   return styles[type];
 };
@@ -30,6 +30,15 @@ export const formatTimestamp = (date: Date): string => {
   if (diffDays < 7) return `${diffDays}d ago`;
 
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+};
+
+export const formatFullDate = (date: Date): string => {
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };
 
 export type NotificationGroup = "Today" | "Yesterday" | "This Week" | "Older";
@@ -88,9 +97,64 @@ export function buildDateRange(dateRange: DateRange): { startDate?: string; endD
   return {};
 }
 
+export function formatAmount(amount: number): string {
+  return new Intl.NumberFormat("en-CA", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
+export function formatDate(iso: string): string {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return date.toLocaleDateString("en-CA", {
+    month: "short", day: "numeric", year: "numeric",
+  });
+}
+
+export function formatTimeRange(iso: string, durationHours = 2): string {
+  const start = new Date(iso);
+  const end   = new Date(start.getTime() + durationHours * 60 * 60 * 1000);
+  const fmt   = (d: Date) => d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+  return `${fmt(start)} – ${fmt(end)}`;
+}
+
 export function maskEmail(email: string): string {
   const [local, domain] = email.split("@");
   if (!local || !domain) return email;
   const visible = local.slice(0, 3);
   return `${visible}${"*".repeat(Math.max(local.length - 3, 3))}@${domain}`;
 }
+
+
+export function maskPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, "").slice(0, 10);
+  if (!digits) return "";
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
+
+export function maskDob(raw: string): string {
+  const digits = raw.replace(/\D/g, "").slice(0, 8);
+  if (!digits) return "";
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}-${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}-${digits.slice(2, 4)}-${digits.slice(4)}`;
+}
+
+
+export function formatCurrency(
+  amount: number,
+  currency: string = "CAD",
+  showSymbol: boolean = true
+): string {
+  const formatted = amount.toLocaleString("en-CA", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return showSymbol ? `$${formatted} ${currency}` : formatted;
+}
+

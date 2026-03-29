@@ -17,6 +17,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { PickupsService } from './pickups.service';
 import { CreatePickupDto } from './dto/create-pickup.dto';
 import { UpdatePickupDto } from './dto/update-pickup.dto';
+import { CompletePickupDto } from './dto/complete-pickup.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Auth } from '../common/decorator/auth.decorator';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
@@ -59,18 +60,32 @@ export class PickupsController {
   }
 
   @ApiOperation({ summary: 'Get all pickups for logged in user' })
-@Get()
-@Auth('CUSTOMER')
-getUserPickups(@Request() req, @Query() query: PickupQueryDto) {
-  return this.pickupsService.findAll(req.user.userId, query);
-}
+  @Get()
+  @Auth('CUSTOMER')
+  getUserPickups(@Request() req, @Query() query: PickupQueryDto) {
+    return this.pickupsService.findAll(req.user.userId, query);
+  }
 
-@ApiOperation({ summary: 'Get all pickup requests (collector)' })
-@Get('requests')
-@Auth('COLLECTOR')
-getRequests(@Query() query: PickupQueryDto) {
-  return this.pickupsService.getRequests(query);
-}
+  @ApiOperation({ summary: 'Get all pickup requests (collector)' })
+  @Get('requests')
+  @Auth('COLLECTOR')
+  getRequests(@Query() query: PickupQueryDto) {
+    return this.pickupsService.getRequests(query);
+  }
+
+  @ApiOperation({ summary: 'Request-level stats for logged-in collector' })
+  @Get('collector/stats')
+  @Auth('COLLECTOR')
+  getCollectorPickupStats(@Request() req: any) {
+    return this.pickupsService.getCollectorPickupStats(req.user.userId);
+  }
+
+  @ApiOperation({ summary: 'Get pickup requests for logged-in collector' })
+  @Get('collector')
+  @Auth('COLLECTOR')
+  getCollectorPickups(@Request() req: any, @Query() query: PickupQueryDto) {
+    return this.pickupsService.getCollectorPickups(req.user.userId, query);
+  }
 
   @ApiOperation({ summary: 'Get available pickup slots for a month' })
   @Get('available-slots')
@@ -89,6 +104,13 @@ getRequests(@Query() query: PickupQueryDto) {
     return this.pickupsService.findOne(id);
   }
 
+  @ApiOperation({ summary: 'Reject a pickup request (collector)' })
+  @Patch(':id/reject')
+  @Auth('COLLECTOR')
+  rejectPickup(@Param('id') id: string, @Request() req, @Body() body: { reason?: string; comment?: string }) {
+    return this.pickupsService.rejectPickup(req.user.userId, id, body?.reason, body?.comment);
+  }
+
   @ApiOperation({ summary: 'Accept a pickup (collector)' })
   @Patch(':id/accept')
   @Auth('COLLECTOR')
@@ -99,8 +121,8 @@ getRequests(@Query() query: PickupQueryDto) {
   @ApiOperation({ summary: 'Complete a pickup (collector)' })
   @Patch(':id/complete')
   @Auth('COLLECTOR')
-  completePickup(@Param('id') id: string, @Request() req) {
-    return this.pickupsService.complete(id, req.user.userId);
+  completePickup(@Param('id') id: string, @Request() req, @Body() dto: CompletePickupDto) {
+    return this.pickupsService.complete(id, req.user.userId, dto);
   }
 
   @ApiOperation({ summary: 'Update a pickup (customer only, PENDING only)' })
@@ -113,7 +135,7 @@ getRequests(@Query() query: PickupQueryDto) {
   @ApiOperation({ summary: 'Cancel a pickup' })
   @Delete(':id/cancel')
   @Auth()
-  cancelPickup(@Param('id') id: string, @Request() req) {
-    return this.pickupsService.cancel(id, req.user.userId);
+  cancelPickup(@Param('id') id: string, @Request() req, @Body() body: { reason?: string }) {
+    return this.pickupsService.cancel(id, req.user.userId, body?.reason);
   }
 }

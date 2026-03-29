@@ -5,6 +5,7 @@ import UserProfile from "./user-profile";
 import Notification from "./notification";
 import ProfileSecurity from "./security";
 import { ProfileHeader } from "@/components/shared/ProfileHeader";
+import { useCurrentUser } from "@/api-hooks/useAuth";
 
 const profileTabs: TabItem[] = [
   { label: "Profile", href: "userprofile", component: UserProfile },
@@ -13,16 +14,26 @@ const profileTabs: TabItem[] = [
 ];
 
 export default function ProfilePage() {
+  const { data, isLoading } = useCurrentUser();
+  const user = data?.data;
+  
+   const formatMemberSince = (date?: string) => {
+    if (!date) return "";
+    return new Date(date).toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
+    });
+  };
   return (
     <div className="p-6 md:p-8">
       <Card className="p-0 bg-white border-0">
-        {/* Profile Header */}
         <ProfileHeader
           avatarSrc="/avatar.png"
-          avatarFallback="JD"
-          name="John Doe"
+          avatarFallback={user?.name?.charAt(0).toUpperCase()??""}
+          name={user?.name ?? ""}
           badge="VERIFIED CUSTOMER"
-          memberSince="Member since January 2026"
+          memberSince={`Member since ${formatMemberSince(user?.createdAt)}`}
+          isLoading={isLoading}
         />
         <NavTabs tabs={profileTabs} mode="query" queryKey="tab" />
       </Card>

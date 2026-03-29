@@ -24,7 +24,7 @@ export function WelcomeMessage() {
       </h1>
 
       <Button
-        onClick={() => router.push(Routes.history)}
+        onClick={() => router.push(Routes.schedulePickup)}
         variant="outlineprimary"
         size="lg"
       >

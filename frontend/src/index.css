@@ -200,3 +200,15 @@ body {
 .animate-shake {
   animation: shake 0.4s ease-in-out;
 }
+
+/* Remove number input spinners globally */
+@layer base {
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type=number] {
+    -moz-appearance: textfield;
+  }
+}

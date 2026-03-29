@@ -91,7 +91,7 @@ export function NavTabs({
                 disabled={tab.disabled}
                 onClick={() => !tab.disabled && navigate(tab.href)}
                 className={cn(
-                  "relative flex items-center gap-2 px-4 sm:px-8 py-2.5 text-sm font-medium whitespace-nowrap shrink-0 transition-colors outline-none",
+                  "relative flex items-center gap-2 px-3 sm:px-8 py-2.5 text-sm font-medium whitespace-nowrap shrink-0 transition-colors outline-none",
                   "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 rounded-t",
                   isActive ? "text-accent-foreground" : "text-muted-foreground hover:text-accent-foreground",
                   tab.disabled && "opacity-40 cursor-not-allowed"

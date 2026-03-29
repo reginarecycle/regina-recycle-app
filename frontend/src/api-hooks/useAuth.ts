@@ -23,6 +23,7 @@ export interface CurrentUser {
     emailVerified: boolean;
     phoneNumber?: string;
     status: string;
+    createdAt: string;
     addresses: {
       addressId: string;
       line1: string;
@@ -32,7 +33,7 @@ export interface CurrentUser {
       postalCode: string;
       isPrimary: boolean;
     }[];
-    dateOfBirth?: string | null;
+    dateOfBirth: string | null;
     collectorProfile?: {
       licenseId: string;
       serviceFee: number;

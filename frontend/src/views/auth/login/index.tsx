@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useLogin } from "@/api-hooks/useAuth";
 import InputField from "@/components/forms/input-field";
 import AuthHeader from "@/components/shared/headerauth";
@@ -10,9 +11,8 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-
 const Login = () => {
-  const { mutate, isPending } = useLogin();
+  const { mutate, isPending, isSuccess, isError, data, error } = useLogin();
   const navigate = useNavigate();
   const {
     register,
@@ -20,39 +20,37 @@ const Login = () => {
     formState: { errors, isDirty },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
-    mode: "onChange",
+    mode: "onBlur",
   });
 
+  useEffect(() => {
+    if (!isSuccess || !data) return;
+
+    const { user, token } = data.data;
+
+    if (!user.emailVerified) {
+      toast.warning("Please verify your email to continue.");
+      navigate(Routes.verification, {
+        state: { email: user.email, purpose: "account-verification" },
+      });
+      return;
+    }
+
+    saveToken(token);
+    setUserRole(user.role as "CUSTOMER" | "COLLECTOR");
+    toast.success(data.message);
+    navigate(user.role === "COLLECTOR" ? Routes.collectordashboard : Routes.dashboard);
+  }, [isSuccess, data]);
+
+  useEffect(() => {
+    if (!isError || !error) return;
+    toast.error(error.message ?? "Login failed. Please check your credentials.");
+  }, [isError, error]);
+
   const onSubmit = (data: LoginFormValues) => {
-    mutate(data, {
-      onSuccess: ({ data: { user, token }, message }) => {
-        // Email not verified — send to verification first
-        if (!user.emailVerified) {
-          toast.warning("Please verify your email to continue.");
-          navigate(Routes.verification, {
-            state: {
-              email: user.email,
-              purpose: "account-verification",
-            },
-          });
-          return;
-        }
-
-        saveToken(token);
-        setUserRole(user.role as "CUSTOMER" | "COLLECTOR");
-        toast.success(message);
-
-        if (user.role === "COLLECTOR") {
-          navigate(Routes.collectordashboard);
-        } else {
-          navigate(Routes.dashboard);
-        }
-      },
-      onError: (error) => {
-        toast.error(error.message ?? "Login failed. Please check your credentials.");
-      },
-    });
+    mutate(data);
   };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-xl">
       <AuthHeader

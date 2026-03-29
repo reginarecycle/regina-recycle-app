@@ -11,9 +11,10 @@ const typeMap: Record<string, NotificationType> = {
   WALLET_UPDATED_CREDIT:   NotificationType.PAYMENT_ACTIVITY,
   WALLET_UPDATED_DEBIT:    NotificationType.PAYMENT_ACTIVITY,
   MATERIAL_PRICING_UPDATED: NotificationType.ACCOUNT_ACTIVITY,
-  CHANGE_PASSWORD:         NotificationType.ACCOUNT_ACTIVITY,
   LOGIN:                   NotificationType.ACCOUNT_ACTIVITY,
   SECURITY:                NotificationType.ACCOUNT_ACTIVITY,
+  PROFILE_UPDATED:         NotificationType.ACCOUNT_ACTIVITY,
+  PASSWORD_CHANGED:        NotificationType.ACCOUNT_ACTIVITY,
   ALERT:                   NotificationType.ALERT,
 };
 @Injectable()

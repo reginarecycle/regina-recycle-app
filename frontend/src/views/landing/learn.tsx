@@ -18,7 +18,7 @@ import { useGetMaterials } from "@/api-hooks/useMaterials";
 import type { Category, RecyclingItem } from "@/constants/interface";
 import useDebounce from "@/hooks/useDebounce";
 
-const TYPE_META: Record<string, Omit<RecyclingItem, "id" | "image" | "title" | "item" | "tip" | "category">> = {
+const TYPE_META: Record<string, Omit<RecyclingItem, "id" | "image" | "title" | "item" | "tip" | "category" | "description">> = {
   recyclable: { label: "Recyclables", labelColor: "#618171", labelTextColor: "#fff", badgeColor: "#49B972", badgeIcon: "check" },
   hazardous: { label: "Hazardous", labelColor: "#fee2e2", labelTextColor: "#991b1b", badgeColor: "#ef4444", badgeIcon: "warning" },
   batteries: { label: "Hazardous", labelColor: "#fee2e2", labelTextColor: "#991b1b", badgeColor: "#ef4444", badgeIcon: "warning" },
@@ -88,8 +88,9 @@ function LearnPage() {
         id: m.materialId as unknown as number,
         image: m.photoUrl ?? "",
         title: m.name,
-        item: m.name,
-        tip: m.description ?? "",
+        description: m.description ?? "",
+        item: m.description ?? "",
+        tip: m.tips ?? "",
         category: (
           meta.label === "Recyclables" ? "recyclable"
             : meta.label === "Hazardous" ? "hazardous"

@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, ArrowUpRight, ChevronRight } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
-import { cn } from "@/lib/utils";
+import { cn, formatAmount } from "@/lib/utils";
 import { Routes } from "@/routes/routes";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
 import { StatusBadge, getAmountColor } from "@/components/ui/status-badge";
@@ -12,85 +12,159 @@ import type { ChartConfig } from "@/components/ui/chart";
 import WithdrawModal from "@/components/modals/withdrawmodal";
 import TransactionDetailsModal from "@/components/modals/transactiondetailmodal";
 import type { TransactionDetails } from "@/components/modals/transactiondetailmodal";
+import { useGetCustomerWallet } from "@/api-hooks/useCustomerWallet";
+import { useGetWalletTransactions } from "@/api-hooks/useWallet";
+import { useCurrentUser } from "@/api-hooks/useAuth";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
 
-type TxStatus = "CREDIT" | "WITHDRAWAL" | "FAILED";
+
+type TxStatusUI = "CREDIT" | "WITHDRAWAL" | "FAILED";
 
 type RecentTx = {
-  id: string;
-  date: string;
-  status: TxStatus;
-  desc: string;
-  amount: string;
+  id:         string;
+  date:       string;
+  status:     TxStatusUI;
+  desc:       string;
+  amount:     string;
+  rawAmount:  number;
+  createdAt:  string;
 };
 
-// ── Static data ───────────────────────────────────────────────────────────────
+// ── Mapper ────────────────────────────────────────────────────────────────────
 
-const BALANCE = 3000500;
+function mapTransaction(tx: {
+  transactionId:   string;
+  referenceNumber?: string;
+  type:            string;
+  amount:          number;
+  status:          string;
+  description?:    string;
+  createdAt:       string;
+}): RecentTx {
+  const statusUI: TxStatusUI =
+    tx.type === "CREDIT"   ? "CREDIT"
+    : tx.status === "FAILED" ? "FAILED"
+    : "WITHDRAWAL";
 
-const RECENT_TX: RecentTx[] = [
-  { id: "WALLET-TX-1", date: "14, Jan 2023", status: "CREDIT",     desc: "Payment for plastic recyclables", amount: "CAD 1,558" },
-  { id: "WALLET-TX-2", date: "14, Jan 2023", status: "WITHDRAWAL", desc: "Withdrew via Interac",             amount: "CAD 1,558" },
-  { id: "WALLET-TX-3", date: "14, Jan 2023", status: "CREDIT",     desc: "Payment for tins",                amount: "CAD 1,558" },
-  { id: "WALLET-TX-4", date: "14, Jan 2023", status: "WITHDRAWAL", desc: "Withdrew via Interac",             amount: "CAD 1,558" },
-  { id: "WALLET-TX-5", date: "14, Jan 2023", status: "CREDIT",     desc: "Payment for tins",                amount: "CAD 1,558" },
-];
+  return {
+    id:        tx.referenceNumber ?? `RRY-${parseInt(tx.transactionId.replace(/-/g, "").slice(0, 8), 16) % 900000 + 100000}`,
+    date:      new Date(tx.createdAt).toLocaleDateString("en-CA", {
+      day: "numeric", month: "short", year: "numeric",
+    }),
+    status:    statusUI,
+    desc:      tx.description ?? "Wallet transaction",
+    amount:    `CAD ${formatAmount(tx.amount)}`,
+    rawAmount: tx.amount,
+    createdAt: tx.createdAt,
+  };
+}
 
-
-const WEEKLY_DATA = [
-  { label: "Sun", earnings: 0   },
-  { label: "Mon", earnings: 80  },
-  { label: "Tue", earnings: 45  },
-  { label: "Wed", earnings: 120 },
-  { label: "Thu", earnings: 0   },
-  { label: "Fri", earnings: 95  },
-  { label: "Sat", earnings: 60  },
-];
-
-const MONTHLY_DATA = [
-  { label: "JAN",  earnings: 0   },
-  { label: "FEB",  earnings: 193 },
-  { label: "MAR",  earnings: 0   },
-  { label: "APR",  earnings: 129 },
-  { label: "MAY",  earnings: 0   },
-  { label: "JUN",  earnings: 0   },
-  { label: "JUL",  earnings: 0   },
-  { label: "AUG",  earnings: 0   },
-  { label: "SEPT", earnings: 0   },
-  { label: "OCT",  earnings: 0   },
-  { label: "NOV",  earnings: 0   },
-  { label: "DEC",  earnings: 0   },
-];
+// ── Chart config & labels ─────────────────────────────────────────────────────
 
 const chartConfig: ChartConfig = {
   earnings: { label: "Earnings", color: "rgba(52,78,65,0.6)" },
 };
 
+const DAYS   = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEPT", "OCT", "NOV", "DEC"];
+
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+
+function WalletSkeleton() {
+  return (
+    <div className="flex flex-col gap-6 p-4 sm:p-6 lg:p-8 bg-muted/30 min-h-screen animate-pulse">
+      <div className="rounded-2xl bg-gray-300 h-44" />
+      <div className="rounded-2xl bg-gray-200 h-72" />
+      <div className="rounded-2xl bg-gray-200 h-64" />
+    </div>
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 function CustomerWallet() {
   const navigate = useNavigate();
-  const [visible, setVisible]           = useState(true);
-  const [chartTab, setChartTab]         = useState<"weekly" | "monthly">("weekly");
-  const [withdrawOpen, setWithdrawOpen] = useState(false);
-  const [openDetails, setOpenDetails]   = useState(false);
+  const [visible, setVisible]                 = useState(true);
+  const [chartTab, setChartTab]               = useState<"weekly" | "monthly">("weekly");
+  const [withdrawOpen, setWithdrawOpen]       = useState(false);
+  const [openDetails, setOpenDetails]         = useState(false);
   const [selectedDetails, setSelectedDetails] = useState<TransactionDetails | null>(null);
 
+  // ── Data fetching ──────────────────────────────────────────────────────────
+
+  const { data: walletResult, isLoading: walletLoading } = useGetCustomerWallet();
+  const { data: txResult,     isLoading: txLoading     } = useGetWalletTransactions({ page: 1, limit: 5 });
+  const { data: currentUserResult }                       = useCurrentUser();
+
+  const wallet       = walletResult?.data;
+  const transactions = useMemo(
+    () => (txResult?.data?.data ?? []).map(mapTransaction),
+    [txResult],
+  );
+
+  // ── Chart data — bucket CREDIT transactions by day / month ────────────────
+
+  const weeklyBuckets = useMemo(() => {
+    const b: Record<string, number> = Object.fromEntries(DAYS.map((d) => [d, 0]));
+    for (const tx of txResult?.data?.data ?? []) {
+      if (tx.type !== "CREDIT") continue;
+      b[DAYS[new Date(tx.createdAt).getDay()]] += tx.amount;
+    }
+    return b;
+  }, [txResult]);
+
+  const monthlyBuckets = useMemo(() => {
+    const b: Record<string, number> = Object.fromEntries(MONTHS.map((m) => [m, 0]));
+    for (const tx of txResult?.data?.data ?? []) {
+      if (tx.type !== "CREDIT") continue;
+      b[MONTHS[new Date(tx.createdAt).getMonth()]] += tx.amount;
+    }
+    return b;
+  }, [txResult]);
+
+  const WEEKLY_DATA  = DAYS.map((label)   => ({ label, earnings: weeklyBuckets[label]  }));
+  const MONTHLY_DATA = MONTHS.map((label) => ({ label, earnings: monthlyBuckets[label] }));
+  const chartData    = chartTab === "weekly" ? WEEKLY_DATA : MONTHLY_DATA;
+
+  // ── Guards ─────────────────────────────────────────────────────────────────
+
+  if (walletLoading) return <WalletSkeleton />;
+
+  if (!wallet) {
+    return (
+      <div className="flex items-center justify-center min-h-screen p-8">
+        <p className="text-sm text-muted-foreground">Failed to load wallet. Please refresh.</p>
+      </div>
+    );
+  }
+
+  // ── Handlers ───────────────────────────────────────────────────────────────
+
   const handleViewMore = (tx: RecentTx) => {
+    const userName = currentUserResult?.data?.name ?? "You";
+    const time = new Date(tx.createdAt).toLocaleTimeString("en-CA", {
+      hour: "2-digit", minute: "2-digit",
+    });
     setSelectedDetails({
-      amount: tx.amount,
-      currency: "CAD",
-      status: tx.status,
-      date: tx.date,
-      time: "10:00am",
-      sender: "Shahnaz Recycle",
-      receiver: "Jane Doe",
-      fees: "0.00 CAD",
-      reference: tx.id,
+      amount:    formatAmount(tx.rawAmount),
+      currency:  "CAD",
+      status:    tx.status,
+      date:      tx.date,
+      time,
+      sender:    tx.status === "CREDIT"
+        ? (tx.desc.startsWith("Payout from ") ? tx.desc.replace("Payout from ", "") : "Regina Recycle")
+        : userName,
+      receiver:  tx.status === "CREDIT" ? userName
+        : tx.desc.startsWith("Interac withdrawal to ") ? tx.desc.replace("Interac withdrawal to ", "")
+        : tx.desc.startsWith("Bank withdrawal to ")    ? tx.desc.replace("Bank withdrawal to ", "")
+        : "Bank Transfer",
+      fees:      "0.00 CAD",
+      reference: tx.id,  // already mapped to referenceNumber in mapTransaction
     });
     setOpenDetails(true);
   };
+
+  // ── Columns ────────────────────────────────────────────────────────────────
 
   const columns: ColumnDef<RecentTx>[] = [
     {
@@ -132,7 +206,7 @@ function CustomerWallet() {
     },
   ];
 
-  const chartData = chartTab === "weekly" ? WEEKLY_DATA : MONTHLY_DATA;
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div className="flex flex-col gap-6 p-4 sm:p-6 lg:p-8 bg-muted/30 min-h-screen">
@@ -153,9 +227,9 @@ function CustomerWallet() {
         <div className="mt-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div className="flex items-baseline gap-2">
             <span className="text-4xl font-bold">
-            {visible ? `$${BALANCE.toFixed(2)}` : (
-              <>$<span className="text-2xl self-center tracking-widest leading-none">*******</span></>
-            )}
+              {visible ? `$${formatAmount(wallet.balance)}` : (
+                <>$<span className="text-2xl self-center tracking-widest leading-none">*******</span></>
+              )}
             </span>
             <span className="text-sm font-bold">CAD</span>
           </div>
@@ -211,7 +285,7 @@ function CustomerWallet() {
 
       {/* Recent transactions */}
       <DataTable
-        data={RECENT_TX}
+        data={txLoading ? [] : transactions}
         columns={columns}
         rowKey={(r) => r.id}
         title="Recent Transaction"
@@ -221,15 +295,16 @@ function CustomerWallet() {
             onClick={() => navigate(Routes.transactionhistory)}
             className="text-sm font-semibold text-primary hover:underline flex items-center gap-1 whitespace-nowrap"
           >
-            View All <ChevronRight className="w-4 h-4"/>
+            View All <ChevronRight className="w-4 h-4" />
           </button>
         }
         showTabs={false}
         showPagination={false}
+        emptyText={txLoading ? "Loading..." : "No transactions yet"}
         minHeight="0px"
       />
 
-      <WithdrawModal isOpen={withdrawOpen} onClose={() => setWithdrawOpen(false)} />
+      <WithdrawModal isOpen={withdrawOpen} onClose={() => setWithdrawOpen(false)} availableBalance={wallet.balance}/>
       <TransactionDetailsModal
         open={openDetails}
         onClose={() => { setOpenDetails(false); setSelectedDetails(null); }}
@@ -238,4 +313,5 @@ function CustomerWallet() {
     </div>
   );
 }
-export default CustomerWallet
+
+export default CustomerWallet;

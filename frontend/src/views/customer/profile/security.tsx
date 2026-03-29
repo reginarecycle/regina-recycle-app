@@ -7,10 +7,16 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { DeleteAccountBanner } from "@/components/shared/DeleteAccountBanner";
 import { DeleteAccountDialog } from "@/components/shared/DeleteAccountDialog";
+import { useCheckDeleteEligibility, useDeleteUserAccount } from "@/api-hooks/useUsers";
+import { useChangePassword } from "@/api-hooks/useAuth";
+import { toast } from 'sonner';
 
 const ProfileSecurity = () => {
+   const [showSaving, setShowSaving] = useState(false);
+  const { data: deleteEligibility } = useCheckDeleteEligibility();
+  const { mutate: deleteUserAccount } = useDeleteUserAccount();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
+  const { mutate: changePassword} = useChangePassword();
   const {
     register: registerPassword,
     handleSubmit: handleSubmitPassword,
@@ -18,13 +24,33 @@ const ProfileSecurity = () => {
     reset: resetPassword,
   } = useForm<ChangePasswordFormValues>({
     resolver: zodResolver(changePasswordSchema),
-    mode: "onChange",
+    mode: "onBlur",
   });
 
-  const onSubmitPassword = (data: ChangePasswordFormValues) => {
-    console.log("Password change:", data);
-    resetPassword();
-  };
+const onSubmitPassword = (data: ChangePasswordFormValues) => {
+  setShowSaving(true);
+
+  changePassword(
+    {
+      currentPassword: data.currentPassword,
+      newPassword: data.newPassword,
+    },
+    {
+      onSuccess: () => {
+        setTimeout(() => {
+          resetPassword();
+          setShowSaving(false);
+            toast.success(
+             " Password updated successfully"
+            )
+        }, 800);
+      },
+      onError: () => {
+        setShowSaving(false);
+      },
+    }
+  );
+};
 
   return (
     <section className="mt-0 p-8">
@@ -80,9 +106,13 @@ const ProfileSecurity = () => {
           <Button
             type="submit"
             className="w-full sm:w-[174px] h-11 min-w-0 bg-primary hover:bg-primary/90 disabled:opacity-60"
-            disabled={!passwordIsDirty}
+            disabled={!passwordIsDirty || showSaving}
           >
-            Update Password
+            {showSaving ? (
+           <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            ) : (
+            "Update Password"
+            )}
           </Button>
         </div>
       </form>
@@ -90,7 +120,20 @@ const ProfileSecurity = () => {
       <Separator className="my-8" />
 
       <DeleteAccountBanner
-        onDelete={() => setDeleteDialogOpen(true)}
+        onDelete={() => {
+          if (deleteEligibility?.data?.canDelete) {
+            setDeleteDialogOpen(true);
+          } else {
+            const d = deleteEligibility?.data as any;
+            if (d?.pendingPickups > 0) {
+              toast.error("You have pending or active pickups. Please wait for them to complete before deleting your account.");
+            } else if (d?.walletBalance > 0) {
+              toast.error("You have a wallet balance. Please withdraw all funds before deleting your account.");
+            } else {
+              toast.error("Your account cannot be deleted at this time. Please contact support.");
+            }
+          }
+        }}
         imageSrc="/delete-account.png"
       />
 
@@ -98,8 +141,8 @@ const ProfileSecurity = () => {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={() => {
-          console.log("Account deleted");
-          // TODO: call your delete account API here
+       deleteUserAccount();
+       setDeleteDialogOpen(false);
         }}
       />
     </section>
