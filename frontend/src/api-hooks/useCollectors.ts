@@ -235,6 +235,7 @@ export interface CollectorPickupsQuery {
   limit?: number;
   startDate?: string;
   endDate?: string;
+  isCompatible?: boolean;
 }
 
 export interface CollectorPickupStats {
@@ -453,11 +454,12 @@ export const useGetCollectorPickupRequests = (query?: CollectorPickupsQuery, ena
   if (query?.limit) params.append('limit', String(query.limit));
   if (query?.startDate) params.append('startDate', query.startDate);
   if (query?.endDate) params.append('endDate', query.endDate);
+  if (query?.isCompatible !== undefined) params.append('isCompatible', String(query.isCompatible));
   const qs = params.toString();
   return useGetOne<CollectorPickupsPaginated>(
     pickupRequestKeys.list(query),
     `/pickups/collector${qs ? `?${qs}` : ''}`,
-    { enabled },
+    { enabled, refetchOnMount: "always" },
   );
 };
 

@@ -1,4 +1,5 @@
 import RRLogo from "@/assets/auth-logo.svg?react";
+import RRMLogo from "@/assets/rrlogo.svg?react";
 import { Button } from "../ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -26,7 +27,8 @@ export default function AuthNav({ link, text }: IAuthNavProps) {
         )}
       >
         <Link to={Routes.base}>
-          <RRLogo className="text-white max-lg:text-primary cursor-pointer" />
+          <RRLogo className="max-xl:hidden lg:text-white max-lg:text-primary cursor-pointer" />
+          <RRMLogo className="xl:hidden w-auto" />
         </Link>
         <Button size="lg" text={text} onClick={() => navigate(link)} />
       </div>

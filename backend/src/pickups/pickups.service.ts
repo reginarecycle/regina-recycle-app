@@ -257,7 +257,7 @@ export class PickupsService {
 
   // COLLECTOR: Get pickups scoped to the logged-in collector (with isCompatible)
   async getCollectorPickups(collectorId: string, query: PickupQueryDto) {
-    const { page = 1, limit = 10, search, status, startDate, endDate } = query;
+    const { page = 1, limit = 10, search, status, startDate, endDate, isCompatible } = query;
     const { skip, take } = getPaginationParams(page, limit);
 
     const validStatus = status && Object.values(PickupStatus).includes(status as PickupStatus)
@@ -273,10 +273,12 @@ export class PickupsService {
         select: { pickupId: true },
       });
       const rejectedIds = rejected.map((r) => r.pickupId);
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
       where = {
         status: PickupStatus.PENDING,
         collectorUserId: null,
-        scheduledAt: { gte: new Date() },
+        scheduledAt: { gte: startOfToday },
         ...(rejectedIds.length > 0 ? { pickupId: { notIn: rejectedIds } } : {}),
       };
     } else {
@@ -284,9 +286,12 @@ export class PickupsService {
     }
 
     if (startDate || endDate) {
+      // Merge with any existing scheduledAt constraints (e.g. PENDING's gte: new Date())
+      // endDate is treated as end-of-day so same-day pickups are included
       where.scheduledAt = {
+        ...(where.scheduledAt ?? {}),
         ...(startDate && { gte: new Date(startDate) }),
-        ...(endDate && { lte: new Date(endDate) }),
+        ...(endDate && { lte: new Date(`${endDate}T23:59:59.999Z`) }),
       };
     }
 
@@ -297,7 +302,29 @@ export class PickupsService {
       ];
     }
 
-    const [pickups, total, activePricing] = await Promise.all([
+    // Fetch active pricing first so we can filter by compatibility in the DB query
+    const activePricing = await this.prisma.collectorPricing.findMany({
+      where: { collectorUserId: collectorId, status: 'ACTIVE' },
+      select: { materialId: true, basePrice: true },
+    });
+    const activeMaterialIds = activePricing.map((p) => p.materialId);
+
+    if (isCompatible === true) {
+      where.items = {
+        every: { materialId: { in: activeMaterialIds } },
+      };
+      // also ensure the pickup has at least one item
+      where.AND = [
+        ...(where.AND ?? []),
+        { items: { some: {} } },
+      ];
+    } else if (isCompatible === false) {
+      where.items = {
+        some: { materialId: { notIn: activeMaterialIds } },
+      };
+    }
+
+    const [pickups, total] = await Promise.all([
       this.prisma.pickup.findMany({
         where,
         include: {
@@ -311,13 +338,9 @@ export class PickupsService {
         take,
       }),
       this.prisma.pickup.count({ where }),
-      this.prisma.collectorPricing.findMany({
-        where: { collectorUserId: collectorId, status: 'ACTIVE' },
-        select: { materialId: true, basePrice: true },
-      }),
     ]);
 
-    const activeMaterialIds = new Set(activePricing.map((p) => p.materialId));
+    const activeMaterialIdSet = new Set(activeMaterialIds);
     const pricingMap = new Map(
       activePricing.map((p) => [p.materialId, Number(p.basePrice)]),
     );
@@ -326,7 +349,7 @@ export class PickupsService {
       ...pickup,
       isCompatible:
         pickup.items.length > 0 &&
-        pickup.items.every((item) => activeMaterialIds.has(item.materialId)),
+        pickup.items.every((item) => activeMaterialIdSet.has(item.materialId)),
       items: pickup.items.map((item) => ({
         ...item,
         unitPrice: pricingMap.get(item.materialId) ?? 0,
@@ -442,7 +465,9 @@ export class PickupsService {
       );
     }
 
-    if (pickup.scheduledAt < new Date()) {
+    const endOfPickupDay = new Date(pickup.scheduledAt);
+    endOfPickupDay.setHours(23, 59, 59, 999);
+    if (new Date() > endOfPickupDay) {
       throw new BadRequestException('This pickup slot has already passed and can no longer be accepted');
     }
 
@@ -568,14 +593,10 @@ export class PickupsService {
       throw new ForbiddenException('Only the assigned collector can complete this pickup');
     }
 
-    // Cannot complete before the scheduled pickup day
-    const todayMidnight = new Date();
-    todayMidnight.setHours(0, 0, 0, 0);
-    const pickupDayMidnight = new Date(pickup.scheduledAt);
-    pickupDayMidnight.setHours(0, 0, 0, 0);
-    if (todayMidnight < pickupDayMidnight) {
+    // Cannot complete before the scheduled pickup time
+    if (new Date() < new Date(pickup.scheduledAt)) {
       throw new BadRequestException(
-        'Pickup cannot be completed before the scheduled day',
+        'Pickup cannot be completed before the scheduled time',
       );
     }
 

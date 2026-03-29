@@ -52,7 +52,12 @@ const COMPATIBILITY_OPTIONS = [
 ];
 
 function getDateBounds(range: DateRange, mode: "past" | "future"): { startDate?: string; endDate?: string } {
-  const toIso = (d: Date) => d.toISOString().split("T")[0];
+  const toIso = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
   const now = new Date();
   if (range === "today") return { startDate: toIso(now), endDate: toIso(now) };
   if (range === "7days") {
@@ -114,8 +119,13 @@ export default function RequestsTable() {
   const dateBounds   = getDateBounds(filters.dateRange, dateMode);
   const compatFilter = filters.statuses[0] as CompatibilityFilter | undefined;
 
+  const isCompatibleParam =
+    compatFilter === "COMPATIBLE" ? true :
+    compatFilter === "INCOMPATIBLE" ? false :
+    undefined;
+
   const { data: pickupsResult, isLoading } = useGetCollectorPickupRequests(
-    { status: STATUS_MAP[activeTab], search: search || undefined, page, limit: PAGE_SIZE, ...dateBounds },
+    { status: STATUS_MAP[activeTab], search: search || undefined, page, limit: PAGE_SIZE, ...dateBounds, isCompatible: isCompatibleParam },
   );
 
   const { data: walletResult }   = useGetCollectorWallet();
@@ -188,12 +198,8 @@ export default function RequestsTable() {
       };
     };
 
-    const rows = (pickupsResult?.data.data ?? []).map(toRow);
-    if (!compatFilter) return rows;
-    return rows.filter((r) =>
-      compatFilter === "COMPATIBLE" ? r.Compatibility === 100 : r.Compatibility !== 100,
-    );
-  }, [pickupsResult, activeTab, compatFilter]);
+    return (pickupsResult?.data.data ?? []).map(toRow);
+  }, [pickupsResult, activeTab]);
 
   const totalPages    = pickupsResult?.data.meta.totalPages ?? 1;
   const totalItems    = pickupsResult?.data.meta.total      ?? 0;
@@ -311,11 +317,7 @@ export default function RequestsTable() {
               onClick={() => {
                 setSelectedRequest(row);
                 setCompleteNote("");
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const pickupDay = new Date(row.scheduledAt);
-                pickupDay.setHours(0, 0, 0, 0);
-                if (pickupDay > today) {
+                if (new Date(row.scheduledAt) > new Date()) {
                   setTooEarlyOpen(true);
                 } else {
                   setCompleteOpen(true);
