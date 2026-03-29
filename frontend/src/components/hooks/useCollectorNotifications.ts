@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { toast } from "sonner";
 import {
   useNotificationsPreferences,
   useUpdateNotificationPreferences,
@@ -72,7 +73,10 @@ export function useCollectorNotifications() {
     updatePrefsMutation.mutate(payload, {
       onSuccess: () => {
         setSaved(prefs);
-        refetch();
+        toast.success("Notification preferences updated.");
+      },
+      onError: () => {
+        toast.error("Failed to update preferences. Please try again.");
       },
     });
   }, [prefs, refetch, updatePrefsMutation]);

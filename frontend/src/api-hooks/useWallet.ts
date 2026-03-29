@@ -103,11 +103,11 @@ export interface CollectorWithdrawPayload {
 
 // GET /wallet/customer
 export const useGetCustomerWallet = () =>
-  useGetOne<CustomerWallet>(["wallet","customer"],"/wallet/customer");
+  useGetOne<CustomerWallet>(["wallet","customer"],"/wallet/customer", { refetchInterval: 15_000 });
 
 // GET /wallet/collector
 export const useGetCollectorWallet = () =>
-  useGetOne<CollectorWallet>(["wallet", "collector"], "/wallet/collector");
+  useGetOne<CollectorWallet>(["wallet", "collector"], "/wallet/collector", { refetchInterval: 15_000 });
 
 // GET /wallet/balance
 export const useGetWalletBalance = () =>
@@ -127,7 +127,9 @@ export const useGetWalletTransactions = (query?: TransactionQuery) => {
   const qs       = params.toString();
   const endpoint = qs ? `/wallet/transactions?${qs}` : "/wallet/transactions";
 
-  return useGetOne<PaginatedTransactions>(["wallet", "transactions", query ?? {}], endpoint);
+  return useGetOne<PaginatedTransactions>(["wallet", "transactions", query ?? {}], endpoint, {
+    refetchInterval: 15_000,
+  });
 };
 
 // GET /wallet/transactions/:transactionId

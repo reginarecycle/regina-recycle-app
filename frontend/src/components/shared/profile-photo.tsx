@@ -14,6 +14,7 @@ export function ProfilePhoto({
     // Get initials from name
     const initials = name
         .split(" ")
+        .filter((word) => word.length > 0)
         .map((word) => word[0].toUpperCase())
         .slice(0, 2)
         .join("");
