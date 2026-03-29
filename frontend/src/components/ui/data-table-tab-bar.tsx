@@ -65,7 +65,7 @@ export function DataTableTabBar({
     <div
       role="tablist"
       className={cn(
-        "flex border-b border-border px-6 overflow-x-auto scrollbar-none",
+        "flex border-b border-border px-3 sm:px-6 pt-3 overflow-x-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none]",
         className
       )}
     >
@@ -83,7 +83,7 @@ export function DataTableTabBar({
             type="button"
             onClick={() => !tab.disabled && navigate(tab.href)}
             className={cn(
-              "relative py-3 px-1 mr-7 text-sm border-b-2 -mb-px transition-colors",
+              "relative py-3 px-1 mr-4 sm:mr-7 text-sm border-b-2 -mb-px transition-colors",
               "shrink-0 whitespace-nowrap outline-none",
               "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 rounded-t",
               isActive

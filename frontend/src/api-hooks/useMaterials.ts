@@ -1,4 +1,4 @@
-import { useGetOne } from "@/lib/queryHelpers";
+import { useGetOne, useGetInfiniteList } from "@/lib/queryHelpers";
 
 export interface Material {
   materialId: string;
@@ -6,6 +6,7 @@ export interface Material {
   type: string;
   photoUrl?: string;
   description?: string;
+  tips?: string;
   co2Saved?: number;
   waterSaved?: number;
 }
@@ -46,3 +47,32 @@ export const useGetMaterialById = (id: string) =>
   useGetOne<Material>(["materials", "detail", id], `/materials/${id}`, {
     enabled: Boolean(id),
   });
+
+export const useGetMaterialsInfinite = (query?: Omit<MaterialQuery, "page">) => {
+  const buildEndpoint = (page: number) => {
+    const params = new URLSearchParams();
+    if (query?.search) params.append("search", query.search);
+    if (query?.type) params.append("type", query.type);
+    params.append("limit", String(query?.limit ?? 20));
+    params.append("page", String(page));
+    return `/materials?${params.toString()}`;
+  };
+
+  return useGetInfiniteList<PaginatedMaterials>(
+    ["materials", "infinite", query ?? {}],
+    buildEndpoint
+  );
+};
+
+export interface MaterialAveragePrice {
+  minPrice: number | null;
+  maxPrice: number | null;
+  avgPrice: number | null;
+}
+
+export const useGetMaterialAveragePrice = (materialId: string) =>
+  useGetOne<MaterialAveragePrice>(
+    ["materials", "averagePrice", materialId],
+    `/collectors/materials/${materialId}/averagePrice`,
+    { enabled: Boolean(materialId) }
+  );

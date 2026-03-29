@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useSchedule } from "@/components/scheduleView/ScheduleContext";
@@ -24,6 +24,7 @@ const SLOT_HOURS: Record<string, number> = {
   "slot-2": 11,
   "slot-3": 13,
   "slot-4": 15,
+  "slot-5": 17, // TODO: remove after testing
 };
 
 export default function SchedulePickupFlow() {
@@ -34,6 +35,10 @@ export default function SchedulePickupFlow() {
 
   const [step, setStep] = useState<Step>(1);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => {
+    return () => { resetScheduleData(); };
+  }, []);
 
   const handleConfirm = async () => {
     try {
@@ -63,7 +68,11 @@ export default function SchedulePickupFlow() {
         };
       }
 
-      const slotHour = SLOT_HOURS[scheduleData.slotId ?? ""] ?? 9;
+      const slotHour =
+        SLOT_HOURS[scheduleData.slotId ?? ""] ??
+        (scheduleData.slotId?.startsWith("slot-dynamic-")
+          ? parseInt(scheduleData.slotId.replace("slot-dynamic-", ""), 10)
+          : 9);
       const [y, m, d] = (scheduleData.pickupDate ?? "").split("-").map(Number);
       const scheduledAt = new Date(y, m - 1, d, slotHour, 0, 0).toISOString();
 
@@ -78,7 +87,10 @@ export default function SchedulePickupFlow() {
         scheduledAt,
         estimatedCost: scheduleData.estCost,
         items,
+        note: scheduleData.note || undefined,
       }));
+
+      if (scheduleData.photo) formData.append("photo", scheduleData.photo);
 
       await createPickup(formData);
       toast.success("Pickup scheduled successfully!");
@@ -99,7 +111,7 @@ export default function SchedulePickupFlow() {
 
   return (
     <div className="flex min-h-screen flex-col px-4 sm:px-6 py-4">
-      <div className="flex-1 space-y-4 pb-24 sm:pb-27.5">
+      <div className="flex-1 space-y-4 pb-36 sm:pb-32">
 
         {step === 1 ? (
           <Step1Items onNext={() => setStep(2)} />

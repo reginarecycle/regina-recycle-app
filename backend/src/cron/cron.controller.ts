@@ -26,6 +26,14 @@ export class CronController {
     return { ok: true };
   }
 
+  @Post('cancel-expired-pickups')
+  @HttpCode(200)
+  async cancelExpiredPickups(@Headers('authorization') auth: string) {
+    this.verifySecret(auth);
+    await this.notificationsCron.cancelExpiredPickups();
+    return { ok: true };
+  }
+
   @Post('refresh-tip')
   @HttpCode(200)
   async refreshTip(@Headers('authorization') auth: string) {

@@ -1,14 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreVertical, EyeOff, Trash2 } from "lucide-react";
-import { getTypeStyles, formatTimestamp } from "@/lib/utils";
+import { getTypeStyles, formatTimestamp, formatFullDate } from "@/lib/utils";
 import type { Notification } from "@/types/notification";
 
 interface NotificationCardProps {
   notification: Notification;
-  onMarkAsRead:   (id: string) => void;
+  onMarkAsRead: (id: string) => void;
   onMarkAsUnread: (id: string) => void;
-  onDelete:       (id: string) => void;
+  onDelete: (id: string) => void;
 }
 
 export function NotificationCard({
@@ -26,8 +26,7 @@ export function NotificationCard({
         ${notification.link ? "cursor-pointer hover:shadow-sm" : ""}
       `}
       onClick={() => {
-        if (notification.link && !notification.read) onMarkAsRead(notification.id);
-        // TODO: navigate to notification.link
+        if (!notification.read) onMarkAsRead(notification.id);
       }}
     >
       {/* Unread indicator */}
@@ -46,7 +45,12 @@ export function NotificationCard({
         {/* Content */}
         <div className="flex-1 min-w-0">
           <h4 className="font-semibold text-sm text-foreground mb-1">{notification.title}</h4>
-          <p className="text-sm text-muted-foreground line-clamp-2">{notification.message}</p>
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            {notification.message.replace(
+              /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z/,
+              (match) => formatFullDate(new Date(match))
+            )}
+          </p>
         </div>
       </div>
 

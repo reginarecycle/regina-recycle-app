@@ -14,40 +14,48 @@ interface StatCard {
   badgeIcon: LucideIcon;
   badge: string;
   valueColor?: string;
-  prefix?: string;
 }
 
 interface WalletStatsProps {
   totalPayouts: number;
   netFlow: number;
+  payoutsChange?: number;
+  netFlowChange?: number;
 }
 
-export function WalletStats({ totalPayouts, netFlow }: WalletStatsProps) {
+export function WalletStats({
+  totalPayouts,
+  netFlow,
+  payoutsChange = 0,
+  netFlowChange = 0,
+}: WalletStatsProps) {
+  const formatChange = (val: number) => `${val >= 0 ? "+" : ""}${val.toFixed(1)}%`;
+
   const cards: StatCard[] = [
     {
-      label: "Total Payouts",
-      value: `$${totalPayouts.toLocaleString("en-CA", { minimumFractionDigits: 2 })}`,
-      subtitle: "This month",
-      icon: ArrowDownRight,
-      iconBg: "bg-yellow-100",
-      iconColor: "text-yellow-600",
-      badgeBg: "bg-yellow-100",
-      badgeText: "text-yellow-700",
-      badgeIcon: ArrowDownRight,
-      badge: "12%",
+      label:      "Total Payouts",
+      value:      `$${totalPayouts.toLocaleString("en-CA", { minimumFractionDigits: 2 })}`,
+      subtitle:   "This month",
+      icon:       ArrowDownRight,
+      iconBg:     "bg-yellow-100",
+      iconColor:  "text-yellow-600",
+      badgeBg:    "bg-yellow-100",
+      badgeText:  "text-yellow-700",
+      badgeIcon:  ArrowDownRight,
+      badge:      formatChange(payoutsChange),
     },
     {
-      label: "Net Flow",
-      value: `+$${netFlow.toLocaleString("en-CA", { minimumFractionDigits: 2 })}`,
-      subtitle: "Last 30 days",
-      icon: TrendingUp,
-      iconBg: "bg-green-100",
-      iconColor: "text-green-600",
-      badgeBg: "bg-green-100",
-      badgeText: "text-green-700",
-      badgeIcon: TrendingUp,
-      badge: "8%",
-      valueColor: "text-green-600",
+      label:      "Net Flow",
+      value:      `${netFlow >= 0 ? "+" : ""}$${Math.abs(netFlow).toLocaleString("en-CA", { minimumFractionDigits: 2 })}`,
+      subtitle:   "Last 30 days",
+      icon:       TrendingUp,
+      iconBg:     "bg-green-100",
+      iconColor:  "text-green-600",
+      badgeBg:    "bg-green-100",
+      badgeText:  "text-green-700",
+      badgeIcon:  TrendingUp,
+      badge:      formatChange(netFlowChange),
+      valueColor: netFlow >= 0 ? "text-green-600" : "text-red-500",
     },
   ];
 

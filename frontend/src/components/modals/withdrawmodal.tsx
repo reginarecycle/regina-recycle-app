@@ -1,37 +1,59 @@
-
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { withdrawSchema, type WithdrawFormValues } from "@/lib/validation";
+import { toast } from "sonner";
+import { createWithdrawSchema, type WithdrawFormValues } from "@/lib/validation";
 import InputField from "@/components/forms/input-field";
+import { useCustomerWithdraw } from "@/api-hooks/useCustomerWallet";
+import { formatAmount } from "@/lib/utils";
 
 type WithdrawModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen:           boolean;
+  onClose:          () => void;
+  availableBalance: number;
 };
 
-const AVAILABLE_BALANCE = 245.5;
+export default function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawModalProps) {
+  const schema = useMemo(() => createWithdrawSchema(availableBalance), [availableBalance]);
 
-export default function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors, isDirty },
   } = useForm<WithdrawFormValues>({
-    resolver: zodResolver(withdrawSchema),
-    mode: "onBlur", 
+    resolver: zodResolver(schema),
+    mode: "onBlur",
   });
 
-  if (!isOpen) return null;
+  const { mutate: withdraw, isPending, isSuccess, isError, error, reset: resetMutation } = useCustomerWithdraw();
 
   const handleClose = () => {
     reset();
+    resetMutation();
     onClose();
   };
 
-  const onSubmit = (data: WithdrawFormValues) => {
-    console.log(data);
+  useEffect(() => {
+    if (!isSuccess) return;
+    toast.success("Withdrawal request submitted successfully.");
     handleClose();
+  }, [isSuccess]);
+
+  useEffect(() => {
+    if (!isError || !error) return;
+    toast.error(error.message ?? "Withdrawal failed. Please try again.");
+  }, [isError, error]);
+
+  if (!isOpen) return null;
+
+  const onSubmit = (data: WithdrawFormValues) => {
+    withdraw({
+      amount:           Number(data.amount),
+      interacEmail:     data.recipientEmail,
+      securityQuestion: data.securityQuestion ?? "",
+      securityAnswer:   data.securityAnswer   ?? "",
+    });
   };
 
   return (
@@ -83,8 +105,7 @@ export default function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
               error={errors.amount?.message}
               placeholder="Enter an amount"
               required
-              helperText={`Available: $${AVAILABLE_BALANCE.toFixed(2)}`}
-            />
+              helperText={`Available: $${formatAmount(Number(availableBalance))}`}            />
 
             {/* Recipient Email */}
             <InputField
@@ -153,7 +174,7 @@ export default function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
 
             <button
               type="submit"
-              disabled={!isDirty}
+              disabled={!isDirty || isPending}
               className="
                 h-[52px] w-[240px]
                 rounded-[8px]
@@ -163,7 +184,7 @@ export default function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
                 disabled:opacity-50
               "
             >
-              Withdraw
+              {isPending ? "Processing..." : "Withdraw"}
             </button>
           </div>
         </form>

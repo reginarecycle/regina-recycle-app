@@ -32,7 +32,7 @@ function LearnCard({ item }: { item: RecyclingItem }) {
       <div className="p-3 flex flex-col gap-2">
         <div>
           <p className="text-sm font-bold text-black">{item.title}</p>
-          <p className="text-xs text-muted-foreground">{item.item}</p>
+          <p className="text-xs text-muted-foreground">{item.description}</p>
         </div>
         <div className="bg-card flex items-center gap-2 px-2 py-2 rounded-lg">
           ♻️
