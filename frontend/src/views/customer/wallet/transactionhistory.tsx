@@ -115,7 +115,6 @@ export default function TransactionHistory() {
     const time = new Date(tx.createdAt).toLocaleTimeString("en-CA", {
       hour: "2-digit", minute: "2-digit",
     });
-    console.log(tx, "my transaction")
     const sender =
       tx.status === "CREDIT"
         ? tx.description.startsWith("Payout from ")

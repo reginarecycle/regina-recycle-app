@@ -878,7 +878,6 @@ export class PickupsService {
       { id: "slot-2", label: "11:00 AM - 1:00 PM", startHour: 11 },
       { id: "slot-3", label: "1:00 PM - 3:00 PM", startHour: 13 },
       { id: "slot-4", label: "3:00 PM - 5:00 PM", startHour: 15 },
-
     ];
 
     const MAX_PER_SLOT = 3;
