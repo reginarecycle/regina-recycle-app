@@ -644,7 +644,7 @@ export class PickupsService {
               type: 'CREDIT',
               amount: collectorDebit,
               status: 'COMPLETED',
-              description: `Pickup completed – ${pickup.items.length} item(s) collected`,
+              description: `Payout from ${pickup.collector?.name ?? 'Collector'}`,
               referenceType: 'PICKUP',
               referenceId: pickupId,
             },
@@ -878,8 +878,6 @@ export class PickupsService {
       { id: "slot-2", label: "11:00 AM - 1:00 PM", startHour: 11 },
       { id: "slot-3", label: "1:00 PM - 3:00 PM", startHour: 13 },
       { id: "slot-4", label: "3:00 PM - 5:00 PM", startHour: 15 },
-      // TODO: remove slot-5 after testing
-      { id: "slot-5", label: "5:00 PM - 7:00 PM", startHour: 17 },
     ];
 
     const MAX_PER_SLOT = 3;
