@@ -53,7 +53,9 @@ export function useNotifications(
     userId?: string,
     query?: NotificationQueryParams
 ) {
-    const { data, ...apiState } = useNotificationsApi(query);
+    const [page, setPage] = useState(1);
+
+    const { data, ...apiState } = useNotificationsApi({ ...query, page, limit: 20 });
     const { data: unreadData } = useUnreadNotificationCount();
     const markAllAsReadMutation = useMarkAllNotificationsAsRead();
 
@@ -63,6 +65,8 @@ export function useNotifications(
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [viewMode, setViewMode] = useState<ViewMode>("all");
     const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
+
+    const totalPages = data?.data?.meta?.totalPages ?? 1;
 
     useEffect(() => {
         if (!data?.data?.data) return;
@@ -156,5 +160,8 @@ export function useNotifications(
         markAllAsRead,
         clearAll,
         clearRead,
+        page,
+        setPage,
+        totalPages,
     };
 }

@@ -5,7 +5,6 @@ import AuthImage from "@/assets/images/authimage.png";
 import CityImage from "@/assets/city_of_regina.jpg";
 import CollectorsImage from "@/assets/collectors.jpg";
 import GreenBinImage from "@/assets/greenbin_plastic.png";
-import RRLogo from "@/assets/rrlogo.svg?react";
 import AuthNav from "../shared/authnav";
 import { Routes } from "@/routes/routes";
 
@@ -87,7 +86,6 @@ const AuthLayout = () => {
         </div>
 
         <div className="flex-1 bg-white flex flex-col items-center justify-center pt-20 sm:pt-52 2xl:mt-10 py-12 px-4 sm:px-8 lg:px-12 container overflow-y-scroll">
-          <RRLogo className="xl:hidden mb-6 h-10 w-auto" />
           <Outlet />
 
           <p className="text-sm font-medium text-center mt-12 lg:mt-4">

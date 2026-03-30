@@ -369,8 +369,9 @@ model WithdrawRequest {
 
   bankName           String?
   accountHolderName  String?
-  accountNumber      String?  
+  accountNumber      String?
   routingNumber      String?
+  institutionNumber  String?
 
   withdrawType       WithdrawType @default(INTERAC) 
   amount             Decimal  @db.Decimal(14,2)

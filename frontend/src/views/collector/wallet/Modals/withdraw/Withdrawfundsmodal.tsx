@@ -25,7 +25,8 @@ export const WithdrawFundsModal: React.FC<WithdrawFundsModalProps> = ({
     accountHolder: "",
     bankName: "",
     accountNumber: "",
-    routingNumber: "",
+    transitNumber: "",
+    institutionNumber: "",
   });
 
   const { mutateAsync: withdraw, isPending } = useCollectorWithdraw();
@@ -35,7 +36,7 @@ export const WithdrawFundsModal: React.FC<WithdrawFundsModalProps> = ({
     setTimeout(() => {
       setStep(1);
       setAmount(null);
-      setBankData({ accountHolder: "", bankName: "", accountNumber: "", routingNumber: "" });
+      setBankData({ accountHolder: "", bankName: "", accountNumber: "", transitNumber: "", institutionNumber: "" });
     }, 300);
   };
 
@@ -45,7 +46,8 @@ export const WithdrawFundsModal: React.FC<WithdrawFundsModalProps> = ({
         accountHolderName: bankData.accountHolder,
         bankName: bankData.bankName,
         accountNumber: bankData.accountNumber,
-        routingNumber: bankData.routingNumber,
+        routingNumber: bankData.transitNumber,
+        institutionNumber: bankData.institutionNumber,
         amount: amount ?? 0,
       });
       setStep(4);
