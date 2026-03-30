@@ -97,6 +97,7 @@ export interface CollectorWithdrawPayload {
   bankName:          string;
   accountNumber:     string;
   routingNumber:     string;
+  institutionNumber: string;
 }
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────

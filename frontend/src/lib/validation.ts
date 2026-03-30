@@ -202,12 +202,13 @@ export const withdrawBankSchema = z.object({
     .regex(/^[^0-9]*$/, "Bank name cannot contain numbers"),
   accountNumber: z
     .string()
-    .min(4, "Account number must be at least 4 digits")
-    .regex(/^\d+$/, "Account number must contain digits only"),
-  routingNumber: z
+    .regex(/^\d{7}$/, "Account number must be exactly 7 digits"),
+  transitNumber: z
     .string()
-    .min(4, "Routing number must be at least 4 digits")
-    .regex(/^\d+$/, "Routing number must contain digits only"),
+    .regex(/^\d{5}$/, "Transit number must be exactly 5 digits"),
+  institutionNumber: z
+    .string()
+    .regex(/^\d{3}$/, "Institution number must be exactly 3 digits"),
 });
 
 export type WithdrawAmountFormValues = z.infer<typeof withdrawAmountSchema>;

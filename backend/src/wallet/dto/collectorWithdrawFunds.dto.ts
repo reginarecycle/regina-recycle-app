@@ -23,21 +23,23 @@ export class CollectorWithdrawFundsDto {
   @IsNotEmpty()
   bankName: string;
 
-  @ApiProperty({ example: '123456789012' })
+  @ApiProperty({ example: '1234567' })
   @IsString()
   @IsNotEmpty()
-  @Matches(/^\d+$/, { message: 'Account number must contain digits only' })
-  @MinLength(6)
-  @MaxLength(17)
+  @Matches(/^\d{7}$/, { message: 'Account number must be exactly 7 digits' })
   accountNumber: string;
 
-  @ApiProperty({ example: '021000021' })
+  @ApiProperty({ example: '12345' })
   @IsString()
   @IsNotEmpty()
-  @Matches(/^\d+$/, { message: 'Routing number must contain digits only' })
-  @MinLength(5)
-  @MaxLength(9)
+  @Matches(/^\d{5}$/, { message: 'Transit number must be exactly 5 digits' })
   routingNumber: string;
+
+  @ApiProperty({ example: '001' })
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^\d{3}$/, { message: 'Institution number must be exactly 3 digits' })
+  institutionNumber: string;
 
   @ApiProperty({ example: 150.75 })
   @Type(() => Number)
