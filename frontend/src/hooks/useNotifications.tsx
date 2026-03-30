@@ -68,6 +68,7 @@ export function useNotifications(
 
     const totalPages = data?.data?.meta?.totalPages ?? 1;
 
+
     useEffect(() => {
         if (!data?.data?.data) return;
         setNotifications(data.data.data.map(mapToFrontend));
