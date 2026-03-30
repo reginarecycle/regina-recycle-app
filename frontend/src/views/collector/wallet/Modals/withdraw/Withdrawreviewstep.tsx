@@ -41,9 +41,11 @@ export const WithdrawReviewStep: React.FC<WithdrawReviewStepProps> = ({
             Bank Account
           </span>
           {[
-            { label: "Account Holder:", value: bankData.accountHolder },
-            { label: "Bank:",           value: bankData.bankName       },
-            { label: "Account:",        value: bankData.accountNumber  },
+            { label: "Account Holder:", value: bankData.accountHolder    },
+            { label: "Bank:",           value: bankData.bankName          },
+            { label: "Account No:",     value: bankData.accountNumber     },
+            { label: "Transit No:",     value: bankData.transitNumber     },
+            { label: "Institution No:", value: bankData.institutionNumber },
           ].map(({ label, value }) => (
             <div key={label} className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">{label}</span>

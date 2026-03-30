@@ -198,7 +198,7 @@ export default function TransactionHistory() {
         data={isLoading ? [] : filtered}
         columns={columns}
         rowKey={(r) => r.id}
-        title="Transaction History"
+        title="Recent Transaction History"
         headerRight={
           <DataTableHeaderControls
             search={search}

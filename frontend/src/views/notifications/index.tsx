@@ -5,6 +5,8 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useCurrentUser } from "@/api-hooks/useAuth";
 import { customerTabs, collectorTabs } from "@/constants/data";
 import type { UserRole } from "@/types/notification";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface NotificationsPageProps {
   userRole?: UserRole;
@@ -37,6 +39,9 @@ export default function NotificationsPage({
     clearRead,
     isLoading: notificationsLoading,
     error: notificationsError,
+    page,
+    setPage,
+    totalPages,
   } = useNotifications(userId);
 
   const tabs = userRole === "customer" ? customerTabs : collectorTabs;
@@ -66,14 +71,46 @@ export default function NotificationsPage({
             </p>
           </div>
         ) : (
-          <NotificationTabs
-            tabs={tabs}
-            notifications={isLoading ? [] : notifications}
-            processed={isLoading ? [] : processedNotifications}
-            onMarkAsRead={markAsRead}
-            onMarkAsUnread={markAsUnread}
-            onDelete={deleteNotification}
-          />
+          <>
+            <NotificationTabs
+              tabs={tabs}
+              notifications={isLoading ? [] : notifications}
+              processed={isLoading ? [] : processedNotifications}
+              onMarkAsRead={markAsRead}
+              onMarkAsUnread={markAsUnread}
+              onDelete={deleteNotification}
+            />
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-3 px-6 py-4 border-t border-border">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1 || isLoading}
+                  className="flex items-center gap-1"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Previous
+                </Button>
+
+                <span className="text-sm text-muted-foreground">
+                  Page {page} of {totalPages}
+                </span>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages || isLoading}
+                  className="flex items-center gap-1"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </Card>
     </div>

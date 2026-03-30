@@ -901,6 +901,9 @@ export class PickupsService {
       { id: "slot-2", label: "11:00 AM - 1:00 PM", startHour: 11 },
       { id: "slot-3", label: "1:00 PM - 3:00 PM", startHour: 13 },
       { id: "slot-4", label: "3:00 PM - 5:00 PM", startHour: 15 },
+      { id: "slot-5", label: "5:00 PM - 7:00 PM", startHour: 17 },
+      { id: "slot-6", label: "7:00 PM - 9:00 PM", startHour: 19 },
+      { id: "slot-7", label: "9:00 PM - 11:00 PM", startHour: 21 },
     ];
 
     const MAX_PER_SLOT = 3;
@@ -968,7 +971,7 @@ export class PickupsService {
         const dynamicKey = `${dateKey}-${dynamicHour}`;
         const notFull = (takenCount[dynamicKey] || 0) < MAX_PER_SLOT;
         const slotEnd = new Date(year, month - 1, day, dynamicHour + 2, 0, 0, 0);
-        if (dynamicHour >= 9 && dynamicHour <= 15 && noFixedSlotAtHour && notFull && slotEnd > now) {
+        if (dynamicHour >= 9 && dynamicHour <= 21 && noFixedSlotAtHour && notFull && slotEnd > now) {
           available.push({
             id: `slot-dynamic-${dynamicHour}`,
             label: `${fmt12(dynamicHour)} – ${fmt12(dynamicHour + 2)}`,

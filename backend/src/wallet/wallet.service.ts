@@ -411,6 +411,7 @@ export class WalletService {
           accountHolderName: dto.accountHolderName,
           accountNumber: `****${dto.accountNumber.slice(-4)}`,
           routingNumber: dto.routingNumber,
+          institutionNumber: dto.institutionNumber,
           amount: dto.amount,
           status: TxStatus.COMPLETED,
           processedAt: new Date(),

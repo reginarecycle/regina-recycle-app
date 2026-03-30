@@ -20,12 +20,12 @@ const faqs: FaqItem[] = [
   {
     question: "How do I earn rewards?",
     answer:
-      "Currently, we focus on household recyclables. For furniture, please check our 'Local Centers' map for specific drop-off points that accept bulk home items.",
+      "When a collector processes your recyclables, they credit your wallet with the corresponding dollar amount based on the material type and quantity. You can then withdraw funds.",
   },
   {
     question: "How do I schedule a pickup?",
     answer:
-      "Currently, we focus on household recyclables. For furniture, please check our 'Local Centers' map for specific drop-off points that accept bulk home items.",
+      "Click on Schedule on the sidebar, select your recyclable materials and quantities, choose your address, pick a date and time, and submit. A collector in your area will accept the request and come to you.",
   },
   {
     question: "Do you accept large furniture?",

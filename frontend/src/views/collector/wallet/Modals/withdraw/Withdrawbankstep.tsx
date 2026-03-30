@@ -38,12 +38,12 @@ export const WithdrawBankStep: React.FC<WithdrawBankStepProps> = ({
           <div>
             <div className="font-semibold text-foreground text-sm">Bank Account Details</div>
             <div className="text-xs text-muted-foreground">
-              Enter your bank information for withdrawal
+              Enter your Canadian bank information for withdrawal
             </div>
           </div>
         </div>
 
-        {/* Account Holder — no numbers (enforced by zod regex) */}
+        {/* Account Holder */}
         <InputField
           label="Account Holder Name"
           register={register("accountHolder")}
@@ -52,7 +52,7 @@ export const WithdrawBankStep: React.FC<WithdrawBankStepProps> = ({
           required
         />
 
-        {/* Bank Name — no digits (enforced by zod regex) */}
+        {/* Bank Name */}
         <InputField
           label="Bank Name"
           register={register("bankName")}
@@ -61,23 +61,38 @@ export const WithdrawBankStep: React.FC<WithdrawBankStepProps> = ({
           required
         />
 
-        {/* Account Number — digits only (enforced by zod regex) */}
+        {/* Account Number — exactly 7 digits */}
         <InputField
           label="Account Number"
           register={register("accountNumber")}
           error={errors.accountNumber?.message}
-          placeholder="Enter your account number"
+          placeholder="7-digit account number"
           required
+          maxLength={7}
+          inputMode="numeric"
         />
 
-        {/* Routing Number — digits only (enforced by zod regex) */}
-        <InputField
-          label="Routing Number"
-          register={register("routingNumber")}
-          error={errors.routingNumber?.message}
-          placeholder="Enter routing number"
-          required
-        />
+        {/* Two-column row for Transit + Institution */}
+        <div className="grid grid-cols-2 gap-3">
+          <InputField
+            label="Transit Number"
+            register={register("transitNumber")}
+            error={errors.transitNumber?.message}
+            placeholder="5 digits"
+            required
+            maxLength={5}
+            inputMode="numeric"
+          />
+          <InputField
+            label="Institution Number"
+            register={register("institutionNumber")}
+            error={errors.institutionNumber?.message}
+            placeholder="3 digits"
+            required
+            maxLength={3}
+            inputMode="numeric"
+          />
+        </div>
       </div>
 
       <ModalFooter
